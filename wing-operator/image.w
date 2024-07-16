@@ -27,8 +27,10 @@ fi
     ");
 
     fs.writeFile("{imagedir}/Dockerfile", "
-    FROM ghcr.io/flant/shell-operator:latest
-    ADD pods-hook.sh /hooks
+FROM ghcr.io/flant/shell-operator:latest
+RUN apk add --no-cache npm nodejs
+RUN npm i -g winglang
+ADD pods-hook.sh /hooks
     ");
 
     Image.makeExecutable("{imagedir}/pods-hook.sh");
