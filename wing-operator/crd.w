@@ -28,8 +28,7 @@ pub class CustomResource {
     
     this.apiVersion = "{options.group}/{options.version}";
 
-    let schema = MutJson Json.parse(options.schema.asStr());
-    schema.delete("$id");
+    let schema = CustomResource.cleanupSchema(Json.parse(options.schema.asStr()));
 
     new cdk8s.ApiObject(unsafeCast({
       apiVersion: "apiextensions.k8s.io/v1",
@@ -53,11 +52,13 @@ pub class CustomResource {
             served: true,
             storage: true,
             schema: {
-              openAPIV3Schema: Json.parse(Json.stringify(schema)),
+              openAPIV3Schema: schema,
             },
           },
         ],
       }
     })) as "crd";
   }
+
+  extern "./util.js" static cleanupSchema(schema: Json): Json;
 }

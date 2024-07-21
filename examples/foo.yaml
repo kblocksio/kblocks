@@ -1,0 +1,9 @@
+apiVersion: acme.com/v1
+kind: Workload
+metadata:
+  name: my-workload
+image: hashicorp/http-echo
+replicas: 1
+port: 5678
+env:
+  ECHO_TEXT: hello, kubernetes!

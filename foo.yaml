@@ -1,6 +1,0 @@
-apiVersion: wing.cloud/v1
-kind: Workload
-metadata:
-  name: my-workload
-image: redis
-replicas: 2

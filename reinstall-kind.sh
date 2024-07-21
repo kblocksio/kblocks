@@ -1,6 +1,9 @@
 #!/bin/sh
 set -o errexit
 
+# trying to delete any existing cluster
+kind delete cluster || true
+
 # 1. Create registry container unless it already exists
 reg_name='kind-registry'
 reg_port='5001'
