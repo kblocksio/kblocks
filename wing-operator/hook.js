@@ -7,12 +7,11 @@ if (process.argv[2] === "--config") {
   process.exit(0);
 }
 
-console.error("Hook script running...");
 const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
-
 
 for (const ctx of context) {
   console.error(JSON.stringify(ctx, null, 2));
+
   if ("objects" in ctx) {
     for (const ctx2 of ctx.objects) {
       synth(ctx2);
