@@ -13,7 +13,7 @@ pub struct OperatorOptions extends crd.CustomResourceOptions {
 pub class Operator {
   new(options: OperatorOptions) {
     let kind = options.kind.lowercase();
-    let image = "localhost:5001/wing-operator:{kind}";
+    let image = "localhost:5001/wing-operator:{kind}-{util.nanoid()}";
     let namespace = options.namespace?.name;
     
     let c = new crd.CustomResource(options);

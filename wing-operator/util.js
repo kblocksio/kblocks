@@ -2,14 +2,17 @@ import { spawnSync } from "child_process";
 import { chmodSync, cpSync } from "fs";
 
 export function docker(args, cwd) {
-  return spawnSync("docker", args, { stdio: "inherit", cwd });
+  const result = spawnSync("docker", args, { stdio: "inherit", cwd });
+  if (result.status !== 0) {
+    throw new Error(`docker ${args.join(" ")} failed with status ${result.status}`);
+  }
 }
 
 export function makeExecutable(file) {
   chmodSync(file, 0o755);
 }
 
-export function copyDir(src, dest) {
+export function copy(src, dest) {
   cpSync(src, dest, { recursive: true, filter: (src) => !src.includes("node_modules") });
 }
 
