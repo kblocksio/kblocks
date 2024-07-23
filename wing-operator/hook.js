@@ -29,7 +29,7 @@ function synth(ctx) {
     "bring \".\" as lib;",
     "bring fs;",
     "let o = fs.readJson(\"/wing/obj.json\");",
-    `new lib.${obj.kind}(unsafeCast(o.get("spec"))) as \"${obj.metadata.name}\";`,
+    `new lib.${obj.kind}(unsafeCast(o)) as \"${obj.metadata.name}\";`,
   ];
 
   fs.writeFileSync("/wing/obj.json", JSON.stringify(obj ?? {}, null, 2));
@@ -48,7 +48,7 @@ function synth(ctx) {
     ...obj.metadata.labels,
   };
 
-  spawnSync("wing", ["compile", "-t", "@winglibs/cdk8s", "main.w"], { 
+  spawnSync("wing", ["compile", "-t", "@winglibs/k8s", "main.w"], { 
     cwd: "/wing", 
     stdio: "inherit", 
     env: { WING_K8S_LABELS: JSON.stringify(labels) } 
@@ -57,7 +57,7 @@ function synth(ctx) {
   const prune = command === "apply" ? ["--prune", "--selector", `${objidLabel}=${objid}`] : [];
   const namespace = obj.metadata.namespace ?? "default";
 
-  spawnSync("kubectl", [command, ...prune, "-n", namespace, "-f", "target/main.cdk8s/*.yaml"], { cwd: "/wing", stdio: "inherit" });
+  spawnSync("kubectl", [command, ...prune, "-n", namespace, "-f", "target/main.k8s/*.yaml"], { cwd: "/wing", stdio: "inherit" });
 
   fs.rmSync("/wing/main.w");
 }

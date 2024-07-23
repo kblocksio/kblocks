@@ -11,6 +11,8 @@ pub struct CustomResourceOptions {
   listKind: str?;
   categories: Array<str>?;
   shortNames: Array<str>?;
+
+  /// JSON schema of the "spec" of the resource.
   schema: std.JsonSchema;
 }
 
@@ -56,16 +58,7 @@ pub class CustomResource {
               status: {},
             },
             schema: {
-              openAPIV3Schema: {
-                type: "object",
-                properties: {
-                  spec: schema,
-                  status: {
-                    type: "object",
-                    additionalProperties: true,
-                  }
-                }  
-              }
+              openAPIV3Schema: schema,
             },
           },
         ],

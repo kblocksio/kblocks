@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Event
+metadata:
+  name: example-event-2
+  namespace: default
+involvedObject:
+  kind: Workload
+  namespace: default
+  name: my-workload
+  uid: 0c9bc481-7657-4100-8004-79d3ca64c54c
+  # resourceVersion: "46088"
+  apiVersion: acme.com/v1
+message: Hello dude
+type: Normal
+action: MyAction
+reason: MyReason2

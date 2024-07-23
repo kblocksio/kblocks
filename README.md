@@ -31,3 +31,10 @@ Install the operator:
 - [x] Purge label
 - [x] Helm chart output
 - [x] Apply labels to all child-resources.
+
+## Acme Example
+
+- [ ] Backstage
+- [ ] Backstage widgets for resources
+- [ ] Crossplane/ACK resource
+- [ ] Terraform and/or CDK resource

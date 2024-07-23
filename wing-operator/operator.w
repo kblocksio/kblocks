@@ -7,7 +7,7 @@ bring "./crd.w" as crd;
 
 pub struct OperatorOptions extends crd.CustomResourceOptions {
   libdir: str;
-  namespace: k8s.Namespace?;
+  namespace: k8s.Namespace;
 }
 
 pub class Operator {

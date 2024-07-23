@@ -1,0 +1,11 @@
+apiVersion: acme.com/v1
+kind: Bucket
+metadata:
+  name: eladb-bucket-1
+public: true
+---
+apiVersion: acme.com/v1
+kind: Bucket
+metadata:
+  name: eladb-bucket-2
+
