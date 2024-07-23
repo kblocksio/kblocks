@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require("fs");
 const { spawnSync } = require("child_process");
+const crypto = require("crypto");
 
 if (process.argv[2] === "--config") {
   process.stdout.write(fs.readFileSync("config.json", "utf8"));
@@ -28,20 +29,35 @@ function synth(ctx) {
     "bring \".\" as lib;",
     "bring fs;",
     "let o = fs.readJson(\"/wing/obj.json\");",
-    "try {",
-    `  new lib.${obj.kind}(unsafeCast(o)) as \"${obj.metadata.name}\";`,
-    "} catch e \{",
-    "  log(e);",
-    "}",
+    `new lib.${obj.kind}(unsafeCast(o.get("spec"))) as \"${obj.metadata.name}\";`,
   ];
 
-  fs.writeFileSync("/wing/obj.json", JSON.stringify(obj, null, 2));
+  fs.writeFileSync("/wing/obj.json", JSON.stringify(obj ?? {}, null, 2));
   fs.writeFileSync("/wing/main.w", code.join("\n"));
 
   const command = ctx.watchEvent === "Deleted" ? "delete" : "apply";
 
-  spawnSync("wing", ["compile", "-t", "@winglibs/cdk8s", "main.w"], { cwd: "/wing", stdio: "inherit" });
-  spawnSync("kubectl", [command, "-n", "default", "-f", "target/main.cdk8s/*.yaml"], { cwd: "/wing", stdio: "inherit" });
+  const objidLabel = "wing.cloud/object-id";
+  const objid = crypto.createHash('md5').update(`${obj.apiVersion}-${obj.kind}-${obj.metadata.name}`).digest('hex');
+
+  const labels = {
+    [objidLabel]: objid,
+    "wing.cloud/api-version": obj.apiVersion.replace("/", "-"),
+    "wing.cloud/kind": obj.kind,
+    "wing.cloud/name": obj.metadata.name,
+    ...obj.metadata.labels,
+  };
+
+  spawnSync("wing", ["compile", "-t", "@winglibs/cdk8s", "main.w"], { 
+    cwd: "/wing", 
+    stdio: "inherit", 
+    env: { WING_K8S_LABELS: JSON.stringify(labels) } 
+  });
+
+  const prune = command === "apply" ? ["--prune", "--selector", `${objidLabel}=${objid}`] : [];
+  const namespace = obj.metadata.namespace ?? "default";
+
+  spawnSync("kubectl", [command, ...prune, "-n", namespace, "-f", "target/main.cdk8s/*.yaml"], { cwd: "/wing", stdio: "inherit" });
 
   fs.rmSync("/wing/main.w");
 }

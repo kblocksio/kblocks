@@ -6,6 +6,6 @@ ADD hook.js /hooks
 
 RUN mkdir /wing
 ADD lib /wing
-RUN cd /wing && npm i --omit=dev && npm i @winglibs/cdk8s
+RUN cd /wing && npm i --omit=dev
 
 ENV LOG_TYPE color

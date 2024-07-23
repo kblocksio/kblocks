@@ -2,6 +2,10 @@ apiVersion: acme.com/v1
 kind: Workload
 metadata:
   name: my-workload
-image: hashicorp/http-echo
-replicas: 2
-port: 5678
+  labels:
+    foo: bar
+    hello: world
+spec:
+  image: hashicorp/http-echo
+  replicas: 1
+  port: 5678

@@ -6,10 +6,11 @@ pub struct CustomResourceOptions {
   group: str;
   version: str;
   kind: str;
-  singular: str;
+  singular: str?;
   plural: str;
-  listKind: str;
-  shortNames: Array<str>;
+  listKind: str?;
+  categories: Array<str>?;
+  shortNames: Array<str>?;
   schema: std.JsonSchema;
 }
 
@@ -45,14 +46,26 @@ pub class CustomResource {
           plural: options.plural,
           singular: options.singular,
         },
-        scope: "Cluster",
+        scope: "Namespaced",
         versions: [
           {
             name: options.version,
             served: true,
             storage: true,
+            subresources: {
+              status: {},
+            },
             schema: {
-              openAPIV3Schema: schema,
+              openAPIV3Schema: {
+                type: "object",
+                properties: {
+                  spec: schema,
+                  status: {
+                    type: "object",
+                    additionalProperties: true,
+                  }
+                }  
+              }
             },
           },
         ],

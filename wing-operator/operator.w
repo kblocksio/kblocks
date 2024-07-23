@@ -46,7 +46,6 @@ pub class Operator {
             )
           ],
         }
-        
       ],
     );
     

@@ -2,24 +2,32 @@
 
 ## Packaging classes as custom resources
 
-Create `main.w`:
-
-```js
-bring k8s;
-
-
-```
-
 ## Usage
 
-Packages the operator into a Helm chart:
+Install deps:
 
 ```sh
-./helm-build.sh
+npm i
+```
+
+Start a `kind` cluster with a container image registry:
+
+```sh
+./reinstall-kind.sh
+```
+
+Install the operator:
+
+```sh
+./install.sh
 ```
 
 ## Roadmap
 
-- [ ] Apply annotations and labels to all child-resources.
-- [ ] Purge label
+- [ ] Report events such as compile/apply errors to parent resource
+- [ ] Associate all child resources with the parent resource
+- [ ] Update status of parent object during deployment
+- [ ] Apply annotations to all child-resources
+- [x] Purge label
 - [x] Helm chart output
+- [x] Apply labels to all child-resources.

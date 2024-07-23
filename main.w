@@ -10,24 +10,12 @@ new wop.Operator(
   group: "acme.com", 
   version: "v1", 
   kind: "Workload",
-  singular: "workload",
   plural: "workloads",
+  singular: "workload",
+  categories: ["all"],
   listKind: "WorkloadList",
   shortNames: ["wl"],
   schema: acme.WorkloadSpec.schema(),
   libdir: "{@dirname}/acme",
   namespace: ns,
 );
-
-new wop.Operator(
-  group: "acme.com", 
-  version: "v1", 
-  kind: "Eyal",
-  singular: "eyal",
-  plural: "eyals",
-  listKind: "EyalList",
-  shortNames: ["ey"],
-  schema: acme.EyalSpec.schema(),
-  libdir: "{@dirname}/acme",
-  namespace: ns,
-) as "eyal";
