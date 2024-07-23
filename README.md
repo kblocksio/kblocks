@@ -1,4 +1,4 @@
-# Wing for Kubernetes
+# Wing Kubernetes Operator
 
 ## Packaging classes as custom resources
 
