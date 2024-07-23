@@ -13,10 +13,16 @@ npm i
 Start a `kind` cluster with a container image registry:
 
 ```sh
-./reinstall-kind.sh
+./scripts/reinstall-kind.sh
 ```
 
-Install the operator:
+Install Crossplane:
+
+```sh
+./scripts/install-crossplane.sh
+```
+
+Edit `acme/*` and after you've done, install the operator:
 
 ```sh
 ./install.sh
