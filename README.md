@@ -1,6 +1,7 @@
-# Wing Kubernetes Operator
+# The Kwing of the Jungle
 
-## Packaging classes as custom resources
+Kwing is a framework for creating custom Kubernetes resources that turn the Kubernetes jungle into a
+park.
 
 ## Usage
 

@@ -2,10 +2,9 @@ apiVersion: acme.com/v1
 kind: Cron
 metadata:
   name: eladb-cron
-spec:
-  schedule: "* * * * *"
-  image: busybox:1.28
-  command:
-    - /bin/sh
-    - -c
-    - date; echo Change me!
+schedule: "* * * * *"
+image: busybox:1.28
+command:
+  - /bin/sh
+  - -c
+  - date; echo Hello
