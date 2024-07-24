@@ -9,9 +9,6 @@ pub struct CronSpec {
 
 pub class Cron {
   new(spec: CronSpec) {
-    new cdk8s.Helm(
-      chart: "{@dirname}/cron",
-      values: unsafeCast(spec),
-    );
+    new cdk8s.Helm(chart: "{@dirname}/cron", values: unsafeCast(spec));
   }
 }
