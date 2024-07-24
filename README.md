@@ -39,6 +39,10 @@ Edit `acme/*` and after you've done, install the operator:
 - [x] Helm chart output
 - [x] Apply labels to all child-resources.
 
+## Known Issues
+
+- [ ] The "spec" struct must be called `XxxSpec` (we use this convention to find it).
+
 ## Acme Example
 
 - [ ] Backstage
