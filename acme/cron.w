@@ -1,4 +1,5 @@
 bring k8s;
+bring "cdk8s" as cdk8s;
 
 pub struct CronSpec {
   schedule: str;
@@ -8,29 +9,9 @@ pub struct CronSpec {
 
 pub class Cron {
   new(spec: CronSpec) {
-    new k8s.ApiObject(
-      apiVersion: "batch/v1",
-      kind: "CronJob",
-      spec: {
-        schedule: spec.schedule,
-        jobTemplate: {
-          spec: {
-            template: {
-              spec: {
-                restartPolicy: "OnFailure",
-                containers: [
-                  {
-                    name: "main",
-                    image: spec.image,
-                    imagePullPolicy: "IfNotPresent",
-                    command: spec.command,
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
+    new cdk8s.Helm(
+      chart: "{@dirname}/cron",
+      values: unsafeCast(spec),
     );
   }
 }

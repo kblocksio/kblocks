@@ -1,5 +1,5 @@
 FROM ghcr.io/flant/shell-operator:latest
-RUN apk add --no-cache npm nodejs
+RUN apk add --no-cache npm nodejs helm
 RUN npm i -g winglang
 ADD hooks /hooks
 

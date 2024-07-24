@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cron
+description: A demo of an Acme resource implemented using a Helm chart
+type: application
+version: 0.1.0
