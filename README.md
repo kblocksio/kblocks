@@ -42,6 +42,7 @@ Edit `acme/*` and after you've done, install the operator:
 - [ ] Implement a resource using a Terraform module
 - [ ] Implement a resource using AWS CDK code
 - [ ] Operator permissions
+- [ ] "Delete" should just delete all the resources based on the objectid label instead of synthesizing a manifest
 
 ## Known Issues
 
