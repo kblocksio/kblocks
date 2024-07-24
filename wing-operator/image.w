@@ -46,7 +46,8 @@ for o in readContext(x) \{
     try \{
       new lib.{options.kind}(unsafeCast(o)) as name.asStr();
     } catch e \{
-      log(e);
+      fs.writeFile(\"validation.txt\", e);
+      throw e;
     }
   }
 }
@@ -79,6 +80,12 @@ EOF
 else
   cd /wing
   wing compile -t @winglibs/cdk8s main.w
+  if [ $? -ne 0 ]; then
+    echo 'Failed to compile'
+    VALIDATION=$(cat ./validation.txt)
+    kubectl patch workload my-workload --type=merge --subresource status --patch 'status: \{validation: \"$VALIDATION\"\}'
+    exit 0
+  fi
   echo '================================================================='
   cat target/main.cdk8s/*.yaml
   echo '================================================================='

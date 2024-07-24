@@ -9,6 +9,12 @@ pub struct WorkloadSpec {
 
 pub class Workload {
   new(opts: WorkloadSpec) {
+    if let replicas = opts.replicas {
+      if replicas < 2 {
+        throw "replicas can't be less than 2";
+      }
+    }
+
     let d = new k8s.Deployment(replicas: opts.replicas);
     let c = d.addContainer(image: opts.image, portNumber: opts.port);
     

@@ -34,6 +34,9 @@ export function cleanupSchema(schema) {
   };
 
   visit(schema);
+  
+  const props = Object.assign({}, schema.properties);
+  schema.properties.status = { properties: { validation: { type: "string" }}, type: "object" };
 
   return schema;
 }

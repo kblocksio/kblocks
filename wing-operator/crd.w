@@ -54,6 +54,9 @@ pub class CustomResource {
             schema: {
               openAPIV3Schema: schema,
             },
+            subresources: {
+              status: {},
+            },
           },
         ],
       }

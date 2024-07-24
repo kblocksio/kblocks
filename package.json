@@ -1,0 +1,19 @@
+{
+  "name": "wing-operator",
+  "version": "1.0.0",
+  "description": "## Packaging classes as custom resources",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@winglibs/cdk8s": "^0.0.3",
+    "cdk8s-plus-30": "^2.0.7"
+  }
+}
