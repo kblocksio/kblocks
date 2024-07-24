@@ -37,7 +37,7 @@ export function cleanupSchema(schema) {
   };
 
   visit(schema);
-  
+
   if ("status" in schema.properties) {
     throw new Error("status property already exists");
   }
