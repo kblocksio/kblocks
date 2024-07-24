@@ -22,6 +22,22 @@ for (const ctx of context) {
   }
 }
 
+function setValidation(namespace, obj, validation) {
+  spawnSync("kubectl", [
+    "patch",
+    "-n",
+    namespace,
+    obj.kind,
+    obj.metadata.name,
+    "--type",
+    "merge",
+    "--subresource",
+    "status",
+    "--patch",
+    `status: {validation: ${validation}}`,
+  ], { cwd: "/wing", stdio: "inherit" });
+}
+
 function synth(ctx) {
   const obj = ctx.object;
 
@@ -29,7 +45,12 @@ function synth(ctx) {
     "bring \".\" as lib;",
     "bring fs;",
     "let o = fs.readJson(\"/wing/obj.json\");",
-    `new lib.${obj.kind}(unsafeCast(o)) as \"${obj.metadata.name}\";`,
+    "try {",
+    `  new lib.${obj.kind}(unsafeCast(o)) as \"${obj.metadata.name}\";`,
+    "} catch e {",
+    "  fs.writeFile(\"/wing/validation.txt\", e);",
+    "  throw e;",
+    "}",
   ];
 
   fs.writeFileSync("/wing/obj.json", JSON.stringify(obj ?? {}, null, 2));
@@ -39,6 +60,7 @@ function synth(ctx) {
 
   const objidLabel = "wing.cloud/object-id";
   const objid = crypto.createHash('md5').update(`${obj.apiVersion}-${obj.kind}-${obj.metadata.name}`).digest('hex');
+  const namespace = obj.metadata.namespace ?? "default";
 
   const labels = {
     [objidLabel]: objid,
@@ -48,16 +70,25 @@ function synth(ctx) {
     ...obj.metadata.labels,
   };
 
-  spawnSync("wing", ["compile", "-t", "@winglibs/k8s", "main.w"], { 
+  const proc = spawnSync("wing", ["compile", "-t", "@winglibs/k8s", "main.w"], { 
     cwd: "/wing", 
     stdio: "inherit", 
     env: { WING_K8S_LABELS: JSON.stringify(labels) } 
   });
 
-  const prune = command === "apply" ? ["--prune", "--selector", `${objidLabel}=${objid}`] : [];
-  const namespace = obj.metadata.namespace ?? "default";
+  if (proc.status !== 0) {
+    if (fs.existsSync("/wing/validation.txt")) {
+      const validation = fs.readFileSync("/wing/validation.txt", "utf8");
+      console.log("validation error", validation);
+      setValidation(namespace, obj, validation);
+    }
 
+    return;
+  }
+
+  const prune = command === "apply" ? ["--prune", "--selector", `${objidLabel}=${objid}`] : [];
   spawnSync("kubectl", [command, ...prune, "-n", namespace, "-f", "target/main.k8s/*.yaml"], { cwd: "/wing", stdio: "inherit" });
+  setValidation(namespace, obj, "OK");
 
   fs.rmSync("/wing/main.w");
 }

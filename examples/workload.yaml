@@ -3,7 +3,7 @@ kind: Workload
 metadata:
   name: workload2
 image: hashicorp/http-echo
-replicas: 1
+replicas: 2
 port: 5678
 env:
   ECHO_TEXT: workload2
