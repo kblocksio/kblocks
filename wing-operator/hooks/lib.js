@@ -15,18 +15,18 @@ async function synth(ctx) {
 
 async function synthObject(ctx) {
   const obj = ctx.object;
-  const objfile = "obj.json";
-  const mainfile = "main.w";
+  const entrypoint = "main.w";
+  const spec = "spec.json";
 
-  const code = [
-    "bring \".\" as lib;",
-    "bring fs;",
-    `let o = fs.readJson(\"${objfile}\");`,
-    `new lib.${obj.kind}(unsafeCast(o)) as \"${obj.metadata.name}\";`,
-  ];
+  fs.writeFileSync(entrypoint, `
+    bring "." as lib;
+    bring fs;
+    let json = fs.readJson("${spec}");
+    let spec = lib.${obj.kind}Spec.fromJson(json);
+    new lib.${obj.kind}(spec) as \"${obj.metadata.name}\";
+  `);
 
-  fs.writeFileSync(objfile, JSON.stringify(obj ?? {}, null, 2));
-  fs.writeFileSync(mainfile, code.join("\n"));
+  fs.writeFileSync(spec, JSON.stringify(obj));
 
   const command = ctx.watchEvent === "Deleted" ? "delete" : "apply";
 
@@ -42,13 +42,13 @@ async function synthObject(ctx) {
     ...obj.metadata.labels,
   };
 
-  await exec("wing", ["compile", "-t", "@winglibs/k8s", mainfile], {
+  await exec("wing", ["compile", "-t", "@winglibs/k8s", entrypoint], {
     env: { WING_K8S_LABELS: JSON.stringify(labels) } 
   });
 
   const prune = command === "apply" ? ["--prune", "--selector", `${objidLabel}=${objid}`] : [];
   await exec("kubectl", [command, ...prune, "-n", namespace, "-f", "target/main.k8s/*.yaml"]);
-  fs.rmSync(mainfile);
+  fs.rmSync(entrypoint);
 }
 
 
