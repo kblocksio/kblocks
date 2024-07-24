@@ -13,7 +13,7 @@ pub class Image {
     fs.mkdir(imagedir);
     Image.copy(options.libdir, "{imagedir}/lib");
     Image.copy("{@dirname}/Dockerfile", "{imagedir}/Dockerfile");
-    Image.copy("{@dirname}/hook.js", "{imagedir}/hook.js");
+    Image.copy("{@dirname}/hooks", "{imagedir}/hooks");
 
     let config = {
       configVersion: "v1",
@@ -26,9 +26,8 @@ pub class Image {
       ]
     };
 
-    fs.writeFile("{imagedir}/config.json", Json.stringify(config));
+    fs.writeFile("{imagedir}/hooks/config.json", Json.stringify(config));
 
-    // Image.makeExecutable("{imagedir}/hook.js");
     Image.docker(["build", "-t", image, "."], imagedir);
     Image.docker(["push", image]);
   }

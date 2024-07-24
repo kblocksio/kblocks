@@ -1,8 +1,7 @@
 FROM ghcr.io/flant/shell-operator:latest
 RUN apk add --no-cache npm nodejs
 RUN npm i -g winglang
-ADD config.json /hooks
-ADD hook.js /hooks
+ADD hooks /hooks
 
 RUN mkdir /wing
 ADD lib /wing

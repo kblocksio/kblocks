@@ -60,12 +60,6 @@ pub class CustomResource {
             schema: {
               openAPIV3Schema: schema,
             },
-            additionalPrinterColumns: [{
-              name: "Validation",
-              type: "string",
-              description: "The validation state of the resource",
-              jsonPath: ".status.validation",
-            }],
           },
         ],
       }
