@@ -1,15 +1,16 @@
-apiVersion: events.k8s.io/v1
+apiVersion: v1
 kind: Event
-eventTime: "2006-01-02T15:04:05.000000Z"
-type: Normal
 metadata:
-  name: my-event
-regarding:
-  apiVersion: acme.com/v1
+  name: example-event-2
+  namespace: default
+involvedObject:
   kind: Workload
+  namespace: default
   name: my-workload
-reason: Message
-reportingController: foo
-reportingInstance: bar
-action: Up
-note: This is the note
+  uid: 0c9bc481-7657-4100-8004-79d3ca64c54c
+  # resourceVersion: "46088"
+  apiVersion: acme.com/v1
+message: Hello dude
+type: Normal
+action: MyAction
+reason: MyReason2

@@ -1,4 +1,5 @@
 bring "cdk8s-plus-30" as k8s;
+bring "cdk8s" as cdk8s;
 
 pub struct WorkloadSpec {
   image: str;
@@ -8,41 +9,22 @@ pub struct WorkloadSpec {
 }
 
 pub class Workload {
-  new(opts: WorkloadSpec) {
-    if let replicas = opts.replicas {
+  new(spec: WorkloadSpec) {
+    if let replicas = spec.replicas {
       if replicas < 2 {
         throw "replicas can't be less than 2";
       }
     }
 
-    let d = new k8s.Deployment(replicas: opts.replicas);
-    let c = d.addContainer(image: opts.image, portNumber: opts.port);
-    
-    for e in (opts.env ?? {}).entries() {
+    let d = new k8s.Deployment(replicas: spec.replicas);
+    let c = d.addContainer(image: spec.image, portNumber: spec.port);
+   
+    for e in (spec.env ?? {}).entries() {
       c.env.addVariable(e.key, k8s.EnvValue.fromValue(e.value));
     }
 
-    if let port = opts.port {
+    if let port = spec.port {
       d.exposeViaService(ports: [{ port }]);
     }
-  }
-}
-
-pub struct EyalSpec {
-  message: str;
-}
-
-pub class Eyal {
-  new(props: EyalSpec) {
-    new k8s.Pod(containers: [
-      {
-        name: "avital", 
-        image: "hashicorp/http-echo", 
-        port: 5678,
-        envVariables: {
-          "ECHO_TEXT": k8s.EnvValue.fromValue(props.message)
-        }
-      }
-    ]);
   }
 }

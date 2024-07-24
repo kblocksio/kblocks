@@ -2,8 +2,10 @@ apiVersion: acme.com/v1
 kind: Workload
 metadata:
   name: my-workload
+  labels:
+    foo: bar
+    hello: world
 image: hashicorp/http-echo
 replicas: 1
-port: 5678
 env:
-  ECHO_TEXT: hello, kubernetes!
+  ECHO_TEXT: bang

@@ -2,16 +2,19 @@ bring "./wing-operator" as wop;
 bring "./acme" as acme;
 bring "cdk8s-plus-30" as k8s;
 
+let group = "acme.com";
+
 let ns = new k8s.Namespace(
   metadata: { name: "acme-operators" }
 );
 
 new wop.Operator(
-  group: "acme.com", 
+  group: group, 
   version: "v1", 
   kind: "Workload",
-  singular: "workload",
   plural: "workloads",
+  singular: "workload",
+  categories: ["all"],
   listKind: "WorkloadList",
   shortNames: ["wl"],
   schema: acme.WorkloadSpec.schema(),
@@ -20,14 +23,21 @@ new wop.Operator(
 );
 
 new wop.Operator(
-  group: "acme.com", 
-  version: "v1", 
-  kind: "Eyal",
-  singular: "eyal",
-  plural: "eyals",
-  listKind: "EyalList",
-  shortNames: ["ey"],
-  schema: acme.EyalSpec.schema(),
+  group: group,
+  version: "v1",
+  kind: "Cron",
+  plural: "crons",
+  schema: acme.CronSpec.schema(),
   libdir: "{@dirname}/acme",
   namespace: ns,
-) as "eyal";
+) as "cron";
+
+new wop.Operator(
+  group: group,
+  version: "v1",
+  kind: "Bucket",
+  schema: acme.BucketSpec.schema(),
+  plural: "buckets",
+  libdir: "{@dirname}/acme",
+  namespace: ns,
+) as "bucket";

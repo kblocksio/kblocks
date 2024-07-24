@@ -7,13 +7,13 @@ bring "./crd.w" as crd;
 
 pub struct OperatorOptions extends crd.CustomResourceOptions {
   libdir: str;
-  namespace: k8s.Namespace?;
+  namespace: k8s.Namespace;
 }
 
 pub class Operator {
   new(options: OperatorOptions) {
     let kind = options.kind.lowercase();
-    let image = "localhost:5001/wing-operator:{kind}";
+    let image = "localhost:5001/wing-operator:{kind}-{util.nanoid()}";
     let namespace = options.namespace?.name;
     
     let c = new crd.CustomResource(options);
@@ -46,7 +46,6 @@ pub class Operator {
             )
           ],
         }
-        
       ],
     );
     
