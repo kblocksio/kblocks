@@ -52,7 +52,7 @@ async function synthObject(ctx) {
 }
 
 
-async function updateEvent(obj, type, message) 
+async function updateEvent(obj, type, message) {
   const namespace = obj.metadata.namespace ?? "default";
   const id = obj.metadata.uid;
 
@@ -104,7 +104,7 @@ async function updateEvent(obj, type, message)
   // } catch (err) {
   //   console.error("error updating status:", err.stack);
   // }
-
+}
 
 function exec(command, args, options) {
   args = args || [];
