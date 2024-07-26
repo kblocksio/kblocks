@@ -1,19 +1,19 @@
 bring "cdk8s" as cdk8s;
 
-// TODO: missing MutJson.copy() and Json.copyMut()
-
-pub struct CustomResourceOptions {
+pub struct ResourceDefinition {
   group: str;
   version: str;
   kind: str;
-  singular: str?;
   plural: str;
-  listKind: str?;
+  singular: str?;
   categories: Array<str>?;
+  listKind: str?;
   shortNames: Array<str>?;
+}
 
-  /// JSON schema of the "spec" of the resource.
-  schema: std.JsonSchema;
+pub struct CustomResourceProps {
+  definition: ResourceDefinition;
+  schema: Json;
 }
 
 pub class CustomResource {
@@ -23,42 +23,43 @@ pub class CustomResource {
   pub group: str;
   pub plural: str;
 
-  new(options: CustomResourceOptions) {
-    this.version = options.version;
-    this.kind = options.kind;
-    this.group = options.group;
-    this.plural = options.plural;
-    
-    this.apiVersion = "{options.group}/{options.version}";
+  new(props: CustomResourceProps) {
+    let def = props.definition;
 
-    let schema = CustomResource.cleanupSchema(Json.parse(options.schema.asStr()));
+    this.version = def.version;
+    this.kind = def.kind;
+    this.group = def.group;
+    this.plural = def.plural;
+    
+    this.apiVersion = "{def.group}/{def.version}";
+
 
     new cdk8s.ApiObject(unsafeCast({
       apiVersion: "apiextensions.k8s.io/v1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "{options.plural}.{options.group}",
+        name: "{def.plural}.{def.group}",
       },
       spec: {
-        group: options.group,
+        group: def.group,
         names: {
-          kind: options.kind,
-          listKind: options.listKind,
-          shortNames: options.shortNames,
-          plural: options.plural,
-          singular: options.singular,
+          kind: def.kind,
+          listKind: def.listKind,
+          shortNames: def.shortNames,
+          plural: def.plural,
+          singular: def.singular,
         },
         scope: "Namespaced",
         versions: [
           {
-            name: options.version,
+            name: def.version,
             served: true,
             storage: true,
             subresources: {
               status: {},
             },
             schema: {
-              openAPIV3Schema: schema,
+              openAPIV3Schema: props.schema,
             },
           },
         ],
@@ -66,5 +67,4 @@ pub class CustomResource {
     })) as "crd";
   }
 
-  extern "./util.js" static cleanupSchema(schema: Json): Json;
 }

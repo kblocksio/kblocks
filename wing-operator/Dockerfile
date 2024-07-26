@@ -4,7 +4,7 @@ RUN npm i -g winglang
 ADD hooks /hooks
 
 RUN mkdir /wing
-ADD lib /wing
-RUN cd /wing && npm i --omit=dev
+ADD wing /wing
+RUN cd /wing && ([ -f package.json ] && npm i --omit=dev || true)
 
 ENV LOG_TYPE color

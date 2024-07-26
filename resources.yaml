@@ -1,0 +1,50 @@
+# Custom resources for Acme Platform
+
+- engine: wing
+  source: ./acme/workload
+  definition:
+    group: acme.com
+    version: v1
+    kind: Workload
+    plural: workloads
+    singular: workload
+    categories: 
+      - all
+    listKind: WorkloadList
+    shortNames:
+      - "wl"
+  operator:
+    namespace: acme-operators
+    permissions:
+      - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: ["*"]
+
+- engine: helm
+  source: ./acme/cron
+  definition:
+    group: acme.com
+    version: v1
+    kind: Cron
+    plural: crons
+  operator:
+    namespace: acme-operators
+    permissions:
+      - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: ["*"]
+
+- engine: wing
+  source: ./acme/bucket
+  definition:
+    group: acme.com
+    version: v1
+    kind: Bucket
+    plural: buckets
+  operator:
+    namespace: acme-operators
+    permissions:
+      - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: ["*"]
+

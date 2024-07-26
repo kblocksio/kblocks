@@ -1,27 +1,54 @@
 bring "cdk8s" as cdk8s;
 bring "cdk8s-plus-30" as k8s;
 bring "./image.w" as i;
+bring "./crd.w" as crd;
 bring fs;
 bring util;
-bring "./crd.w" as crd;
 
-pub struct OperatorOptions extends crd.CustomResourceOptions {
-  libdir: str;
-  namespace: k8s.Namespace;
+pub struct ResourceProps {
+  engine: str;
+  source: str;
+  definition: crd.ResourceDefinition;
+  operator: ResourceOperator;
 }
 
-pub class Operator {
-  new(options: OperatorOptions) {
-    let kind = options.kind.lowercase();
+pub struct ResourceOperator {
+  namespace: str;
+  permissions: Array<Permission>;
+}
+
+pub struct Permission {
+  apiGroups: Array<str>;
+  resources: Array<str>;
+  verbs: Array<str>;
+}
+
+pub class Resource {
+  new(props: ResourceProps) {
+    let def = props.definition;
+
+    let kind = def.kind.lowercase();
     let image = "localhost:5001/wing-operator:{kind}-{util.nanoid()}";
-    let namespace = options.namespace?.name;
+
+    if props.engine == "helm" {
+      
+    }
+
+    let schema = Resource.generateSchemaFromWingStruct(props.source, "{props.definition.kind}Spec");
+
+    let c = new crd.CustomResource(definition: def, schema: schema);
     
-    let c = new crd.CustomResource(options);
-    
-    new i.Image(image, apiVersion: c.apiVersion, kind: c.kind, libdir: options.libdir);
-    
+    new i.Image(image, 
+      apiVersion: c.apiVersion, 
+      kind: c.kind, 
+      engine: props.engine,
+      source: props.source
+    );
+
     let serviceAccount = new k8s.ServiceAccount(
-      metadata: { namespace },
+      metadata: {
+        namespace: props.operator.namespace,
+      }
     );
     
     let role = new k8s.ClusterRole(
@@ -38,7 +65,7 @@ pub class Operator {
 
         // allow pod to apply any manifest to any namespace
         {
-          verbs: ["create", "update", "patch", "delete", "get", "list", "watch"],
+          verbs: ["*"],
           endpoints: [
             k8s.ApiResource.custom(
               apiGroup: "*",
@@ -53,10 +80,12 @@ pub class Operator {
     binding.addSubjects(serviceAccount);
     
     let controller = new k8s.Deployment(
+      metadata: {
+        namespace: props.operator.namespace,
+      },
       serviceAccount: serviceAccount,
       replicas: 1,
       automountServiceAccountToken: true,
-      metadata: { namespace },
     );
     
     controller.addContainer(
@@ -68,4 +97,6 @@ pub class Operator {
       },
     );
   }
+
+  extern "./util.js" static generateSchemaFromWingStruct(source: str, structName: str): Json;
 }

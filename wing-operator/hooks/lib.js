@@ -2,31 +2,62 @@ const { spawn } = require("child_process");
 const crypto = require("crypto");
 const fs = require("fs");
 
-async function synth(ctx) {
+async function synth(engine, ctx) {
   const obj = ctx.object;
-  await updateEvent(obj, "Normal", "Applying");
+
+  await updateEvent(obj, "Normal", "Updating...");
   try {
-    await synthObject(ctx);
+    const values = "values.json";
+    fs.writeFileSync(values, JSON.stringify(obj));
+  
+    switch (engine) {
+      case "helm":
+        await applyHelm(ctx, values);
+        break;
+      case "wing":
+        await applyWing(ctx, values);
+        break;
+      default:
+        throw new Error(`unsupported engine: ${engine}`);
+    }
     await updateEvent(obj, "Normal", "OK");
   } catch (err) {
     await updateEvent(obj, "Warning", err.stack);
   }
 }
 
-async function synthObject(ctx) {
+
+async function applyHelm(ctx, values) {
+  const obj = ctx.object;
+
+  const namespace = obj.metadata.namespace ?? "default";
+  const release = obj.metadata.name;
+
+  const command = ctx.watchEvent === "Deleted" ? "uninstall" : "upgrade";
+  const args = [command, release, ".", "--namespace", namespace, "--values", values];
+
+
+  if (command === "upgrade") {
+    args.push("--create-namespace");
+    args.push("--install");
+    args.push("--reset-values");
+  }
+
+  await exec("helm", args);
+}
+
+async function applyWing(ctx, values) {
   const obj = ctx.object;
   const entrypoint = "main.w";
-  const spec = "spec.json";
+
 
   fs.writeFileSync(entrypoint, `
     bring "." as lib;
     bring fs;
-    let json = fs.readJson("${spec}");
+    let json = fs.readJson("${values}");
     let spec = lib.${obj.kind}Spec.fromJson(json);
     new lib.${obj.kind}(spec) as \"${obj.metadata.name}\";
   `);
-
-  fs.writeFileSync(spec, JSON.stringify(obj));
 
   const command = ctx.watchEvent === "Deleted" ? "delete" : "apply";
 
@@ -50,7 +81,6 @@ async function synthObject(ctx) {
   await exec("kubectl", [command, ...prune, "-n", namespace, "-f", "target/main.k8s/*.yaml"]);
   fs.rmSync(entrypoint);
 }
-
 
 async function updateEvent(obj, type, message) {
   const namespace = obj.metadata.namespace ?? "default";
@@ -84,26 +114,6 @@ async function updateEvent(obj, type, message) {
   } catch (err) {
     console.error("error creating event:", err.stack);
   }
-
-  // this causes an infinite loop of updates
-
-  // try {
-  //   await exec("kubectl", [
-  //     "patch",
-  //     "-n",
-  //     obj.metadata.namespace ?? "default",
-  //     obj.kind,
-  //     obj.metadata.name,
-  //     "--type",
-  //     "merge",
-  //     "--subresource",
-  //     "status",
-  //     "--patch-file",
-  //     "status-patch.json",
-  //   ]);
-  // } catch (err) {
-  //   console.error("error updating status:", err.stack);
-  // }
 }
 
 function exec(command, args, options) {

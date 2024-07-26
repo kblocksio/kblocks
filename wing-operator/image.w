@@ -3,7 +3,8 @@ bring fs;
 pub struct ImageOptions {
   apiVersion: str;
   kind: str;
-  libdir: str;
+  source: str;
+  engine: str;
 }
 
 pub class Image {
@@ -11,22 +12,23 @@ pub class Image {
     let imagedir = "{nodeof(this).app.workdir}/image-{nodeof(this).addr}";
 
     fs.mkdir(imagedir);
-    Image.copy(options.libdir, "{imagedir}/lib");
     Image.copy("{@dirname}/Dockerfile", "{imagedir}/Dockerfile");
     Image.copy("{@dirname}/hooks", "{imagedir}/hooks");
+    Image.copy(options.source, "{imagedir}/wing");
 
-    let config = {
-      configVersion: "v1",
-      kubernetes: [
-        {
-          apiVersion: options.apiVersion,
-          kind: options.kind,
-          executeHookOnEvent: ["Added", "Modified", "Deleted"]
-        }
-      ]
-    };
-
-    fs.writeFile("{imagedir}/hooks/config.json", Json.stringify(config));
+    fs.writeFile("{imagedir}/hooks/wing.json", Json.stringify({
+      engine: options.engine,
+      config: {
+        configVersion: "v1",
+        kubernetes: [
+          {
+            apiVersion: options.apiVersion,
+            kind: options.kind,
+            executeHookOnEvent: ["Added", "Modified", "Deleted"]
+          }
+        ]  
+      }
+    }));
 
     Image.docker(["build", "-t", image, "."], imagedir);
     Image.docker(["push", image]);

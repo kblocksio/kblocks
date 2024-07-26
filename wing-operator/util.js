@@ -1,5 +1,6 @@
 import { spawnSync } from "child_process";
-import { chmodSync, cpSync } from "fs";
+import { chmodSync, cpSync, rmSync, writeFileSync } from "fs";
+import { join } from "path";
 
 export function docker(args, cwd) {
   const result = spawnSync("docker", args, { stdio: "inherit", cwd });
@@ -16,7 +17,27 @@ export function copy(src, dest) {
   cpSync(src, dest, { recursive: true, filter: (src) => !src.includes("node_modules") });
 }
 
-export function cleanupSchema(schema) {
+export function generateSchemaFromWingStruct(source, struct) {
+  const tmpfile = join(source, ".tmp.schema.main.w");
+  writeFileSync(tmpfile, `
+    bring "./" as l;
+    log(l.${struct}.schema().asStr());
+  `);
+
+  const result = spawnSync("wing", ["compile", tmpfile]);
+  if (result.status !== 0) {
+    throw new Error(`wing compile ${tmpfile} failed with status ${result.status}`);
+  }
+
+  rmSync(tmpfile, { recursive: true, force: true });
+  rmSync(join(source, "target"), { recursive: true, force: true });
+
+  const out = JSON.parse(result.stdout.toString());
+  return cleanupSchema(out);
+}
+
+
+function cleanupSchema(schema) {
   delete schema.$id;
 
   const visit = node => {

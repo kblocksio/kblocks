@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "schedule": {
+      "type": "string"
+    },
+    "image": {
+      "type": "string"
+    },
+    "command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "schedule",
+    "image",
+    "command"
+  ]
+}
