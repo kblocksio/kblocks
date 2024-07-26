@@ -34,6 +34,14 @@ Install Crossplane (if you needed):
 
 `resources.yaml` is an array of custom resource specifications.
 
+For each resource spec:
+
+- The `engine` field specifies how the resource is implemented.
+- The `source` field points to a directory which contains the
+  backend implementation of the resource.
+- The `definition` field includes the CRD definition, without the schema.
+- The `operator` field sets options for the generated Kubernetes operator.
+
 For example:
 
 ```yaml
@@ -72,12 +80,6 @@ For example:
         resources: ["*"]
         verbs: ["*"]
 ```
-
-- The `engine` field specifies how the resource is implemented.
-- The `source` field points to a directory which contains the
-  backend implementation of the resource.
-- The `definition` field includes the CRD definition, without the schema.
-- The `operator` field sets options for the generated Kubernetes operator.
 
 ## Helm Resources
 
