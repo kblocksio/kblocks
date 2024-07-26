@@ -5,7 +5,7 @@ park.
 
 ## Installation
 
-Clone this repo.
+Clone this repo:
 
 ```sh
 git clone git@github.com/winglang/wing-operator.git
@@ -32,25 +32,63 @@ Install Crossplane (if you needed):
 
 ## Usage
 
-The `resources.yaml` is an array of resource definitions.
+`resources.yaml` is an array of custom resource specifications.
 
-This framework supports multiple engines for implementing custom resources. The engine is specified
-in the `engine` field of the resource definition.
+For example:
 
-The `source` property points to a local directory that contains the implementation resource
-implementation.
+```yaml
+
+- engine: wing
+  source: ./acme/workload
+  definition:
+    group: acme.com
+    version: v1
+    kind: Workload
+    plural: workloads
+    singular: workload
+    categories: 
+      - all
+    listKind: WorkloadList
+    shortNames:
+      - "wl"
+  operator:
+    namespace: acme-operators
+    permissions:
+      - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: ["*"]
+
+- engine: helm
+  source: ./acme/cron
+  definition:
+    group: acme.com
+    version: v1
+    kind: Cron
+    plural: crons
+  operator:
+    namespace: acme-operators
+    permissions:
+      - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: ["*"]
+```
+
+- The `engine` field specifies how the resource is implemented.
+- The `source` field points to a directory which contains the
+  backend implementation of the resource.
+- The `definition` field includes the CRD definition, without the schema.
+- The `operator` field sets options for the generated Kubernetes operator.
 
 ## Helm Resources
 
-The `helm` engine tells the framework that the resource is implemented through a standard Helm chart
+The `helm` engine tells the framework that the resource is implemented through a standard Helm chart,hart
 where the `{{ Values }}` object is populated from the Kubernetes object specification.
 
 The CRD schema is read from `<source>/schema.json` as a JSON schema.
 
 ## Wing Resource
 
-
-The `wing` engine tells the framework that the custom resource implemented via a Winglang class.
+The `wing` engine tells the framework that the custom resource is implemented via a Winglang class.
 
 By convention, the class name is the same as the `<kind>` and the CRD schema is generated from the
 `<kind>Spec` struct. For example, if the `kind` is `Foo`, then:
