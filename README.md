@@ -1,6 +1,6 @@
-# The Kwing of the Jungle
+# kcompose
 
-Kwing is a framework for creating custom Kubernetes resources that turn the Kubernetes jungle into a
+kcompose is a framework for creating custom Kubernetes resources that turn the Kubernetes jungle into a
 park.
 
 ## Installation
@@ -107,7 +107,8 @@ pub class Foo {
 }
 ```
 
-## Deployment
+
+## Build and Deployment
 
 This will package all resources and their operators into a local Helm chart and install into the
 cluster:
