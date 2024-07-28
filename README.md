@@ -91,7 +91,7 @@ operator:
       verbs: ["*"]
 ```
 
-## Wing Resource
+## Wing Resources
 
 You can also implement kblocks using [Winglang](https://winglang.io) classes. 
 
