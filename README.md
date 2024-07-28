@@ -1,7 +1,6 @@
-# kcompose
+# kblocks
 
-kcompose is a framework for creating custom Kubernetes resources that turn the Kubernetes jungle into a
-park.
+kblocks is a tool for packaging Helm charts and IaC modules as native high-level Kubernetes objects.
 
 ## Installation
 
