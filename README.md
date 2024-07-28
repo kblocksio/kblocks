@@ -7,8 +7,8 @@ kblocks is a tool for packaging Helm charts and IaC modules as native high-level
 Clone this repo:
 
 ```sh
-git clone git@github.com/winglang/wing-operator.git
-cd wing-operator
+git clone git@github.com/winglang/kblocks.git
+cd kblocks
 ```
 
 Install deps:
