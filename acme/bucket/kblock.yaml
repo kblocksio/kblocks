@@ -1,0 +1,12 @@
+engine: wing
+definition:
+  group: acme.com
+  version: v1
+  kind: Bucket
+  plural: buckets
+operator:
+  namespace: acme-operators
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]

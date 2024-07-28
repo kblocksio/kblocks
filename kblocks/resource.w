@@ -7,8 +7,7 @@ bring util;
 
 pub struct ResourceProps {
   engine: str;
-  source: str;
-  definition: crd.ResourceDefinition;
+  definition: crd.CustomResourceProps;
   operator: ResourceOperator;
 }
 
@@ -24,25 +23,22 @@ pub struct Permission {
 }
 
 pub class Resource {
-  new(props: ResourceProps) {
-    let def = props.definition;
+  new(sourcedir: str, props: ResourceProps) {
+    let def = MutJson props.definition;
 
-    let kind = def.kind.lowercase();
+    let kind = props.definition.kind.lowercase();
     let image = "localhost:5001/wing-operator:{kind}-{util.nanoid()}";
 
-    if props.engine == "helm" {
-      
-    }
+    let schema = this.resolveSchema(sourcedir, props);
+    def.set("schema", schema);
 
-    let schema = Resource.generateSchemaFromWingStruct(props.source, "{props.definition.kind}Spec");
-
-    let c = new crd.CustomResource(definition: def, schema: schema);
+    let c = new crd.CustomResource(crd.CustomResourceProps.fromJson(def));
     
     new i.Image(image, 
       apiVersion: c.apiVersion, 
       kind: c.kind, 
       engine: props.engine,
-      source: props.source
+      source: sourcedir
     );
 
     let serviceAccount = new k8s.ServiceAccount(
@@ -82,6 +78,7 @@ pub class Resource {
     let controller = new k8s.Deployment(
       metadata: {
         namespace: props.operator.namespace,
+        name: "{kind}-controller",
       },
       serviceAccount: serviceAccount,
       replicas: 1,
@@ -96,6 +93,22 @@ pub class Resource {
         ensureNonRoot: false,
       },
     );
+  }
+
+  resolveSchema(sourcedir: str, props: ResourceProps): Json {
+    let engine = props.engine;
+
+    if engine == "wing" {
+      return Resource.generateSchemaFromWingStruct(sourcedir, "{props.definition.kind}Spec");
+    } elif engine == "helm" {
+      if let s = props.definition.schema {
+        return s;
+      } else {
+        throw "'schema' field is required for 'helm' resources";
+      }
+    } else {
+      throw "unsupported engine: {engine}";
+    }
   }
 
   extern "./util.js" static generateSchemaFromWingStruct(source: str, structName: str): Json;

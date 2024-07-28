@@ -1,6 +1,6 @@
 bring "cdk8s" as cdk8s;
 
-pub struct ResourceDefinition {
+pub struct CustomResourceProps {
   group: str;
   version: str;
   kind: str;
@@ -9,11 +9,7 @@ pub struct ResourceDefinition {
   categories: Array<str>?;
   listKind: str?;
   shortNames: Array<str>?;
-}
-
-pub struct CustomResourceProps {
-  definition: ResourceDefinition;
-  schema: Json;
+  schema: Json?;
 }
 
 pub class CustomResource {
@@ -24,7 +20,7 @@ pub class CustomResource {
   pub plural: str;
 
   new(props: CustomResourceProps) {
-    let def = props.definition;
+    let def = props;
 
     this.version = def.version;
     this.kind = def.kind;
@@ -33,6 +29,9 @@ pub class CustomResource {
     
     this.apiVersion = "{def.group}/{def.version}";
 
+    if props.schema == nil {
+      throw "schema is required";
+    }
 
     new cdk8s.ApiObject(unsafeCast({
       apiVersion: "apiextensions.k8s.io/v1",

@@ -1,0 +1,55 @@
+#!/bin/sh
+set -euo pipefail
+kblocks="$(cd $(dirname $0)/.. && pwd)"
+
+# ---------------------------------------------
+build() {
+  local target_root="$kblocks/target"
+  rm -fr $target_root
+
+  export KBLOCKS_PROJECT_ROOT="$PWD"
+
+  (wing compile -t @winglibs/k8s $kblocks/main.w)
+
+  if [ ! -f Chart.yaml ]; then
+    echo "Chart.yaml not found"
+    exit 1
+  fi
+
+  target="$target_root/main.k8s"
+  templates="$target/templates"
+
+  mkdir -p $templates
+  mv $target/*.yaml $templates/
+  cp Chart.yaml $target/
+
+  output="./dist"
+
+  rm -fr $output
+  mv $target $output
+  rm -fr $output/.wing
+  rm -fr $target_root
+
+  echo "Your kblocks are bunded into a Helm chart under: $output"
+}
+
+# ---------------------------------------------
+install() {
+  echo "install"
+
+}
+
+# ---------------------------------------------
+# main
+
+command="${1:-}"
+
+if [ "$command" == "build" ]; then
+  build
+elif [ "$command" == "install" ]; then
+  build
+  install
+else
+  echo "Usage: $(basename $0) [build|install]"
+  exit 1
+fi

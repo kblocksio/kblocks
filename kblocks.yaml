@@ -1,0 +1,5 @@
+output: helm
+include:
+  - ./acme/bucket
+  - ./acme/cron
+  - ./acme/workload

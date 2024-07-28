@@ -1,0 +1,27 @@
+engine: helm
+definition:
+  group: acme.com
+  version: v1
+  kind: Cron
+  plural: crons
+  schema:
+    properties:
+      command:
+        items:
+          type: string
+        type: array
+      image:
+        type: string
+      schedule:
+        type: string
+    required:
+      - schedule
+      - image
+      - command
+    type: object
+operator:
+  namespace: acme-operators
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]

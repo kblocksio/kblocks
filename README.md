@@ -2,6 +2,7 @@
 
 kblocks is a tool for packaging Helm charts and IaC modules as native high-level Kubernetes objects.
 
+
 ## Installation
 
 Clone this repo:
@@ -17,13 +18,15 @@ Install deps:
 npm i
 ```
 
+## Setup Local Cluster
+
 Create a `kind` cluster with a container image registry:
 
 ```sh
 ./scripts/reinstall-kind.sh
 ```
 
-Install Crossplane (if you needed):
+Install Crossplane (if needed):
 
 ```sh
 ./scripts/install-crossplane.sh
@@ -31,86 +34,115 @@ Install Crossplane (if you needed):
 
 ## Usage
 
-`resources.yaml` is an array of custom resource specifications.
+The `kblocks.yaml` defines which resources to include in the package:
 
-For each resource spec:
+```yaml
+include:
+  - ./acme/bucket
+  - ./acme/cron
+  - ./acme/workload
+```
+
+This is basically a list of directories, each one has to include a `kblock.yaml` file.
+
+The `kblock.yaml` file is the configuration for a single resource and includes the following fields:
 
 - The `engine` field specifies how the resource is implemented.
-- The `source` field points to a directory which contains the
-  backend implementation of the resource.
 - The `definition` field includes the CRD definition, without the schema.
 - The `operator` field sets options for the generated Kubernetes operator.
 
-For example:
-
-```yaml
-
-- engine: wing
-  source: ./acme/workload
-  definition:
-    group: acme.com
-    version: v1
-    kind: Workload
-    plural: workloads
-    singular: workload
-    categories: 
-      - all
-    listKind: WorkloadList
-    shortNames:
-      - "wl"
-  operator:
-    namespace: acme-operators
-    permissions:
-      - apiGroups: ["*"]
-        resources: ["*"]
-        verbs: ["*"]
-
-- engine: helm
-  source: ./acme/cron
-  definition:
-    group: acme.com
-    version: v1
-    kind: Cron
-    plural: crons
-  operator:
-    namespace: acme-operators
-    permissions:
-      - apiGroups: ["*"]
-        resources: ["*"]
-        verbs: ["*"]
-```
-
 ## Helm Resources
 
-The `helm` engine tells the framework that the resource is implemented through a standard Helm chart,hart
-where the `{{ Values }}` object is populated from the Kubernetes object specification.
+You can expose any [helm](https://helm.sh/) chart as a kblock. See [acme/cron](./acme/cron/) as an
+example.
 
-The CRD schema is read from `<source>/schema.json` as a JSON schema.
+When a kblock is updated, the controller will call `helm upgrade` a populate the `{{ Values }}`
+object from the Kubernetes object desired state.
+
+For example, [acme/cron/kblock.yaml](./acme/cron/kblock.yaml) specifies a helm resource:
+
+```yaml
+engine: helm
+definition:
+  group: acme.com
+  version: v1
+  kind: Cron
+  plural: crons
+  schema:
+    properties:
+      command:
+        items:
+          type: string
+        type: array
+      image:
+        type: string
+      schedule:
+        type: string
+    required:
+      - schedule
+      - image
+      - command
+    type: object
+operator:
+  namespace: acme-operators
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]
+```
 
 ## Wing Resource
 
-The `wing` engine tells the framework that the custom resource is implemented via a Winglang class.
+You can also implement kblocks using [Winglang](https://winglang.io) classes. 
+
+The source directory includes `.w` files with a public class for each resource. It should also
+include a `package.json` file the `@winglibs/k8s` dependency.
+
+For example, [acme/workload/kblock.yaml] specifies a Wing-based resource called `Workload`:
+
+```yaml
+engine: wing
+definition:
+  group: acme.com
+  version: v1
+  kind: Workload
+  plural: workloads
+  singular: workload
+  categories: 
+    - all
+  listKind: WorkloadList
+  shortNames:
+    - "wl"
+operator:
+  namespace: acme-operators
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]
+```
 
 By convention, the class name is the same as the `<kind>` and the CRD schema is generated from the
-`<kind>Spec` struct. For example, if the `kind` is `Foo`, then:
+`<kind>Spec` struct.
+
+For example, if the `kind` is `Workload`, then:
 
 ```js
-pub struct FooSpec {
+pub struct WorkloadSpec {
   // this is the spec
 }
 
-pub class Foo {
-  new(spec: FooSpec) {
+pub class Workload {
+  new(spec: WorkloadSpec) {
 
   }
 }
 ```
 
-
 ## Build and Deployment
 
-This will package all resources and their operators into a local Helm chart and install into the
-cluster:
+There's a simple CLI under `kblocks/bin/kblocks` which can be used to produce your kblocks helm package.
+
+This script will call `kblocks build` and then install it via Helm:
 
 ```sh
 ./install.sh
@@ -121,7 +153,7 @@ cluster:
 - [x] Report events such as compile/apply errors to parent resource
 - [ ] Associate all child resources with the parent resource (`ownerReferences`?)
 - [ ] Update status of parent object during deployment <-- this creates an update cycle
-- [ ] Apply annotations to all child-resources
+- [ ] Apply `annotations` to all child-resources
 - [x] Purge label
 - [x] Helm chart output
 - [x] Apply labels to all child-resources.
@@ -129,7 +161,7 @@ cluster:
 - [ ] Implement a resource using a Terraform module
 - [ ] Implement a resource using AWS CDK code
 - [ ] Operator permissions
-- [ ] "Delete" should just delete all the resources based on the objectid label instead of synthesizing a manifest
+- [x] "Delete" should just delete all the resources based on the objectid label instead of synthesizing a manifest
 - [ ] Apply the `wing.cloud/*` labels to all resources in the Helm engine (through a `--post-renderer`)
 
 ## Known Issues

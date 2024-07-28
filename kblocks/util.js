@@ -24,8 +24,9 @@ export function generateSchemaFromWingStruct(source, struct) {
     log(l.${struct}.schema().asStr());
   `);
 
-  const result = spawnSync("wing", ["compile", tmpfile]);
+  const result = spawnSync("wing", ["compile", tmpfile], { cwd: source });
   if (result.status !== 0) {
+    console.error(result.stderr.toString());
     throw new Error(`wing compile ${tmpfile} failed with status ${result.status}`);
   }
 

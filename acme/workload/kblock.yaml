@@ -1,0 +1,18 @@
+engine: wing
+definition:
+  group: acme.com
+  version: v1
+  kind: Workload
+  plural: workloads
+  singular: workload
+  categories: 
+    - all
+  listKind: WorkloadList
+  shortNames:
+    - "wl"
+operator:
+  namespace: acme-operators
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]
