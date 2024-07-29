@@ -11,8 +11,17 @@ async function applyHelm(ctx, values) {
     return;
   }
 
+  // verify schema
   await exec("helm", [
-    "upgrade", release, ".", 
+    "lint", 
+    ".", 
+    "--values", values
+  ]);
+
+  // install/upgrade
+  await exec("helm", [
+    "upgrade",
+    release, ".", 
     "--namespace", namespace,
     "--create-namespace",
     "--install",

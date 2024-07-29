@@ -68,21 +68,6 @@ definition:
   version: v1
   kind: Cron
   plural: crons
-  schema:
-    properties:
-      command:
-        items:
-          type: string
-        type: array
-      image:
-        type: string
-      schedule:
-        type: string
-    required:
-      - schedule
-      - image
-      - command
-    type: object
 operator:
   namespace: acme-operators
   permissions:
@@ -90,6 +75,10 @@ operator:
       resources: ["*"]
       verbs: ["*"]
 ```
+
+The schema of the object will be read from the file `values.json.schema` which is the standard way
+for helm to validate values schema with [helm lint](https://helm.sh/docs/helm/helm_lint/) which will
+be executed before `upgrade`.
 
 ## Wing Resources
 
@@ -152,6 +141,7 @@ This script will call `kblocks build` and then install it via Helm:
 
 - [x] Report events such as compile/apply errors to parent resource
 - [ ] Associate all child resources with the parent resource (`ownerReferences`?)
+- [ ] Check schema upon helm apply
 - [ ] Update status of parent object during deployment <-- this creates an update cycle
 - [ ] Apply `annotations` to all child-resources
 - [x] Purge label

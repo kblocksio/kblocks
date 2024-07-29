@@ -96,16 +96,27 @@ pub class Resource {
   }
 
   resolveSchema(sourcedir: str, props: ResourceProps): Json {
+    // in an explicit schema is set, use it.
+    if let s = props.definition.schema {
+      return s;
+    }
+
+    // otherwise, try to figure it out based on the engine
     let engine = props.engine;
 
     if engine == "wing" {
       return Resource.generateSchemaFromWingStruct(sourcedir, "{props.definition.kind}Spec");
     } elif engine == "helm" {
-      if let s = props.definition.schema {
-        return s;
-      } else {
-        throw "'schema' field is required for 'helm' resources";
+      let f = "{sourcedir}/values.schema.json";
+      if !fs.exists(f) {
+        throw "values.schema.json not found";
       }
+
+      let x = MutJson fs.readJson(f);
+      x.delete("$schema");
+
+
+      return x;
     } else {
       throw "unsupported engine: {engine}";
     }

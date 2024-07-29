@@ -6,6 +6,7 @@ pub struct WorkloadSpec {
   replicas: num?;
   port: num?;
   env: Map<str>?;
+  another: str;
 }
 
 pub class Workload {

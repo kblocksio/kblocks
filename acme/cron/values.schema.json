@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "type": "object",
+  "required": [
+    "image",
+    "schedule"
+  ],
+  "properties": {
+    "command": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "image": {
+      "type": "string"
+    },
+    "schedule": {
+      "type": "string"
+    }
+  }
+}
