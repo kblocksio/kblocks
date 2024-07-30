@@ -2,24 +2,24 @@
 const fs = require("fs");
 const { synth } = require("./lib");
 
-const wing = JSON.parse(fs.readFileSync("wing.json", "utf8"));
-if (!wing.config) {
-  throw new Error("wing.json must contain a 'config' field");
+const kblock = JSON.parse(fs.readFileSync("kblock.json", "utf8"));
+if (!kblock.config) {
+  throw new Error("kblock.json must contain a 'config' field");
 }
 
-if (!wing.engine) {
-  throw new Error("wing.json must contain an 'engine' field");
+if (!kblock.engine) {
+  throw new Error("kblock.json must contain an 'engine' field");
 }
 
-console.error(JSON.stringify(wing, null, 2));
+console.error(JSON.stringify(kblock, null, 2));
 
 async function main() {
   if (process.argv[2] === "--config") {
-    process.stdout.write(JSON.stringify(wing.config, null, 2));
+    process.stdout.write(JSON.stringify(kblock.config, null, 2));
     process.exit(0);
   }
 
-  process.chdir("/wing");
+  process.chdir("/kblock");
 
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
 
@@ -29,10 +29,10 @@ async function main() {
         // copy from parent so we can reason about it.
         ctx2.type = ctx.type;
         ctx2.watchEvent = ctx.watchEvent;
-        await synth(wing.engine, ctx2);
+        await synth(kblock.engine, ctx2);
       }
     } else if ("object" in ctx) {
-      await synth(wing.engine, ctx);
+      await synth(kblock.engine, ctx);
     }
   }
 }

@@ -12,11 +12,10 @@ pub class Image {
     let imagedir = "{nodeof(this).app.workdir}/image-{nodeof(this).addr}";
 
     fs.mkdir(imagedir);
-    Image.copy("{@dirname}/Dockerfile", "{imagedir}/Dockerfile");
-    Image.copy("{@dirname}/hooks", "{imagedir}/hooks");
-    Image.copy(options.source, "{imagedir}/wing");
+    Image.copy("{@dirname}/controller", imagedir);
+    Image.copy(options.source, "{imagedir}/kblock");
 
-    fs.writeFile("{imagedir}/hooks/wing.json", Json.stringify({
+    fs.writeFile("{imagedir}/hooks/kblock.json", Json.stringify({
       engine: options.engine,
       config: {
         configVersion: "v1",

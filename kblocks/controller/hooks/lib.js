@@ -4,10 +4,12 @@ const { applyHelm } = require("./helm");
 const { applyWing } = require("./wing");
 
 async function synth(engine, ctx) {
+  console.error(JSON.stringify(ctx, null, 2));
+
   const obj = ctx.object;
 
   // skip updates to the "status" subresource
-  if (ctx.type !== "Synchronization") {
+  if (ctx.watchEvent === "Modified") {
     const managedFields = obj.metadata?.managedFields ?? [];
     const last = managedFields.length > 0 ? managedFields[managedFields.length - 1] : undefined;
     if (last?.subresource === "status") {
@@ -15,8 +17,6 @@ async function synth(engine, ctx) {
       return;
     }
   }
-
-  console.error(JSON.stringify(obj, null, 2));
 
   const probeTime = new Date().toISOString();
 
