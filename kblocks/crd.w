@@ -50,7 +50,7 @@ pub class CustomResource {
             type: "object",
             properties: {
               type: { type: "string" },
-              status: { type: "boolean" },
+              status: { type: "string" },
               lastTransitionTime: { type: "string", format: "date-time" },
               lastProbeTime: { type: "string", format: "date-time" },
               message: { type: "string" },

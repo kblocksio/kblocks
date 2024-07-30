@@ -29,7 +29,7 @@ async function applyWingTerraform(entrypoint, ctx, target) {
 
 async function applyWingKubernetes(entrypoint, ctx) {
   const obj = ctx.object;
-  const objidLabel = "wing.cloud/object-id";
+  const objidLabel = "kblock-id";
   const objid = crypto.createHash('md5').update(`${obj.apiVersion}-${obj.kind}-${obj.metadata.name}`).digest('hex');
   const namespace = obj.metadata.namespace ?? "default";
 
@@ -48,9 +48,9 @@ async function applyWingKubernetes(entrypoint, ctx) {
 
   const labels = {
     [objidLabel]: objid,
-    "wing.cloud/api-version": obj.apiVersion.replace("/", "-"),
-    "wing.cloud/kind": obj.kind,
-    "wing.cloud/name": obj.metadata.name,
+    "kblock/api-version": obj.apiVersion.replace("/", "-"),
+    "kblock/kind": obj.kind,
+    "kblock/name": obj.metadata.name,
     ...obj.metadata.labels,
   };
 

@@ -200,7 +200,7 @@ This script will call `kblocks build` and then install it via Helm:
 - [ ] Implement a resource using AWS CDK code
 - [ ] Operator permissions
 - [x] "Delete" should just delete all the resources based on the objectid label instead of synthesizing a manifest
-- [ ] Apply the `wing.cloud/*` labels to all resources in the Helm engine (through a `--post-renderer`)
+- [ ] Apply the `kblock/*` labels to all resources in the Helm engine (through a `--post-renderer`)
 
 ## Known Issues
 

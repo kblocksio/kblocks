@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const fs = require("fs");
-const { synth } = require("./lib");
+const { synth } = require("./synth");
 
 const kblock = JSON.parse(fs.readFileSync("kblock.json", "utf8"));
 if (!kblock.config) {
@@ -16,7 +16,7 @@ console.error(JSON.stringify(kblock, null, 2));
 async function main() {
   if (process.argv[2] === "--config") {
     process.stdout.write(JSON.stringify(kblock.config, null, 2));
-    process.exit(0);
+    return process.exit(0);
   }
 
   process.chdir("/kblock");

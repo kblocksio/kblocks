@@ -49,10 +49,6 @@ function getenv(k) {
   return process.env[k];
 }
 
-async function setConditions(obj, conditions) {
-  await patchStatus(obj, { conditions });
-}
-
 async function patchStatus(obj, patch) {
   const namespace = obj.metadata.namespace ?? "default";
   const group = obj.apiVersion.split("/")[0];
@@ -91,7 +87,7 @@ async function patchStatus(obj, patch) {
 //       apiVersion: obj.apiVersion,
 //     },
 //     firstTimestamp: new Date().toISOString(),
-//     reportingComponent: "wing.cloud/operator",
+//     reportingComponent: "kblocks/operator",
 //     reportingInstance: `${obj.apiVersion}/${obj.kind}`,
 //     message,
 //     type,
@@ -106,8 +102,6 @@ async function patchStatus(obj, patch) {
 //   }
 // }
 
-
 exports.exec = exec;
 exports.getenv = getenv;
-exports.setConditions = setConditions;
 exports.patchStatus = patchStatus;

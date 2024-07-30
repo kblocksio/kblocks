@@ -2,7 +2,7 @@ apiVersion: acme.com/v1
 kind: Queue
 metadata:
   name: my-queue
-timeoutSec: 120
+timeoutSec: 100
 ---
 apiVersion: acme.com/v1
 kind: Workload
