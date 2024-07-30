@@ -175,6 +175,16 @@ Since this is a Terraform engine, the controller will expect a [Terraform
 output](https://developer.hashicorp.com/terraform/language/values/outputs) by the name of `queueUrl`
 and will populate the resource's `state` with this value once it's available.
 
+An output can be referenced from another kblock through the syntax:
+
+```
+kblock://queues.acme.com/my-queue/queueUrl
+```
+
+If the controller encounters this token when reconciling a resource, it will first wait for the
+referenced resource to be ready and then it will read the value from it's state and replace it in
+the manifest being reconciled.
+
 ## Build and Deployment
 
 There's a simple CLI under `kblocks/bin/kblocks` which can be used to produce your kblocks helm package.
