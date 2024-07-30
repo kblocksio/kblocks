@@ -10,6 +10,7 @@ pub struct CustomResourceProps {
   listKind: str?;
   shortNames: Array<str>?;
   schema: Json?;
+  outputs: Array<str>?;
 }
 
 pub class CustomResource {
@@ -32,6 +33,58 @@ pub class CustomResource {
     if props.schema == nil {
       throw "schema is required";
     }
+
+    let schema = MutJson props.schema;
+    let properties = schema.get("properties");
+
+    if properties.has("status") {
+      throw "'status' property already exists";
+    }
+
+    properties.set("status", {
+      type: "object",
+      properties: {
+        conditions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              type: { type: "string" },
+              status: { type: "boolean" },
+              lastTransitionTime: { type: "string", format: "date-time" },
+              lastProbeTime: { type: "string", format: "date-time" },
+              message: { type: "string" },
+            },
+            required: ["type", "status", "lastTransitionTime"],
+          },
+        },
+      }
+    });
+
+    let printerColumns = MutArray<Json>[];
+
+    printerColumns.push({
+      name: "Status",
+      type: "string",
+      description: "The status of the resource",
+      jsonPath: ".status.conditions[0].type",
+    });
+
+    if let outputs = props.outputs {
+      let p = properties.get("status").get("properties");
+      for o in outputs {
+        p.set(o, { type: "string" });
+        printerColumns.push({
+          name: o,
+          type: "string",
+          description: o,
+          jsonPath: ".status." + o,
+        });
+      }
+    }
+
+    // it's implicit
+    properties.delete("metadata");  
 
     new cdk8s.ApiObject(unsafeCast({
       apiVersion: "apiextensions.k8s.io/v1",
@@ -60,6 +113,7 @@ pub class CustomResource {
             schema: {
               openAPIV3Schema: props.schema,
             },
+            additionalPrinterColumns: printerColumns.copy(),
           },
         ],
       }

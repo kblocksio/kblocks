@@ -80,7 +80,7 @@ The schema of the object will be read from the file `values.json.schema` which i
 for helm to validate values schema with [helm lint](https://helm.sh/docs/helm/helm_lint/) which will
 be executed before `upgrade`.
 
-## Wing Resources
+## Wing Kubernetes Resources
 
 You can also implement kblocks using [Winglang](https://winglang.io) classes. 
 
@@ -90,7 +90,7 @@ include a `package.json` file the `@winglibs/k8s` dependency.
 For example, [acme/workload/kblock.yaml] specifies a Wing-based resource called `Workload`:
 
 ```yaml
-engine: wing
+engine: wing/k8s
 definition:
   group: acme.com
   version: v1
@@ -126,6 +126,54 @@ pub class Workload {
   }
 }
 ```
+
+## Wing AWS/Terraform Resources
+
+The `wing/tf-aws` engine can be used to implement your custom resource using Wing's `tf-aws` target.
+
+```yaml
+engine: wing/tf-aws
+definition:
+  group: acme.com
+  version: v1
+  kind: Queue
+  plural: queues
+operator:
+  namespace: acme-operators
+  envSecrets:
+    AWS_ACCESS_KEY_ID: aws-credentials
+    AWS_SECRET_ACCESS_KEY: aws-credentials  
+  env:
+    AWS_DEFAULT_REGION: eu-west-2
+    TF_BACKEND_BUCKET: eladb-tfstate
+    TF_BACKEND_REGION: eu-west-2
+    TF_BACKEND_KEY: acme-queue
+    TF_BACKEND_DYNAMODB: eladb-tf-state 
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]
+```
+
+The `Queue` class can be implemented using Wing's standard library (`cloud.*`) and compiled to
+`tf-aws` for deployment.
+
+## References and Outputs
+
+You can add an `outputs` field under `definition` with a list of names of post-apply outputs produced by the kblock.
+
+For example (from [acme/queue](./acme/queue/kblock.yaml)):
+
+```yaml
+engine: wing/tf-aws
+definition:
+  outputs:
+    - queueUrl
+```
+
+Since this is a Terraform engine, the controller will expect a [Terraform
+output](https://developer.hashicorp.com/terraform/language/values/outputs) by the name of `queueUrl`
+and will populate the resource's `state` with this value once it's available.
 
 ## Build and Deployment
 

@@ -6,7 +6,7 @@ pub struct WorkloadSpec {
   replicas: num?;
   port: num?;
   env: Map<str>?;
-  another: str;
+  command: Array<str>?;
 }
 
 pub class Workload {
@@ -17,8 +17,20 @@ pub class Workload {
       }
     }
 
-    let d = new k8s.Deployment(replicas: spec.replicas);
-    let c = d.addContainer(image: spec.image, portNumber: spec.port);
+    let d = new k8s.Deployment(
+      replicas: spec.replicas,
+      automountServiceAccountToken: true,
+    );
+
+    let c = d.addContainer(
+      image: spec.image, 
+      portNumber: spec.port, 
+      command: spec.command,
+      securityContext: {
+        readOnlyRootFilesystem: false,
+        ensureNonRoot: false,
+      },
+    );
    
     for e in (spec.env ?? {}).entries() {
       c.env.addVariable(e.key, k8s.EnvValue.fromValue(e.value));
@@ -27,5 +39,10 @@ pub class Workload {
     if let port = spec.port {
       d.exposeViaService(ports: [{ port }]);
     }
+
+    let cfg = new k8s.ConfigMap(data: {
+      barak: spec.image
+    });
+
   }
 }

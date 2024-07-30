@@ -1,63 +1,64 @@
 const fs = require("fs");
-const { exec } = require("./util");
+const { exec, setConditions } = require("./util");
 const { applyHelm } = require("./helm");
 const { applyWing } = require("./wing");
 
 async function synth(engine, ctx) {
   const obj = ctx.object;
 
-  await updateEvent(obj, "Normal", "Updating...");
+  // skip updates to the "status" subresource
+  if (ctx.type !== "Synchronization") {
+    const managedFields = obj.metadata?.managedFields ?? [];
+    const last = managedFields.length > 0 ? managedFields[managedFields.length - 1] : undefined;
+    if (last?.subresource === "status") {
+      console.error("ignoring 'status' update");
+      return;
+    }
+  }
+
+  console.error(JSON.stringify(obj, null, 2));
+
+  const probeTime = new Date().toISOString();
+
+  await setConditions(obj, [{
+    lastTransitionTime: new Date().toISOString(),
+    status: true,
+    lastProbeTime: probeTime,
+    type: "Progressing",
+  }]);
+
   try {
     const values = "values.json";
     fs.writeFileSync(values, JSON.stringify(obj));
+
+    const first = engine.split("/")[0];
   
-    switch (engine) {
+    switch (first) {
       case "helm":
         await applyHelm(ctx, values);
         break;
       case "wing":
-        await applyWing(ctx, values);
+        await applyWing(engine, ctx, values);
         break;
       default:
         throw new Error(`unsupported engine: ${engine}`);
     }
-    await updateEvent(obj, "Normal", "OK");
+
+    await setConditions(obj, [{
+      lastTransitionTime: new Date().toISOString(),
+      status: true,
+      lastProbeTime: probeTime,
+      type: "Ready",
+    }]);
+    
   } catch (err) {
-    await updateEvent(obj, "Warning", err.stack);
-  }
-}
-
-async function updateEvent(obj, type, message) {
-  const namespace = obj.metadata.namespace ?? "default";
-  const id = obj.metadata.uid;
-
-  fs.writeFileSync("event.json", JSON.stringify({
-    apiVersion: "v1",
-    kind: "Event",
-    metadata: {
-      name: `wing-${id}`,
-      namespace
-    },
-    involvedObject: {
-      kind: obj.kind,
-      namespace,
-      name: obj.metadata.name,
-      uid: obj.metadata.uid,
-      apiVersion: obj.apiVersion,
-    },
-    firstTimestamp: new Date().toISOString(),
-    reportingComponent: "wing.cloud/operator",
-    reportingInstance: `${obj.apiVersion}/${obj.kind}`,
-    message,
-    type,
-    action: "Apply",
-    reason: "Status"
-  }));
-
-  try {
-    await exec("kubectl", ["apply", "-f", "event.json"]);
-  } catch (err) {
-    console.error("error creating event:", err.stack);
+    await setConditions(obj, [{
+      lastTransitionTime: new Date().toISOString(),
+      status: true,
+      lastProbeTime: probeTime,
+      type: "Error",
+      message: err.stack,
+    }]);
   }
 }
 

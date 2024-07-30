@@ -41,4 +41,73 @@ function exec(command, args, options) {
   });
 }
 
+function getenv(k) {
+  if (!process.env[k]) {
+    throw new Error(`missing environment variable: ${k}`);
+  }
+
+  return process.env[k];
+}
+
+async function setConditions(obj, conditions) {
+  await patchStatus(obj, { conditions });
+}
+
+async function patchStatus(obj, patch) {
+  const namespace = obj.metadata.namespace ?? "default";
+  const group = obj.apiVersion.split("/")[0];
+  const type = `${obj.kind.toLowerCase()}.${group}`;
+  try {
+    await exec("kubectl", [
+      "patch",
+      type,
+      obj.metadata.name,
+      "-n", namespace,
+      "--type", "merge",
+      "--subresource", "status",
+      "--patch", JSON.stringify({ status: patch }),
+    ]);
+  } catch (err) {
+    console.error("error patching status:", err.stack);
+  }
+}
+
+// async function publishEvent(obj, type, message) {
+//   const namespace = obj.metadata.namespace ?? "default";
+//   const id = obj.metadata.uid;
+
+//   fs.writeFileSync("event.json", JSON.stringify({
+//     apiVersion: "v1",
+//     kind: "Event",
+//     metadata: {
+//       name: `wing-${id}`,
+//       namespace
+//     },
+//     involvedObject: {
+//       kind: obj.kind,
+//       namespace,
+//       name: obj.metadata.name,
+//       uid: obj.metadata.uid,
+//       apiVersion: obj.apiVersion,
+//     },
+//     firstTimestamp: new Date().toISOString(),
+//     reportingComponent: "wing.cloud/operator",
+//     reportingInstance: `${obj.apiVersion}/${obj.kind}`,
+//     message,
+//     type,
+//     action: "Apply",
+//     reason: "Status"
+//   }));
+
+//   try {
+//     await exec("kubectl", ["apply", "-f", "event.json"]);
+//   } catch (err) {
+//     console.error("error creating event:", err.stack);
+//   }
+// }
+
+
 exports.exec = exec;
+exports.getenv = getenv;
+exports.setConditions = setConditions;
+exports.patchStatus = patchStatus;

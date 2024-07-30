@@ -11,5 +11,8 @@ spec:
           containers:
           - name: main
             image: {{ .Values.image }}
-            command: {{ .Values.command }}
+            command:
+              {{- range .Values.command }}
+            - {{ . }}
+              {{- end }}
           restartPolicy: OnFailure

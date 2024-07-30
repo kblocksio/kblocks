@@ -3,6 +3,7 @@ import { chmodSync, cpSync, rmSync, writeFileSync } from "fs";
 import { join } from "path";
 
 export function docker(args, cwd) {
+  console.error("$ docker", args.join(" "), { cwd });
   const result = spawnSync("docker", args, { stdio: "inherit", cwd });
   if (result.status !== 0) {
     throw new Error(`docker ${args.join(" ")} failed with status ${result.status}`);
@@ -59,15 +60,6 @@ function cleanupSchema(schema) {
   };
 
   visit(schema);
-
-  if ("status" in schema.properties) {
-    throw new Error("status property already exists");
-  }
-
-  schema.properties.status = {
-    type: "object",
-    additionalProperties: true,
-  };
 
   return schema;
 }

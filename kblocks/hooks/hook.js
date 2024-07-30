@@ -24,10 +24,11 @@ async function main() {
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
 
   for (const ctx of context) {
-    console.error(JSON.stringify(ctx, null, 2));
-
     if ("objects" in ctx) {
       for (const ctx2 of ctx.objects) {
+        // copy from parent so we can reason about it.
+        ctx2.type = ctx.type;
+        ctx2.watchEvent = ctx.watchEvent;
         await synth(wing.engine, ctx2);
       }
     } else if ("object" in ctx) {

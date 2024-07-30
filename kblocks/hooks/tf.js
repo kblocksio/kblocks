@@ -1,0 +1,40 @@
+const { join } = require("path");
+const { exec, getenv, patchStatus } = require("./util");
+const fs = require("fs");
+
+async function applyTerraform(ctx, dir) {
+  const tfjson = join(dir, "main.tf.json");
+  const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
+
+  tf.terraform.backend = {
+    s3: {
+      bucket: getenv("TF_BACKEND_BUCKET"),
+      region: getenv("TF_BACKEND_REGION"),
+      key: getenv("TF_BACKEND_KEY"),
+      dynamodb_table: getenv("TF_BACKEND_DYNAMODB"),
+    }
+  };
+
+  fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
+
+  await exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: dir });
+
+  if (ctx.watchEvent === "Deleted") {
+    await exec("tofu", ["destroy", "-auto-approve", "-no-color"], { cwd: dir });
+    return;
+  }
+
+  await exec("tofu", ["apply", "-input=false", "-auto-approve", "-no-color"], { cwd: dir });
+
+  const outputs = (process.env.KBLOCK_OUTPUTS ?? "").split(",");
+  const results = {};
+  for (const name of outputs) {
+    const value = await exec("tofu", ["output", "-no-color", name], { cwd: dir });
+    results[name] = JSON.parse(value);
+    console.error(`OUTPUT! ${name}=${value}`);
+  }
+
+  await patchStatus(ctx.object, results);
+}
+
+exports.applyTerraform = applyTerraform;

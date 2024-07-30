@@ -18,6 +18,13 @@ async function applyHelm(ctx, values) {
     "--values", values
   ]);
 
+  // print the template for debugging
+  await exec("helm", [
+    "template",
+    release, ".",
+      "--values", values
+  ]);
+  
   // install/upgrade
   await exec("helm", [
     "upgrade",

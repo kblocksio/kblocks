@@ -7,4 +7,4 @@ image: busybox:1.28
 command:
   - /bin/sh
   - -c
-  - date; echo Hello
+  - date; echo World

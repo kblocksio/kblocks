@@ -14,6 +14,8 @@ pub struct ResourceProps {
 pub struct ResourceOperator {
   namespace: str;
   permissions: Array<Permission>;
+  envSecrets: Map<str>?;
+  env: Map<str>?;
 }
 
 pub struct Permission {
@@ -85,7 +87,7 @@ pub class Resource {
       automountServiceAccountToken: true,
     );
     
-    controller.addContainer(
+    let container = controller.addContainer(
       image: image,
       imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
       securityContext: {
@@ -93,6 +95,17 @@ pub class Resource {
         ensureNonRoot: false,
       },
     );
+
+    for x in (props.operator.envSecrets ?? {}).entries() {
+      let secret = k8s.Secret.fromSecretName(this, "credentials-{x.key}-{x.value}", x.value);
+      container.env.addVariable(x.key, k8s.EnvValue.fromSecretValue(k8s.SecretValue{ secret, key: x.key }));
+    }
+
+    for y in (props.operator.env ?? {}).entries() {
+      container.env.addVariable(y.key, k8s.EnvValue.fromValue(y.value));
+    }
+
+    container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.definition.outputs ?? []).join(",")));
   }
 
   resolveSchema(sourcedir: str, props: ResourceProps): Json {
@@ -104,7 +117,7 @@ pub class Resource {
     // otherwise, try to figure it out based on the engine
     let engine = props.engine;
 
-    if engine == "wing" {
+    if engine == "wing" || engine.startsWith("wing/") {
       return Resource.generateSchemaFromWingStruct(sourcedir, "{props.definition.kind}Spec");
     } elif engine == "helm" {
       let f = "{sourcedir}/values.schema.json";
@@ -114,7 +127,6 @@ pub class Resource {
 
       let x = MutJson fs.readJson(f);
       x.delete("$schema");
-
 
       return x;
     } else {

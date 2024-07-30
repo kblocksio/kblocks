@@ -6,7 +6,7 @@ metadata:
     foo: bar
     hello: world
 image: hashicorp/http-echo
-replicas: 3
+replicas: 2
 env:
   ECHO_TEXT: bing
 port: 5678

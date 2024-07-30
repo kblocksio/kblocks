@@ -9,7 +9,7 @@ build() {
 
   export KBLOCKS_PROJECT_ROOT="$PWD"
 
-  (wing compile -t @winglibs/k8s $kblocks/main.w)
+  wing compile -t @winglibs/k8s $kblocks/main.w
 
   if [ ! -f Chart.yaml ]; then
     echo "Chart.yaml not found"
@@ -30,7 +30,7 @@ build() {
   rm -fr $output/.wing
   rm -fr $target_root
 
-  echo "Your kblocks are bunded into a Helm chart under: $output"
+  echo "Your kblocks are bundled as a Helm chart: $output"
 }
 
 # ---------------------------------------------
