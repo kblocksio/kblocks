@@ -1,0 +1,21 @@
+engine: wing/tf-aws
+definition:
+  group: acme.com
+  version: v1
+  kind: Repository
+  plural: repositories
+operator:
+  namespace: acme-operators
+  envSecrets:
+    AWS_ACCESS_KEY_ID: aws-credentials
+    AWS_SECRET_ACCESS_KEY: aws-credentials  
+    GITHUB_TOKEN: github-token
+  envConfigMaps:
+    AWS_DEFAULT_REGION: tf-backend-config
+    TF_BACKEND_BUCKET: tf-backend-config
+    TF_BACKEND_REGION: tf-backend-config
+    TF_BACKEND_KEY: tf-backend-config
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]

@@ -1,5 +1,5 @@
 const { join } = require("path");
-const { exec, getenv, patchStatus, kblockOutputs } = require("./util");
+const { exec, getenv, patchStatus, kblockOutputs, tryGetenv } = require("./util");
 const fs = require("fs");
 
 async function applyTerraform(ctx, dir) {
@@ -11,7 +11,7 @@ async function applyTerraform(ctx, dir) {
       bucket: getenv("TF_BACKEND_BUCKET"),
       region: getenv("TF_BACKEND_REGION"),
       key: getenv("TF_BACKEND_KEY"),
-      dynamodb_table: getenv("TF_BACKEND_DYNAMODB"),
+      dynamodb_table: tryGetenv("TF_BACKEND_DYNAMODB"),
     }
   };
 
@@ -30,8 +30,12 @@ async function applyTerraform(ctx, dir) {
   const results = {};
   for (const name of outputs) {
     const value = await exec("tofu", ["output", "-no-color", name], { cwd: dir });
-    results[name] = JSON.parse(value);
-    console.error(`OUTPUT! ${name}=${value}`);
+    try {
+      results[name] = JSON.parse(value);
+      console.error(`OUTPUT! ${name}=${value}`);
+    } catch (e) {
+      console.error(`No outputs found.`);
+    }
   }
 
   await patchStatus(ctx.object, results);

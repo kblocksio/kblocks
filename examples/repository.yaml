@@ -1,0 +1,6 @@
+apiVersion: acme.com/v1
+kind: Repository
+metadata:
+  name: my-repo
+name: my-unique-repo
+owner: monadaco

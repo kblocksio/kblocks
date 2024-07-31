@@ -7,3 +7,4 @@ include:
   - ./acme/postgres
   - ./acme/argo
   - ./acme/run
+  - ./acme/repository

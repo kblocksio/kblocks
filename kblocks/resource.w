@@ -15,6 +15,7 @@ pub struct ResourceOperator {
   namespace: str;
   permissions: Array<Permission>;
   envSecrets: Map<str>?;
+  envConfigMaps: Map<str>?;
   env: Map<str>?;
 }
 
@@ -99,6 +100,11 @@ pub class Resource {
     for x in (props.operator.envSecrets ?? {}).entries() {
       let secret = k8s.Secret.fromSecretName(this, "credentials-{x.key}-{x.value}", x.value);
       container.env.addVariable(x.key, k8s.EnvValue.fromSecretValue(k8s.SecretValue{ secret, key: x.key }));
+    }
+
+    for x in (props.operator.envConfigMaps ?? {}).entries() {
+      let cm = k8s.ConfigMap.fromConfigMapName(this, "configmaps-{x.key}-{x.value}", x.value);
+      container.env.addVariable(x.key, k8s.EnvValue.fromConfigMap(cm, x.key));
     }
 
     for y in (props.operator.env ?? {}).entries() {
