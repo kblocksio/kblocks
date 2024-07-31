@@ -1,5 +1,5 @@
 const { join } = require("path");
-const { exec, getenv, patchStatus } = require("./util");
+const { exec, getenv, patchStatus, kblockOutputs } = require("./util");
 const fs = require("fs");
 
 async function applyTerraform(ctx, dir) {
@@ -26,7 +26,7 @@ async function applyTerraform(ctx, dir) {
 
   await exec("tofu", ["apply", "-input=false", "-auto-approve", "-no-color"], { cwd: dir });
 
-  const outputs = (process.env.KBLOCK_OUTPUTS ?? "").split(",");
+  const outputs = kblockOutputs();
   const results = {};
   for (const name of outputs) {
     const value = await exec("tofu", ["output", "-no-color", name], { cwd: dir });

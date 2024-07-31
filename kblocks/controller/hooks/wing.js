@@ -1,6 +1,5 @@
-const { exec } = require("./util");
+const { exec, patchStatus, kblockOutputs } = require("./util");
 const fs = require("fs");
-const crypto = require("crypto");
 const { applyTerraform } = require("./tf");
 
 async function applyWing(engine, ctx, values) {
@@ -30,7 +29,7 @@ async function applyWingTerraform(entrypoint, ctx, target) {
 async function applyWingKubernetes(entrypoint, ctx) {
   const obj = ctx.object;
   const objidLabel = "kblock-id";
-  const objid = crypto.createHash('md5').update(`${obj.apiVersion}-${obj.kind}-${obj.metadata.name}`).digest('hex');
+  const objid = obj.metadata.uid;
   const namespace = obj.metadata.namespace ?? "default";
 
   // if we receive a delete event, we delete all resources marked with the object id label. this is
@@ -54,9 +53,15 @@ async function applyWingKubernetes(entrypoint, ctx) {
     ...obj.metadata.labels,
   };
 
+
+  console.error(fs.readFileSync(entrypoint, "utf-8"));
+
   await exec("wing", ["compile", "-t", "@winglibs/k8s", entrypoint], {
     env: { WING_K8S_LABELS: JSON.stringify(labels) } 
   });
+
+  const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
+  await patchStatus(ctx.object, outputs);
 
   await exec("kubectl", ["apply", 
     "--prune",
@@ -70,13 +75,26 @@ function createEntrypoint(ctx, values) {
   const entrypoint = "main.w";
   const obj = ctx.object;
 
-  fs.writeFileSync(entrypoint, `
-    bring "." as lib;
-    bring fs;
-    let json = fs.readJson("${values}");
-    let spec = lib.${obj.kind}Spec.fromJson(json);
-    let obj = new lib.${obj.kind}(spec) as \"${obj.metadata.name}\";
-  `);
+  const code = [
+    `bring "." as lib;`,
+    `bring fs;`,
+    `let json = fs.readJson("${values}");`,
+    `let spec = lib.${obj.kind}Spec.fromJson(json);`,
+    `let obj = new lib.${obj.kind}(spec) as \"${obj.metadata.name}\";`,
+  ];
+
+  const outputs = kblockOutputs();
+  code.push(`let outputs = {`);
+
+  for (const name of outputs) {
+    code.push(`"${name}": obj.${name},`);
+  }
+
+  code.push(`};`);
+
+  code.push(`fs.writeJson("outputs.json", outputs);`);
+
+  fs.writeFileSync(entrypoint, code.join("\n"));
 
   return entrypoint;
 }

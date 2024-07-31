@@ -4,11 +4,10 @@ metadata:
   name: my-database
 ---
 apiVersion: acme.com/v1
-kind: Workload
+kind: Run
 metadata:
   name: my-database-test
 image: docker.io/bitnami/postgresql:16.3.0-debian-12-r23
-replicas: 1
 command:
   - psql
   - --host

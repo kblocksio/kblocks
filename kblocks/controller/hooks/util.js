@@ -102,6 +102,11 @@ async function patchStatus(obj, patch) {
 //   }
 // }
 
+function kblockOutputs() {
+  return (process.env.KBLOCK_OUTPUTS ?? "").split(",").filter(x => x);
+}
+
 exports.exec = exec;
 exports.getenv = getenv;
 exports.patchStatus = patchStatus;
+exports.kblockOutputs = kblockOutputs;

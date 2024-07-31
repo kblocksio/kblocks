@@ -10,3 +10,16 @@ replicas: 2
 env:
   ECHO_TEXT: bing
 port: 5678
+---
+apiVersion: acme.com/v1
+kind: Run
+metadata:
+  name: my-workload-tester
+image: busybox
+command:
+  - /bin/sh
+  - -c
+  - wget $WORKLOAD_HOST:$WORKLOAD_PORT -qO -
+env:
+  WORKLOAD_HOST: ${{ kblock://workloads.acme.com/my-workload/host }}
+  WORKLOAD_PORT: ${{ kblock://workloads.acme.com/my-workload/port }}

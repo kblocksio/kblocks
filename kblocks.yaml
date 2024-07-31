@@ -6,3 +6,4 @@ include:
   - ./acme/queue
   - ./acme/postgres
   - ./acme/argo
+  - ./acme/run
