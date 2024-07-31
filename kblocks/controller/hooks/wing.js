@@ -30,16 +30,15 @@ async function applyWingKubernetes(entrypoint, ctx) {
   const obj = ctx.object;
   const objidLabel = "kblock-id";
   const objid = obj.metadata.uid;
-  const namespace = obj.metadata.namespace ?? "default";
 
   // if we receive a delete event, we delete all resources marked with the object id label. this is
   // more robust than synthesizing the manifest and deleting just the resources within the manifest
   // because the manifest may have changed since the last apply.
   if (ctx.watchEvent === "Deleted") {
     await exec("kubectl", [
-      "delete", "all", 
+      "delete", "all",
+      "--all-namespaces",
       "-l", `${objidLabel}=${objid}`, 
-      "-n", namespace
     ]);
 
     return;
@@ -66,7 +65,6 @@ async function applyWingKubernetes(entrypoint, ctx) {
   await exec("kubectl", ["apply", 
     "--prune",
     "--selector", `${objidLabel}=${objid}`,
-    "-n", namespace, 
     "-f", "target/main.k8s/*.yaml"]
   );
 }

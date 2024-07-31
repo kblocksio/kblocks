@@ -8,3 +8,4 @@ include:
   - ./acme/argo
   - ./acme/run
   - ./acme/repository
+  - ./acme/service

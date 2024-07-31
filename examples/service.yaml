@@ -1,0 +1,19 @@
+apiVersion: acme.com/v1
+kind: Service
+metadata:
+  name: my-service
+repo:
+  name: my-unique-repo
+  owner: monadaco
+  files:
+    README.md: |-
+      # My Service 
+      Insert your code here
+    .github/workflows/build.yaml: |-
+      name: GitHub Actions Demo
+      on: [push]
+      jobs:
+        build:
+          runs-on: ubuntu-latest
+          steps:
+            - run: echo "Building the service"

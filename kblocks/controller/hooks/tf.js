@@ -10,7 +10,7 @@ async function applyTerraform(ctx, dir) {
     s3: {
       bucket: getenv("TF_BACKEND_BUCKET"),
       region: getenv("TF_BACKEND_REGION"),
-      key: getenv("TF_BACKEND_KEY"),
+      key: `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`,
       dynamodb_table: tryGetenv("TF_BACKEND_DYNAMODB"),
     }
   };
@@ -39,6 +39,10 @@ async function applyTerraform(ctx, dir) {
   }
 
   await patchStatus(ctx.object, results);
+
+  // delete the target folder because the 
+  // tf backend key is changing between resources
+  fs.rmdirSync(dir, { recursive: true });
 }
 
 exports.applyTerraform = applyTerraform;
