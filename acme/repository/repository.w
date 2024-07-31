@@ -5,6 +5,7 @@ pub struct RepositorySpec {
   name: str;
   owner: str;
   public: bool?;
+  files: Map<str>?;
 }
 
 pub class Repository {
@@ -14,6 +15,18 @@ pub class Repository {
     if spec.public == false {
       visibility = "private";
     }
-    new github.repository.Repository(name: spec.name, visibility: visibility);
+
+    let repo = new github.repository.Repository(name: spec.name, visibility: visibility);
+
+    if let files = spec.files {
+      for file in files.entries() {
+
+        new github.repositoryFile.RepositoryFile(
+          repository: repo.name,
+          file: file.key,
+          content: file.value,
+        ) as "file-{file.key.replaceAll("/", "-")}";
+      }
+    }
   }
 }
