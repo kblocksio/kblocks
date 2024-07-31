@@ -32,6 +32,7 @@ async function applyHelm(ctx, values) {
     "--namespace", namespace,
     "--create-namespace",
     "--install",
+    "--wait",
     "--reset-values",
     "--values", values,
     "--output", "json" 

@@ -5,3 +5,4 @@ include:
   - ./acme/workload
   - ./acme/queue
   - ./acme/postgres
+  - ./acme/argo

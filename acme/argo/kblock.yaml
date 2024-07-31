@@ -1,0 +1,12 @@
+engine: helm
+definition:
+  group: acme.com
+  version: v1
+  kind: Argo
+  plural: argos
+operator:
+  namespace: acme-operators
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]
