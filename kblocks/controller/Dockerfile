@@ -1,4 +1,6 @@
 FROM ghcr.io/flant/shell-operator:latest
+ENV LOG_TYPE color
+
 RUN apk add --no-cache npm nodejs helm
 
 # install opentofu
@@ -15,7 +17,6 @@ RUN cd /tmp/tf && tofu init && rm -rf /tmp/tf
 # install winglang
 RUN npm i -g winglang
 
-
 ADD hooks /hooks
 
 # the "wing" directory contains the kblock
@@ -23,5 +24,3 @@ RUN mkdir /kblock
 ADD kblock /kblock
 RUN cd /kblock && ([ -f package.json ] && npm i --omit=dev || true)
 RUN cd /kblock && ([ -f Chart.yaml ] && helm dependency update || true)
-
-ENV LOG_TYPE color
