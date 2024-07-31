@@ -2,6 +2,15 @@
 
 kblocks is a tool for packaging Helm charts and IaC modules as native high-level Kubernetes objects.
 
+## Prerequisites
+
+Install the following:
+
+- node
+- docker
+- kind
+- kubectl
+- helm
 
 ## Installation
 
@@ -26,10 +35,16 @@ Create a `kind` cluster with a container image registry:
 ./scripts/reinstall-kind.sh
 ```
 
-Install Crossplane (if needed):
+Optional: install Crossplane:
 
 ```sh
 ./scripts/install-crossplane.sh
+```
+
+Build & install the Acme resources:
+
+```sh
+./install.sh
 ```
 
 ## Usage
@@ -82,7 +97,7 @@ be executed before `upgrade`.
 
 ## Wing Kubernetes Resources
 
-You can also implement kblocks using [Winglang](https://winglang.io) classes. 
+You can also implement kblocks using [Winglang](https://winglang.io) classes.
 
 The source directory includes `.w` files with a public class for each resource. It should also
 include a `package.json` file the `@winglibs/k8s` dependency.
@@ -97,7 +112,7 @@ definition:
   kind: Workload
   plural: workloads
   singular: workload
-  categories: 
+  categories:
     - all
   listKind: WorkloadList
   shortNames:
@@ -142,13 +157,13 @@ operator:
   namespace: acme-operators
   envSecrets:
     AWS_ACCESS_KEY_ID: aws-credentials
-    AWS_SECRET_ACCESS_KEY: aws-credentials  
+    AWS_SECRET_ACCESS_KEY: aws-credentials
   env:
     AWS_DEFAULT_REGION: eu-west-2
     TF_BACKEND_BUCKET: eladb-tfstate
     TF_BACKEND_REGION: eu-west-2
     TF_BACKEND_KEY: acme-queue
-    TF_BACKEND_DYNAMODB: eladb-tf-state 
+    TF_BACKEND_DYNAMODB: eladb-tf-state
   permissions:
     - apiGroups: ["*"]
       resources: ["*"]
