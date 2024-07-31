@@ -1,4 +1,4 @@
-const { exec } = require("./util");
+const { exec, publishEvent } = require("./util");
 
 // regular expression that matches `${{ kblock://apigroup/name/field }}`, for example: `${{ kblock://queues.acme.com/my-queue/queueUrl }}`
 const refRegex = /\$\{\{\s*kblock:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}\}/;
@@ -32,8 +32,21 @@ async function resolveReferences(obj) {
   const resolved = {};
 
   for (const [ ref, { apiGroup, name, field } ] of Object.entries(refs)) {
+    await publishEvent(obj, {
+      type: "Normal",
+      reason: "Resolving",
+      message: ref,
+    });
+
     await exec("kubectl", [ "wait", "--for=condition=Ready", `${apiGroup}/${name}`, "--timeout=5m", "-n", namespace ]);
     const value = await exec("kubectl", [ "get", `${apiGroup}/${name}`, "-n", namespace, "-o", `jsonpath={.status.${field}}` ]);
+
+    await publishEvent(obj, {
+      type: "Normal",
+      reason: "Resolved",
+      message: `${ref}=${value}`,
+    });
+
     resolved[ref] = value;
   }
 

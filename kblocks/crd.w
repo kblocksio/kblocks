@@ -64,10 +64,17 @@ pub class CustomResource {
     let printerColumns = MutArray<Json>[];
 
     printerColumns.push({
+      name: "Ready",
+      type: "string",
+      description: "Is resource ready",
+      jsonPath: ".status.conditions[0].status",
+    });
+
+    printerColumns.push({
       name: "Status",
       type: "string",
       description: "The status of the resource",
-      jsonPath: ".status.conditions[0].type",
+      jsonPath: ".status.conditions[0].message",
     });
 
     if let outputs = props.outputs {

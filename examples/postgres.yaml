@@ -8,6 +8,7 @@ kind: Run
 metadata:
   name: my-database-test
 image: docker.io/bitnami/postgresql:16.3.0-debian-12-r23
+retries: 100
 command:
   - psql
   - --host
@@ -21,6 +22,9 @@ command:
   - -c
   - SELECT version();
 envSecrets:
+  POSTGRES_PASSWORD:
+    name: ${{ kblock://postgres.acme.com/my-database/passwordSecret }}
+    key: ${{ kblock://postgres.acme.com/my-database/passwordKey }}
   PGPASSWORD:
     name: ${{ kblock://postgres.acme.com/my-database/passwordSecret }}
     key: ${{ kblock://postgres.acme.com/my-database/passwordKey }}

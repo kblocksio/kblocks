@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { patchStatus } = require("./util");
+const { patchStatus, publishEvent } = require("./util");
 const { applyHelm } = require("./helm");
 const { applyWing } = require("./wing");
 const { resolveReferences } = require("./refs");
@@ -29,9 +29,16 @@ async function synth(engine, ctx) {
 
 
   try {
+    await publishEvent(ctx.object, {
+      type: "Normal",
+      reason: "UpdateStarted",
+      message: "Starting to update resource",
+    });
+
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, "Resolving references");
     ctx.object = await resolveReferences(ctx.object);
+    
     console.error(JSON.stringify(ctx, undefined, 2));
 
     await updateReadyCondition(false, "Update in progress");
@@ -53,10 +60,21 @@ async function synth(engine, ctx) {
     }
 
     await updateReadyCondition(true, "Update succeeded");
-    
+
+    await publishEvent(ctx.object, {
+      type: "Normal",
+      reason: "UpdateSucceeded",
+      message: "Resource updated successfully",
+    });
+
   } catch (err) {
-    await updateReadyCondition(false, err.stack);
-    throw err; // re-throw to mark the hook as failed
+    await publishEvent(ctx.object, {
+      type: "Warning",
+      reason: "UpdateFailed",
+      message: err.stack,
+    });
+
+    await updateReadyCondition(false, "Update failed");
   }
 }
 

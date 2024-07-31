@@ -1,0 +1,8 @@
+apiVersion: acme.com/v1
+kind: Run
+metadata:
+  name: hello-world
+command:
+  - /bin/sh
+  - -c
+  - echo "hello, !!world!"

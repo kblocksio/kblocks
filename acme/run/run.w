@@ -6,6 +6,8 @@ pub struct RunSpec {
   env: Map<str>?;
   envSecrets: Map<EnvSecret>?;
   command: Array<str>?;
+  readiness: Array<str>?;
+  retries: num?;
 }
 
 pub struct EnvSecret {
@@ -15,11 +17,20 @@ pub struct EnvSecret {
 
 pub class Run {
   new(spec: RunSpec) {
-    let job = new k8s.Job();
+    let job = new k8s.Job(
+      backoffLimit: spec.retries ?? 10,
+    );
 
     let c = job.addContainer(
       image: spec.image ?? "busybox", 
       command: spec.command,
+      readiness: () => {
+        if let readiness = spec.readiness {
+          return k8s.Probe.fromCommand(readiness);
+        } else {
+          return nil;
+        }
+      }(),
       securityContext: {
         readOnlyRootFilesystem: false,
         ensureNonRoot: false,

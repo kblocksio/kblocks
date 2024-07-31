@@ -11,8 +11,6 @@ if (!kblock.engine) {
   throw new Error("kblock.json must contain an 'engine' field");
 }
 
-console.error(JSON.stringify(kblock, null, 2));
-
 async function main() {
   if (process.argv[2] === "--config") {
     process.stdout.write(JSON.stringify(kblock.config, null, 2));
