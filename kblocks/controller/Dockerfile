@@ -22,5 +22,6 @@ ADD hooks /hooks
 RUN mkdir /kblock
 ADD kblock /kblock
 RUN cd /kblock && ([ -f package.json ] && npm i --omit=dev || true)
+RUN cd /kblock && ([ -f Chart.yaml ] && helm dependency update || true)
 
 ENV LOG_TYPE color

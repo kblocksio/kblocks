@@ -1,4 +1,4 @@
-const { exec } = require("./util");
+const { exec, patchStatus } = require("./util");
 
 async function applyHelm(ctx, values) {
   const obj = ctx.object;
@@ -26,15 +26,27 @@ async function applyHelm(ctx, values) {
   ]);
   
   // install/upgrade
-  await exec("helm", [
+  const output = await exec("helm", [
     "upgrade",
     release, ".", 
     "--namespace", namespace,
     "--create-namespace",
     "--install",
     "--reset-values",
-     "--values", values
+    "--values", values,
+    "--output", "json" 
   ]);
+
+  const helmOutput = JSON.parse(output);
+  const notes = helmOutput?.info?.notes ?? "{}";
+  console.error({ notes });
+  try {
+    const actualOutputs = JSON.parse(notes);
+    console.log("outputs:", actualOutputs);
+    await patchStatus(ctx.object, actualOutputs);
+  } catch (e) {
+    console.error("Helm notes are not valid JSON:", e); 
+  }
 }
 
 exports.applyHelm = applyHelm;

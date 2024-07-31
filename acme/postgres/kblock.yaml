@@ -1,0 +1,19 @@
+engine: helm
+definition:
+  group: acme.com
+  version: v1
+  kind: Postgres
+  plural: postgreses
+  outputs:
+    - host
+    - user
+    - database
+    - port
+    - passwordSecret
+    - passwordKey
+operator:
+  namespace: acme-operators
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]

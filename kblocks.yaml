@@ -4,3 +4,4 @@ include:
   - ./acme/cron
   - ./acme/workload
   - ./acme/queue
+  - ./acme/postgres

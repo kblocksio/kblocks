@@ -122,7 +122,11 @@ pub class Resource {
     } elif engine == "helm" {
       let f = "{sourcedir}/values.schema.json";
       if !fs.exists(f) {
-        throw "values.schema.json not found";
+        log("warning: values.schema.json not found");
+        return {
+          type: "object",
+          properties: {},
+        };
       }
 
       let x = MutJson fs.readJson(f);

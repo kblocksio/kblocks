@@ -1,0 +1,27 @@
+apiVersion: acme.com/v1
+kind: Postgres
+metadata:
+  name: my-database
+---
+apiVersion: acme.com/v1
+kind: Workload
+metadata:
+  name: my-database-test
+image: docker.io/bitnami/postgresql:16.3.0-debian-12-r23
+replicas: 1
+command:
+  - psql
+  - --host
+  - ${{ kblock://postgres.acme.com/my-database/host }}
+  - -U
+  - ${{ kblock://postgres.acme.com/my-database/user }}
+  - -d
+  - ${{ kblock://postgres.acme.com/my-database/database }}
+  - -p
+  - ${{ kblock://postgres.acme.com/my-database/port }}
+  - -c
+  - SELECT version();
+envSecrets:
+  PGPASSWORD:
+    name: ${{ kblock://postgres.acme.com/my-database/passwordSecret }}
+    key: ${{ kblock://postgres.acme.com/my-database/passwordKey }}

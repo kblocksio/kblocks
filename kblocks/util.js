@@ -48,8 +48,11 @@ function cleanupSchema(schema) {
         node.forEach(visit);
       } else {
         if ("patternProperties" in node) {
+          const inner = node.patternProperties[".*"] ?? true;
+
           delete node.patternProperties;
-          node.additionalProperties = true;
+          
+          node.additionalProperties = inner;
         }
 
         for (const v of Object.values(node)) {
