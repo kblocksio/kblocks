@@ -7,6 +7,7 @@ metadata:
     hello: world
 image: hashicorp/http-echo
 route: /my-service(/|$)(.*)
+rewrite: /$2
 replicas: 2
 env:
   ECHO_TEXT: bing
