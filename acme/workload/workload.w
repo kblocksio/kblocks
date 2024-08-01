@@ -11,6 +11,9 @@ pub struct WorkloadSpec {
 
   /// Ingress path for this workload. If specified, this workload will be exposed publicly.
   route: str?;
+
+  /// Rewrite host header on backend 
+  rewrite: str?;
 }
 
 pub struct EnvSecret {
@@ -60,8 +63,11 @@ pub class Workload {
 
       if let route = spec.route {
         let ingress = new k8s.Ingress();
-        ingress.metadata.addAnnotation("nginx.ingress.kubernetes.io/rewrite-target", "/");
         ingress.addRule(route, k8s.IngressBackend.fromService(service), k8s.HttpIngressPathType.PREFIX);
+
+        if let rewrite = spec.rewrite {
+          ingress.metadata.addAnnotation("nginx.ingress.kubernetes.io/rewrite-target", rewrite);
+        }
       }
     } else {
       if spec.route != nil {
