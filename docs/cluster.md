@@ -66,3 +66,10 @@ Now we are ready to setup our server!
 ```sh
 ./script/setup-dev-server.sh
 ```
+
+This script should technically set you up to be able to
+simply use `kubectl` like normal but interact with
+the remote cluster.
+
+It updates your hosts file to map `kind-control-plane` as well as
+`kind-registry` to your host public ip.
