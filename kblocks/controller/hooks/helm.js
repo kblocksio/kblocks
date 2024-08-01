@@ -7,7 +7,11 @@ async function applyHelm(ctx, values) {
   const release = obj.metadata.name;
 
   if (ctx.watchEvent == "Deleted") {
-    await exec("helm", ["uninstall", release, "--namespace", namespace]);
+    await exec("helm", [
+      "uninstall", release, 
+      "--namespace", namespace
+    ]);
+
     return;
   }
 

@@ -100,7 +100,12 @@ async function publishEvent(obj, event) {
       ...event,
     }));
 
-    await exec("kubectl", ["apply", "-f", "event.json"]);
+    await exec("kubectl", [
+      "apply",
+      "-n", namespace,
+      "-f", "event.json"
+    ]);
+
   } catch (err) {
     console.error("WARNING: unable to publish event:", err.stack);
     console.error(obj);

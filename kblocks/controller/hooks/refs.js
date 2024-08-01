@@ -38,8 +38,19 @@ async function resolveReferences(obj) {
       message: ref,
     });
 
-    await exec("kubectl", [ "wait", "--for=condition=Ready", `${apiGroup}/${name}`, "--timeout=5m", "-n", namespace ]);
-    const value = await exec("kubectl", [ "get", `${apiGroup}/${name}`, "-n", namespace, "-o", `jsonpath={.status.${field}}` ]);
+    await exec("kubectl", [ 
+      "wait",
+      "--for=condition=Ready",
+      `${apiGroup}/${name}`,
+      "--timeout=5m",
+      "-n", namespace
+    ]);
+
+    const value = await exec("kubectl", [ 
+      "get", `${apiGroup}/${name}`,
+      "-n", namespace,
+      "-o", `jsonpath={.status.${field}}`
+    ]);
 
     await publishEvent(obj, {
       type: "Normal",
