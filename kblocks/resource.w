@@ -91,6 +91,12 @@ pub class Resource {
     let container = controller.addContainer(
       image: image,
       imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
+      resources: {
+        cpu: {
+          request: k8s.Cpu.millis(100),
+          limit: k8s.Cpu.units(1),
+        },
+      },
       securityContext: {
         readOnlyRootFilesystem: false,
         ensureNonRoot: false,

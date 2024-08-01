@@ -32,6 +32,12 @@ pub class Workload {
       image: spec.image, 
       portNumber: spec.port, 
       command: spec.command,
+      resources: {
+        cpu: {
+          request: k8s.Cpu.millis(100),
+          limit: k8s.Cpu.units(1),
+        },
+      },
       securityContext: {
         readOnlyRootFilesystem: false,
         ensureNonRoot: false,
