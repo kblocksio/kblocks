@@ -6,6 +6,8 @@ definition:
   plural: services
 operator:
   namespace: acme-operators
+  envSecrets:
+    GITHUB_TOKEN: github-token
   permissions:
     - apiGroups: ["*"]
       resources: ["*"]

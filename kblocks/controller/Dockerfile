@@ -17,6 +17,10 @@ RUN cd /tmp/tf && tofu init && rm -rf /tmp/tf
 # install winglang
 RUN npm i -g winglang
 
+ADD package.json package-lock.json /libs/
+RUN cd /libs/ && npm i --omit=dev
+ENV NODE_PATH=/libs/node_modules:$NODE_PATH
+
 ADD hooks /hooks
 
 # the "wing" directory contains the kblock

@@ -1,4 +1,6 @@
+bring util;
 bring "@winglibs/k8s" as k8s;
+bring "cdk8s-plus-30" as cdk8s;
 
 pub struct RepoSpec {
   name: str;
@@ -33,6 +35,7 @@ pub class Service {
       },
     })) as "service-config-repo";
 
+    let repoURL = "https://github.com/{spec.repo.owner}/{spec.repo.name}.git";
     new k8s.ApiObject(
       apiVersion: "argoproj.io/v1alpha1",
       kind: "Application",
@@ -42,7 +45,7 @@ pub class Service {
       spec: {
         project: "default",
         source: {
-          repoURL: "https://github.com/{spec.repo.owner}/{spec.repo.name}.git",
+          repoURL,
           targetRevision: "HEAD",
           path: "./"
         },
@@ -52,5 +55,19 @@ pub class Service {
         },
       },
     ) as "argo-application";
+
+    new cdk8s.Secret(
+      metadata: {
+        namespace: "argocd",
+        labels: {
+          "argocd.argoproj.io/secret-type": "repository",
+        }
+      },
+      stringData: {
+        url: repoURL,
+        password: util.env("GITHUB_TOKEN"),
+        username: "not-used",
+      }
+    );
   }
 } 

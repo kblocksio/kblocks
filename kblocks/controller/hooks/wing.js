@@ -1,6 +1,7 @@
 const { exec, patchStatus, kblockOutputs } = require("./util");
 const fs = require("fs");
 const { applyTerraform } = require("./tf");
+const yaml = require("js-yaml");
 
 async function applyWing(engine, ctx, values) {
   const entrypoint = createEntrypoint(ctx, values);
@@ -62,6 +63,30 @@ async function applyWingKubernetes(entrypoint, ctx) {
 
   const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
   await patchStatus(ctx.object, outputs);
+
+  // setting owner references for all resources in the manifest
+  fs.readdirSync("target/main.k8s", { withFileTypes: true }).forEach(async (file) => {
+    if (!file.isFile() || !file.name.endsWith(".yaml")) {
+      return;
+    }
+
+    const docs = [];
+    yaml.loadAll(fs.readFileSync(`target/main.k8s/${file.name}`, "utf8")).forEach(async (doc) => {
+      if (doc.metadata.name === obj.metadata.name) { 
+        doc.metadata.ownerReferences = [{
+          apiVersion: obj.apiVersion,
+          kind: obj.kind,
+          name: obj.metadata.name,
+          uid: obj.metadata.uid,
+          blockOwnerDeletion: true,
+          controller: true,
+        }];
+      }
+
+      docs.push(doc);
+    });
+    fs.writeFileSync(`target/main.k8s/${file.name}`, docs.map(doc => yaml.dump(doc)).join('---\n'));
+  });
 
   await exec("kubectl", ["apply", 
     "-n", namespace,
