@@ -30,7 +30,7 @@ pub class Resource {
     let def = MutJson props.definition;
 
     let kind = props.definition.kind.lowercase();
-    let image = "localhost:5001/kblocks:{kind}-{util.nanoid()}";
+    let image = "kind-registry:5001/kblocks:{kind}-{util.nanoid()}";
 
     let schema = this.resolveSchema(sourcedir, props);
     def.set("schema", schema);

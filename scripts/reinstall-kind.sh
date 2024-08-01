@@ -7,11 +7,9 @@ kind delete cluster || true
 # 1. Create registry container unless it already exists
 reg_name='kind-registry'
 reg_port='5001'
-if [ "$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)" != 'true' ]; then
-  docker run \
-    -d --restart=always -p "127.0.0.1:${reg_port}:5000" --network bridge --name "${reg_name}" \
-    registry:2
-fi
+
+docker rm -f "${reg_name}" || true
+docker run -d --restart=always -p "${reg_port}:5000" --network bridge --name "${reg_name}" registry:2
 
 # 2. Create kind cluster with containerd registry config dir enabled
 # TODO: kind will eventually enable this by default and this patch will
@@ -58,8 +56,8 @@ EOF
 # In other words: localhost in the container is not localhost on the host.
 #
 # We want a consistent name that works from both ends, so we tell containerd to
-# alias localhost:${reg_port} to the registry container when pulling images
-REGISTRY_DIR="/etc/containerd/certs.d/localhost:${reg_port}"
+# alias kind-registry:${reg_port} to the registry container when pulling images
+REGISTRY_DIR="/etc/containerd/certs.d/kind-registry:${reg_port}"
 for node in $(kind get nodes); do
   docker exec "${node}" mkdir -p "${REGISTRY_DIR}"
   cat <<EOF | docker exec -i "${node}" cp /dev/stdin "${REGISTRY_DIR}/hosts.toml"
@@ -83,13 +81,18 @@ metadata:
   namespace: kube-public
 data:
   localRegistryHosting.v1: |
-    host: "localhost:${reg_port}"
+    host: "kind-registry:${reg_port}"
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF
 
 # Deploy nginx ingress controller
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
+
+echo "Adding entries 'kind-control-plane' and 'kind-registry' to /etc/hosts..."
+cat /etc/hosts | grep -v "kind-" > /tmp/hosts
+echo "127.0.0.1 kind-registry" >> /tmp/hosts
+echo "127.0.0.1 kind-control-plane" >> /tmp/hosts
+
+echo "Please enter your password if prompted"
+sudo cp /etc/hosts /etc/hosts.bak
+sudo cp /tmp/hosts /etc/hosts

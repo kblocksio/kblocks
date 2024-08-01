@@ -27,21 +27,14 @@ Install deps:
 npm i
 ```
 
-## Setup Local Cluster
+## Setup Development Cluster
 
-Create a `kind` cluster with a container image registry:
+See [Cluster Setup](./docs/cluster.md) for instructions on how to setup your development cluster.
 
-```sh
-./scripts/reinstall-kind.sh
-```
+## Build & Install the Acme Operators
 
-Optional: install Crossplane:
-
-```sh
-./scripts/install-crossplane.sh
-```
-
-Build & install the Acme resources:
+This script will build a helm chart with your operators and install them into your Kubernetes
+cluster. Note that images are going to be pushed to `kind-registry:5001`.
 
 ```sh
 ./install.sh
@@ -209,6 +202,7 @@ This script will call `kblocks build` and then install it via Helm:
 ```sh
 ./install.sh
 ```
+
 
 ## Roadmap
 
