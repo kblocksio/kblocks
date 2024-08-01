@@ -1,0 +1,14 @@
+{
+  "name": "kblocks",
+  "version": "1.0.0",
+  "main": "main.w",
+  "scripts": {
+    "test": "vitest --run"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "vitest": "^2.0.5"
+  }
+}

@@ -1,4 +1,4 @@
-const { spawn } = require("child_process");
+const {spawn} = require("child_process");
 const fs = require("fs");
 
 function exec(command, args, options) {
@@ -8,30 +8,30 @@ function exec(command, args, options) {
   return new Promise((resolve, reject) => {
     console.error("$", command, args.join(" "));
 
-    const proc = spawn(command, args, { 
-      stdio: ["inherit", "pipe", "pipe"], 
+    const proc = spawn(command, args, {
+      stdio: ["inherit", "pipe", "pipe"],
       ...options,
       env: {
         ...process.env,
         ...options.env,
-      }
+      },
     });
-    
-    proc.on("error", err => reject(err));
-  
+
+    proc.on("error", (err) => reject(err));
+
     const stdout = [];
     const stderr = [];
-  
-    proc.stdout.on("data", data => {
+
+    proc.stdout.on("data", (data) => {
       process.stdout.write(data);
       stdout.push(data);
     });
 
-    proc.stderr.on("data", data => {
+    proc.stderr.on("data", (data) => {
       process.stderr.write(data);
       stderr.push(data);
     });
-  
+
     proc.on("exit", (status) => {
       if (status !== 0) {
         return reject(new Error(Buffer.concat(stderr).toString().trim()));
@@ -59,15 +59,7 @@ async function patchStatus(obj, patch) {
     const namespace = obj.metadata.namespace ?? "default";
     const group = obj.apiVersion.split("/")[0];
     const type = `${obj.kind.toLowerCase()}.${group}`;
-    await exec("kubectl", [
-      "patch",
-      type,
-      obj.metadata.name,
-      "-n", namespace,
-      "--type", "merge",
-      "--subresource", "status",
-      "--patch", JSON.stringify({ status: patch }),
-    ]);
+    await exec("kubectl", ["patch", type, obj.metadata.name, "-n", namespace, "--type", "merge", "--subresource", "status", "--patch", JSON.stringify({status: patch})]);
   } catch (err) {
     console.error("WARNING: unable to update status:", err.stack);
     console.error(patch);
@@ -78,27 +70,30 @@ async function patchStatus(obj, patch) {
 
 async function publishEvent(obj, event) {
   try {
-    const namespace = obj.metadata.namespace ?? "default";
+    const namespace = obj.metadata?.namespace ?? "default";
 
     // create a unique event name
     const name = "kblock-event-" + Math.random().toString(36).substring(7);
 
-    fs.writeFileSync("event.json", JSON.stringify({
-      apiVersion: "v1",
-      kind: "Event",
-      metadata: { name, namespace },
-      involvedObject: {
-        kind: obj.kind,
-        namespace,
-        name: obj.metadata.name,
-        uid: obj.metadata.uid,
-        apiVersion: obj.apiVersion,
-      },
-      firstTimestamp: new Date().toISOString(),
-      reportingComponent: "kblocks/operator",
-      reportingInstance: `${obj.apiVersion}/${obj.kind}`,
-      ...event,
-    }));
+    fs.writeFileSync(
+      "event.json",
+      JSON.stringify({
+        apiVersion: "v1",
+        kind: "Event",
+        metadata: {name, namespace},
+        involvedObject: {
+          kind: obj.kind,
+          namespace,
+          name: obj.metadata?.name,
+          uid: obj.metadata?.uid,
+          apiVersion: obj.apiVersion,
+        },
+        firstTimestamp: new Date().toISOString(),
+        reportingComponent: "kblocks/operator",
+        reportingInstance: `${obj.apiVersion}/${obj.kind}`,
+        ...event,
+      })
+    );
 
     await exec("kubectl", [
       "apply",
@@ -114,7 +109,7 @@ async function publishEvent(obj, event) {
 }
 
 function kblockOutputs() {
-  return (process.env.KBLOCK_OUTPUTS ?? "").split(",").filter(x => x);
+  return (process.env.KBLOCK_OUTPUTS ?? "").split(",").filter((x) => x);
 }
 
 exports.exec = exec;
