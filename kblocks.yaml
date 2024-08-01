@@ -1,11 +1,11 @@
 output: helm
 include:
-  - ./acme/bucket
-  - ./acme/cron
+  # - ./acme/bucket
+  # - ./acme/cron
   - ./acme/workload
-  - ./acme/queue
-  - ./acme/postgres
-  - ./acme/argo
+  # - ./acme/queue
+  # - ./acme/postgres
+  # - ./acme/argo
   - ./acme/run
-  - ./acme/repository
-  - ./acme/service
+  # - ./acme/repository
+  # - ./acme/service

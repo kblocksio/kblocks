@@ -226,6 +226,7 @@ This script will call `kblocks build` and then install it via Helm:
 - [ ] Operator permissions
 - [x] "Delete" should just delete all the resources based on the objectid label instead of synthesizing a manifest
 - [ ] Apply the `kblock/*` labels to all resources in the Helm engine (through a `--post-renderer`)
+- [ ] Add `bundle-version` labels to resources (e.g. https://gateway-api.sigs.k8s.io/concepts/versioning/#version-indicators).
 
 ## Known Issues
 

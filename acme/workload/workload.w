@@ -8,6 +8,9 @@ pub struct WorkloadSpec {
   env: Map<str>?;
   envSecrets: Map<EnvSecret>?;
   command: Array<str>?;
+
+  /// Ingress path for this workload. If specified, this workload will be exposed publicly.
+  route: str?;
 }
 
 pub struct EnvSecret {
@@ -48,6 +51,16 @@ pub class Workload {
       let service = d.exposeViaService(ports: [{ port }]);
       this.host = service.name;
       this.port = "{service.port}";
+
+      if let route = spec.route {
+        let ingress = new k8s.Ingress();
+        ingress.metadata.addAnnotation("nginx.ingress.kubernetes.io/rewrite-target", "/");
+        ingress.addRule(route, k8s.IngressBackend.fromService(service), k8s.HttpIngressPathType.PREFIX);
+      }
+    } else {
+      if spec.route != nil {
+        throw "Cannot specify 'path' without 'port'";
+      }
     }
   }
 }
