@@ -1,2 +1,2 @@
 #!/bin/sh
-docker images | grep localhost | cut -f4 -d" " | xargs -n1 -I {} -- docker rmi localhost:5001/kblocks:{}
+docker images --format "{{.Repository}} {{.ID}}" | grep "localhost" | cut -d" " -f2   | xargs -n1 -- docker rmi
