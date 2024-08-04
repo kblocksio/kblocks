@@ -5,7 +5,7 @@ bring "cdk8s-plus-30" as cdk8s;
 pub struct File  {
   path: str;
   content: str;
-  allowChanges: bool?;
+  readonly: bool?;
 }
 
 pub struct RepoSpec {
@@ -23,7 +23,7 @@ pub class Portal {
     let files: Array<File> = [{
       path: "README.md",
       content: "Hello, Portal!",
-      allowChanges: true,
+      readonly: false,
     }];
 
     new k8s.ApiObject(unsafeCast({

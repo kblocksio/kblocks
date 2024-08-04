@@ -13,7 +13,7 @@ ingressHost: argo.monadahq.com
 apiVersion: acme.com/v1
 kind: Portal
 metadata:
-  name: eladb-portal
+  name: catalog
 repo:
-  name: eladb-portal
+  name: catalog
   owner: monadaco
