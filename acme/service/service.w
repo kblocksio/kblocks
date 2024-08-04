@@ -5,7 +5,7 @@ bring "cdk8s-plus-30" as cdk8s;
 pub struct File  {
   path: str;
   content: str;
-  allowChanges: bool?;
+  readonly: bool?;
 }
 
 pub struct RepoSpec {
@@ -20,58 +20,60 @@ pub struct ServiceSpec {
 
 pub class Service {
   new(spec: ServiceSpec) {
-    let files: Array<File> = [{
+    let files = MutArray<File>[];
+    
+    files.push({
       path: "README.md",
       content: "Hello, World!",
-      allowChanges: true,
-    }, {
+      readonly: false,
+    });
+    
+    files.push({
       path: "Dockerfile",
-      content: "
-FROM hashicorp/http-echo:latest
-ENV ECHO_TEXT=hello",
-      allowChanges: true,
-    }, {
+      content: [
+        "FROM hashicorp/http-echo:latest",
+      ].join("\n"),
+      readonly: false,
+    });
+    
+    files.push({
       path: "Chart.yaml",
-      content: "
-apiVersion: v2
-name: hello-world
-description: A Helm chart for Kubernetes
-type: application
-version: 0.1.0
-appVersion: \"1.0.0\"
-      ",
-      allowChanges: true,
-    }, {
+      content: [
+        "apiVersion: v2",
+        "name: {spec.repo.name}",
+        "description: Helm chart for {spec.repo.name}",
+        "type: application",
+        "version: 0.1.0",
+        "appVersion: \"0.0.1\"",
+      ].join("\n"),
+      readonly: false,
+    });
+    
+    files.push({
       path: "values.yaml",
+      content: "revision: latest",
+      readonly: false,
+    });
+    
+    files.push({
+      path: "./templates/workload.yaml",
       content: "
-revision: latest",
-      allowChanges: true,
-    }, {
-      path: "./templates/deployment.yaml",
-      content: "
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: acme.com/v1
+kind: Workload
 metadata:
-  name: my-service
-  labels:
-    app: my-service
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: my-service
-  template:
-    metadata:
-      labels:
-        app: my-service
-    spec:
-      containers:
-      - name: my-service
-        image: wingcloudbot/{spec.repo.name}:sha-\{\{ .Values.revision }}
-        ports:
-        - containerPort: 5678",
-      allowChanges: true,
-    }, {
+  name: workload
+image: wingcloudbot/{spec.repo.name}:sha-\{\{ .Values.revision }}
+port: 5678
+route: /{spec.repo.name}(/|$)(.*)
+rewrite: /$2
+replicas: 2
+env:
+  ECHO_TEXT: \"hello from {spec.repo.name}\"
+",
+      readonly: false,
+    });
+    
+    files.push({
       path: "./.github/workflows/build.yml",
       content: "
 name: Build
@@ -86,6 +88,8 @@ jobs:
         name: Checkout repository
         with:
           fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -104,6 +108,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: $$\{\{ steps.meta.outputs.tags }}
           labels: $$\{\{ steps.meta.outputs.labels }}
       - uses: rickstaa/action-create-tag@v1
@@ -112,15 +117,15 @@ jobs:
           force_push_tag: true
           message: \"Latest release\"
 ",
-      allowChanges: false,
-    }];
+      readonly: true,
+    });
 
     new k8s.ApiObject(unsafeCast({
       apiVersion: "acme.com/v1",
       kind: "Repository",
       name: spec.repo.name,
       owner: spec.repo.owner,
-      files,
+      files: files.copy(),
       tags: ["latest"],
     })) as "service-repo";
 

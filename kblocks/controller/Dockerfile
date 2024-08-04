@@ -17,9 +17,9 @@ RUN apk add --no-cache opentofu@community
 # install winglang
 RUN npm i -g winglang
 
-ADD package.json package-lock.json /libs/
-RUN cd /libs/ && npm i --omit=dev
-ENV NODE_PATH=/libs/node_modules:$NODE_PATH
+# ADD package.json package-lock.json /libs/
+# RUN cd /libs/ && npm i --omit=dev
+# ENV NODE_PATH=/libs/node_modules:$NODE_PATH
 
 ADD hooks /hooks
 

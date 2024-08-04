@@ -1,8 +1,6 @@
 const { exec, patchStatus, kblockOutputs } = require("./util");
 const fs = require("fs");
 const { applyTerraform } = require("./tf");
-const yaml = require("js-yaml");
-const { apply } = require("./client");
 
 async function applyWing(engine, ctx, values) {
   const entrypoint = createEntrypoint(ctx, values);
@@ -51,31 +49,11 @@ async function applyWingKubernetes(entrypoint, ctx) {
     } 
   });
 
+  // update the "status" field of the object with the outputs from the Wing program
   const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
   await patchStatus(ctx.object, outputs);
 
-  for (let file of fs.readdirSync("target/main.k8s", { withFileTypes: true })) {
-    if (!file.isFile() || !file.name.endsWith(".yaml")) {
-      continue;
-    }
-
-    for (let doc of yaml.loadAll(fs.readFileSync(`target/main.k8s/${file.name}`, "utf8"))) {
-      // if (doc.metadata.namespace === obj.metadata.namespace) { 
-      //   doc.metadata.ownerReferences = [{
-      //     apiVersion: obj.apiVersion,
-      //     kind: obj.kind,
-      //     name: obj.metadata.name,
-      //     uid: obj.metadata.uid,
-      //     blockOwnerDeletion: true,
-      //     controller: true,
-      //   }];
-      // }
-
-      await apply(doc);
-    }    
-  }
-
-    // if we receive a delete event, we delete all resources marked with the object id label. this is
+  // if we receive a delete event, we delete all resources marked with the object id label. this is
   // more robust than synthesizing the manifest and deleting just the resources within the manifest
   // because the manifest may have changed since the last apply.
   if (ctx.watchEvent === "Deleted") {
@@ -91,7 +69,6 @@ async function applyWingKubernetes(entrypoint, ctx) {
       "-f", "target/main.k8s/*.yaml"]
     );
   }
-
 }
 
 function createEntrypoint(ctx, values) {

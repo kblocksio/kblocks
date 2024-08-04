@@ -5,7 +5,9 @@ bring "@cdktf/provider-github" as github;
 pub struct File  {
   path: str;
   content: str;
-  allowChanges: bool?;
+
+  /// defaults to `true`, which means that the file is immutable
+  readonly: bool?;
 }
 
 pub struct RepositorySpec {
@@ -29,12 +31,11 @@ pub class Repository {
     if let files = spec.files {
       for file in files {
         let var lifecycle: cdktf.TerraformResourceLifecycle = {};
-        if let allowChanges = file.allowChanges {
-          if allowChanges {
-            lifecycle = {
-              ignoreChanges: "all"
-            };
-          }
+        let readonly = file.readonly ?? true;
+        if !readonly {
+          lifecycle = {
+            ignoreChanges: "all"
+          };
         }
 
         let repoProps: github.repositoryFile.RepositoryFileConfig = {

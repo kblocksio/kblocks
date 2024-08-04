@@ -3,9 +3,13 @@ const { exec, publishEvent } = require("./util");
 // regular expression that matches `${ref://apigroup/name/field}`, for example: `${ref://queues.acme.com/my-queue/queueUrl}`
 const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
 
+
+
 async function resolveReferences(obj) {
+  const objCopy = { ...obj };
+
   return await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }) => {
-    await publishEvent(obj, {
+    await publishEvent(objCopy, {
       type: "Normal",
       reason: "Resolving",
       message: ref,
@@ -25,7 +29,7 @@ async function resolveReferences(obj) {
       "-o", `jsonpath={.status.${field}}`
     ]);
 
-    await publishEvent(obj, {
+    await publishEvent(objCopy, {
       type: "Normal",
       reason: "Resolved",
       message: `${ref}=${value}`,
@@ -63,7 +67,7 @@ async function resolveReferencesInternal(obj, resolver) {
   const resolved = {};
 
   for (const [ ref, { apiGroup, name, field } ] of Object.entries(refs)) {
-    resolved[ref] = resolver({
+    resolved[ref] = await resolver({
       ref,
       apiGroup,
       name,
@@ -78,8 +82,7 @@ async function resolveReferencesInternal(obj, resolver) {
     }
 
     while (true) {
-      const refRegex = /\$\{\s*kblock:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
-      const match = refRegex.exec(value);
+      const match = new RegExp(refRegex).exec(value);
       if (!match) {
         break;
       }
