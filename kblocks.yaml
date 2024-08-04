@@ -9,3 +9,4 @@ include:
   - ./acme/run
   - ./acme/repository
   - ./acme/service
+  - ./acme/portal

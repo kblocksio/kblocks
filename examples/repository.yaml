@@ -5,11 +5,12 @@ metadata:
 name: my-unique-repo
 owner: monadaco
 files:
-  .github/workflows/build.yaml: |-
-    name: GitHub Actions Demo
-    on: [push]
-    jobs:
-      build:
-        runs-on: ubuntu-latest
-        steps:
-          - run: echo "Building the service"
+  - path: .github/workflows/build.yaml
+    content: |
+      name: GitHub Actions Demo
+      on: [push]
+      jobs:
+        build:
+          runs-on: ubuntu-latest
+          steps:
+            - run: echo "Building the service"
