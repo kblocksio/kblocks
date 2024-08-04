@@ -186,7 +186,7 @@ and will populate the resource's `state` with this value once it's available.
 An output can be referenced from another kblock through the syntax:
 
 ```
-kblock://queues.acme.com/my-queue/queueUrl
+ref://queues.acme.com/my-queue/queueUrl
 ```
 
 If the controller encounters this token when reconciling a resource, it will first wait for the

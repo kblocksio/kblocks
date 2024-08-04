@@ -14,4 +14,4 @@ command:
   - -c
   - while true; do echo "QUEUE_URL=$QUEUE_URL"; sleep 1; done
 env:
-  QUEUE_URL: ${{ kblock://queues.acme.com/my-queue/queueUrl }}
+  QUEUE_URL: ${ref://queues.acme.com/my-queue/queueUrl}

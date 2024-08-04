@@ -1,37 +1,10 @@
 const { exec, publishEvent } = require("./util");
 
-// regular expression that matches `${{ kblock://apigroup/name/field }}`, for example: `${{ kblock://queues.acme.com/my-queue/queueUrl }}`
-const refRegex = /\$\{\{\s*kblock:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}\}/;
+// regular expression that matches `${ref://apigroup/name/field}`, for example: `${ref://queues.acme.com/my-queue/queueUrl}`
+const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
 
 async function resolveReferences(obj) {
-  const metadata = obj.metadata;
-  const status = obj.status;
-  const namespace = metadata.namespace ?? "default";
-
-  delete obj.metadata;
-  delete obj.status;
-
-  const refs = {};
-  
-  const finder = (_, value) => {
-    if (typeof value !== "string") {
-      return value;
-    }
-
-    const match = refRegex.exec(value);
-    if (match) {
-      const [ _, apiGroup, name, field ] = match;
-      refs[match[0]] = { apiGroup, name, field: field.trim() };
-    }
-
-    return value;
-  };
-
-  JSON.stringify(obj, finder);
-
-  const resolved = {};
-
-  for (const [ ref, { apiGroup, name, field } ] of Object.entries(refs)) {
+  await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }) => {
     await publishEvent(obj, {
       type: "Normal",
       reason: "Resolving",
@@ -58,7 +31,45 @@ async function resolveReferences(obj) {
       message: `${ref}=${value}`,
     });
 
-    resolved[ref] = value;
+    return value;
+  });
+}
+
+async function resolveReferencesInternal(obj, resolver) {
+  const metadata = obj.metadata;
+  const status = obj.status;
+  const namespace = metadata.namespace ?? "default";
+
+  delete obj.metadata;
+  delete obj.status;
+
+  const refs = {};
+  
+  const finder = (_, value) => {
+    if (typeof value !== "string") {
+      return value;
+    }
+
+    for (const match of value.matchAll(refRegex)) {
+      const [ _, apiGroup, name, field ] = match;
+      refs[match[0]] = { apiGroup, name, field: field.trim() };
+    }
+
+    return value;
+  };
+
+  JSON.stringify(obj, finder);
+
+  const resolved = {};
+
+  for (const [ ref, { apiGroup, name, field } ] of Object.entries(refs)) {
+    resolved[ref] = resolver({
+      ref,
+      apiGroup,
+      name,
+      namespace,
+      field
+    });
   }
 
   const replacer = (_, value) => {
@@ -66,8 +77,13 @@ async function resolveReferences(obj) {
       return value;
     }
 
-    const match = refRegex.exec(value);
-    if (match) {
+    while (true) {
+      const refRegex = /\$\{\s*kblock:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
+      const match = refRegex.exec(value);
+      if (!match) {
+        break;
+      }
+
       value = value.slice(0, match.index) + resolved[match[0]] + value.slice(match.index + match[0].length);
     }
 
@@ -82,3 +98,4 @@ async function resolveReferences(obj) {
 }
 
 exports.resolveReferences = resolveReferences;
+exports.resolveReferencesInternal = resolveReferencesInternal;

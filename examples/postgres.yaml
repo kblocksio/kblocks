@@ -12,19 +12,19 @@ retries: 100
 command:
   - psql
   - --host
-  - ${{ kblock://postgres.acme.com/my-database/host }}
+  - ${ref://postgres.acme.com/my-database/host}
   - -U
-  - ${{ kblock://postgres.acme.com/my-database/user }}
+  - ${ref://postgres.acme.com/my-database/user}
   - -d
-  - ${{ kblock://postgres.acme.com/my-database/database }}
+  - ${ref://postgres.acme.com/my-database/database}
   - -p
-  - ${{ kblock://postgres.acme.com/my-database/port }}
+  - ${ref://postgres.acme.com/my-database/port}
   - -c
   - SELECT version();
 envSecrets:
   POSTGRES_PASSWORD:
-    name: ${{ kblock://postgres.acme.com/my-database/passwordSecret }}
-    key: ${{ kblock://postgres.acme.com/my-database/passwordKey }}
+    name: ${ref://postgres.acme.com/my-database/passwordSecret}
+    key: ${ref://postgres.acme.com/my-database/passwordKey}
   PGPASSWORD:
-    name: ${{ kblock://postgres.acme.com/my-database/passwordSecret }}
-    key: ${{ kblock://postgres.acme.com/my-database/passwordKey }}
+    name: ${ref://postgres.acme.com/my-database/passwordSecret}
+    key: ${ref://postgres.acme.com/my-database/passwordKey}

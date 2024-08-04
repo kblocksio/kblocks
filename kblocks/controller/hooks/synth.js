@@ -68,6 +68,8 @@ async function synth(engine, ctx) {
     });
 
   } catch (err) {
+    console.error(err.stack);
+
     await publishEvent(ctx.object, {
       type: "Warning",
       reason: "UpdateFailed",

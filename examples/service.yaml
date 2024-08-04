@@ -1,9 +1,7 @@
 apiVersion: acme.com/v1
 kind: Service
 metadata:
-  name: my-service
-  labels:
-    app: my-service
+  name: eladb-hello
 repo:
-  name: other-repo
   owner: monadaco
+  name: eladb-hello
