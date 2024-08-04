@@ -1,5 +1,5 @@
 FROM ghcr.io/flant/shell-operator:latest
-ENV LOG_TYPE color
+ENV LOG_TYPE=color
 
 RUN apk add --no-cache npm nodejs helm
 

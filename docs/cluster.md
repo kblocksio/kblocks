@@ -8,9 +8,7 @@ Go to Docker Desktop Settings and under **Docker Engine** edit the configuration
 
 ```json
 {
-  "insecure-registries": [
-    "kind-registry:5001"
-  ]
+  "insecure-registries": ["kind-registry:5001"]
 }
 ```
 

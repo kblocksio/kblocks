@@ -4,7 +4,7 @@ const { exec, publishEvent } = require("./util");
 const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
 
 async function resolveReferences(obj) {
-  await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }) => {
+  return await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }) => {
     await publishEvent(obj, {
       type: "Normal",
       reason: "Resolving",
