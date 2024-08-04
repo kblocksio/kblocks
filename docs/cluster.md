@@ -4,11 +4,23 @@ You can choose to install a local cluster or a setup an EC2 instance with a kind
 
 ## Local Cluster
 
+Go to Docker Desktop Settings and under **Docker Engine** edit the configuration to include:
+
+```json
+{
+  "insecure-registries": [
+    "kind-registry:5001"
+  ]
+}
+```
+
 This script can be used to install (or reinstall) a local `kind` cluster:
 
 ```sh
 ./scripts/reinstall-kind.sh
 ```
+
+
 
 Optional: install Crossplane:
 
