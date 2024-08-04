@@ -40,7 +40,7 @@ async function applyWingKubernetes(entrypoint, ctx) {
   if (ctx.watchEvent === "Deleted") {
     await exec("kubectl", [
       "delete", "all",
-      "-n", namespace,
+      "--all-namespaces",
       "-l", `${objidLabel}=${objid}`, 
     ]);
 
@@ -59,7 +59,10 @@ async function applyWingKubernetes(entrypoint, ctx) {
   console.error(fs.readFileSync(entrypoint, "utf-8"));
 
   await exec("wing", ["compile", "-t", "@winglibs/k8s", entrypoint], {
-    env: { WING_K8S_LABELS: JSON.stringify(labels) } 
+    env: {
+      WING_K8S_LABELS: JSON.stringify(labels),
+      WING_K8S_NAMESPACE: namespace,
+    } 
   });
 
   const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
@@ -86,12 +89,12 @@ async function applyWingKubernetes(entrypoint, ctx) {
     }    
   }
 
-  // await exec("kubectl", ["apply", 
-  //   "-n", namespace,
-  //   "--prune",
-  //   "--selector", `${objidLabel}=${objid}`,
-  //   "-f", "target/main.k8s/*.yaml"]
-  // );
+  await exec("kubectl", [
+    "apply", 
+    "--prune",
+    "--selector", `${objidLabel}=${objid}`,
+    "-f", "target/main.k8s/*.yaml"]
+  );
 }
 
 function createEntrypoint(ctx, values) {

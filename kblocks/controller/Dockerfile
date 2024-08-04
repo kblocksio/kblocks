@@ -6,13 +6,13 @@ RUN apk add --no-cache npm nodejs helm
 # install opentofu
 RUN echo '@community https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
 RUN apk add --no-cache opentofu@community
-RUN mkdir /terraform-cache
-ENV TF_PLUGIN_CACHE_DIR="/terraform-cache"
 
-# pre-cache terraform providers
-RUN mkdir -p /tmp/tf
-ADD providers.tf /tmp/tf
-RUN cd /tmp/tf && tofu init && rm -rf /tmp/tf
+# # TODO: pre-cache terraform providers
+# RUN mkdir /terraform-cache
+# ENV TF_PLUGIN_CACHE_DIR="/terraform-cache"
+# RUN mkdir -p /tmp/tf
+# ADD providers.tf /tmp/tf
+# RUN cd /tmp/tf && tofu init && rm -rf /tmp/tf
 
 # install winglang
 RUN npm i -g winglang

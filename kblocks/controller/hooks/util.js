@@ -102,7 +102,6 @@ async function publishEvent(obj, event) {
 
     await exec("kubectl", [
       "apply",
-      "-n", namespace,
       "-f", "event.json"
     ]);
 
