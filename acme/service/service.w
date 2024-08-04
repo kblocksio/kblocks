@@ -54,15 +54,21 @@ spec:
       "./.github/workflows/build.yml": "
 name: Build
 on: [push]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+        with:
+          fetch-depth: 0
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: \$\{\{ secrets.DOCKER_USERNAME }}
-          password: \$\{\{ secrets.DOCKER_PASSWORD }}
+          username: $$\{\{ secrets.DOCKER_USERNAME }}
+          password: $$\{\{ secrets.DOCKER_PASSWORD }}
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -75,11 +81,9 @@ jobs:
         id: push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
           push: true
-          tags: \$\{\{ steps.meta.outputs.tags }}
-          labels: \$\{\{ steps.meta.outputs.labels }}
+          tags: $$\{\{ steps.meta.outputs.tags }}
+          labels: $$\{\{ steps.meta.outputs.labels }}
       - uses: rickstaa/action-create-tag@v1
         with:
           tag: \"latest\"
@@ -118,11 +122,15 @@ jobs:
         },
         destination: {
           server: "https://kubernetes.default.svc",
+          namespace: spec.repo.name,
         },
         syncPolicy: {
           automated: {
             selfHeal: true,
-          }
+          },
+          syncOptions: [
+            "CreateNamespace=true"
+          ],
         }
       },
     ) as "argo-application";
