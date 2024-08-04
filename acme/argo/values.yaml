@@ -1,0 +1,5 @@
+# ingressHost: argo.myhost.com
+argo-cd:
+  configs:
+    params:
+      server.insecure: true
