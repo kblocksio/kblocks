@@ -34,19 +34,6 @@ async function applyWingKubernetes(entrypoint, ctx) {
   const objid = obj.metadata.uid;
   const namespace = obj.metadata.namespace ?? "default";
 
-  // if we receive a delete event, we delete all resources marked with the object id label. this is
-  // more robust than synthesizing the manifest and deleting just the resources within the manifest
-  // because the manifest may have changed since the last apply.
-  if (ctx.watchEvent === "Deleted") {
-    await exec("kubectl", [
-      "delete", "all",
-      "--all-namespaces",
-      "-l", `${objidLabel}=${objid}`, 
-    ]);
-
-    return;
-  }
-
   const labels = {
     [objidLabel]: objid,
     "kblock/api-version": obj.apiVersion.replace("/", "-"),
@@ -54,7 +41,6 @@ async function applyWingKubernetes(entrypoint, ctx) {
     "kblock/name": obj.metadata.name,
     ...obj.metadata.labels,
   };
-
 
   console.error(fs.readFileSync(entrypoint, "utf-8"));
 
@@ -89,12 +75,23 @@ async function applyWingKubernetes(entrypoint, ctx) {
     }    
   }
 
-  await exec("kubectl", [
-    "apply", 
-    "--prune",
-    "--selector", `${objidLabel}=${objid}`,
-    "-f", "target/main.k8s/*.yaml"]
-  );
+    // if we receive a delete event, we delete all resources marked with the object id label. this is
+  // more robust than synthesizing the manifest and deleting just the resources within the manifest
+  // because the manifest may have changed since the last apply.
+  if (ctx.watchEvent === "Deleted") {
+    await exec("kubectl", [
+      "delete",
+      "-f", "target/main.k8s/*.yaml",
+    ]);
+  } else {
+    await exec("kubectl", [
+      "apply", 
+      "--prune",
+      "--selector", `${objidLabel}=${objid}`,
+      "-f", "target/main.k8s/*.yaml"]
+    );
+  }
+
 }
 
 function createEntrypoint(ctx, values) {
