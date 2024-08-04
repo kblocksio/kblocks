@@ -28,7 +28,7 @@ async function applyHelm(ctx, values) {
     release, ".",
       "--values", values
   ]);
-  
+
   // install/upgrade
   const output = await exec("helm", [
     "upgrade",

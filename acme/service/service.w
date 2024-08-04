@@ -6,7 +6,6 @@ pub struct RepoSpec {
   name: str;
   owner: str;
   public: bool?;
-  files: Map<str>?;
 }
 
 pub struct ServiceSpec {
@@ -15,25 +14,87 @@ pub struct ServiceSpec {
 
 pub class Service {
   new(spec: ServiceSpec) {
-    let files = spec.repo.files?.copyMut();
+    let files = {
+      "README.md": "Hello, World!",
+      "Dockerfile": "
+FROM hashicorp/http-echo:latest
+ENV ECHO_TEXT=hello",
+      "Chart.yaml": "
+apiVersion: v2
+name: hello-world
+description: A Helm chart for Kubernetes
+type: application
+version: 0.1.0
+appVersion: \"1.0.0\"
+      ",
+      "values.yaml": "
+revision: latest",
+      "./templates/deployment.yaml": "
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-service
+  labels:
+    app: my-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-service
+  template:
+    metadata:
+      labels:
+        app: my-service
+    spec:
+      containers:
+      - name: my-service
+        image: wingcloudbot/{spec.repo.name}:sha-\{\{ .Values.revision }}
+        ports:
+        - containerPort: 5678",
+      "./.github/workflows/build.yml": "
+name: Build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: \$\{\{ secrets.DOCKER_USERNAME }}
+          password: \$\{\{ secrets.DOCKER_PASSWORD }}
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: wingcloudbot/{spec.repo.name}
+          tags: |
+            type=raw,value=latest,enable=\{\{is_default_branch}}
+            type=sha
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: \$\{\{ steps.meta.outputs.tags }}
+          labels: \$\{\{ steps.meta.outputs.labels }}
+      - uses: rickstaa/action-create-tag@v1
+        with:
+          tag: \"latest\"
+          force_push_tag: true
+          message: \"Latest release\"
+"
+    };
 
     new k8s.ApiObject(unsafeCast({
       apiVersion: "acme.com/v1",
       kind: "Repository",
       name: spec.repo.name,
       owner: spec.repo.owner,
-      files: spec.repo.files,
+      files,
     })) as "service-repo";
-
-    new k8s.ApiObject(unsafeCast({
-      apiVersion: "acme.com/v1",
-      kind: "Repository",
-      name: "{spec.repo.name}-config",
-      owner: spec.repo.owner,
-      files: {
-        "README.md": "Insert helm chart here"
-      },
-    })) as "service-config-repo";
 
     let repoURL = "https://github.com/{spec.repo.owner}/{spec.repo.name}.git";
     new k8s.ApiObject(
@@ -46,13 +107,23 @@ pub class Service {
         project: "default",
         source: {
           repoURL,
-          targetRevision: "HEAD",
-          path: "./"
+          targetRevision: "latest",
+          path: "./",
+          helm: {
+            parameters: [{
+              name: "revision",
+              value: "$ARGOCD_APP_REVISION_SHORT",
+            }],
+          },
         },
         destination: {
           server: "https://kubernetes.default.svc",
-          namespace: spec.repo.name,
         },
+        syncPolicy: {
+          automated: {
+            selfHeal: true,
+          }
+        }
       },
     ) as "argo-application";
 

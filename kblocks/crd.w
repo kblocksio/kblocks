@@ -108,7 +108,7 @@ pub class CustomResource {
           plural: def.plural,
           singular: def.singular,
         },
-        scope: "Cluster",
+        scope: "Namespaced",
         versions: [
           {
             name: def.version,

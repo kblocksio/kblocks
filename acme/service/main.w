@@ -5,8 +5,5 @@ new service.Service({
     name: "test-repo",
     owner: "monadaco",
     public: true,
-    files: {
-      "README.md": "Hello, World!"
-    },
   },
 });
