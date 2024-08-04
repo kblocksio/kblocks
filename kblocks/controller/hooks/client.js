@@ -34,7 +34,8 @@ exports.apply = async function(doc) {
     }
 
     console.error(`applied ${doc.kind} ${doc.metadata.name}`);
-  } catch (e) {
-    console.error(`error applying ${doc.kind} ${doc.metadata}`, err.body ?? err.toString());
+  } catch (err) {
+    console.error(`error applying ${doc.kind} ${doc.metadata}`);
+    console.error(err.stack);
   }
 };
