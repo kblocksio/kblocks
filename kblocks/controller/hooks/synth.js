@@ -33,7 +33,7 @@ async function synth(engine, ctx) {
   const slack = await newSlackThread(slackChannel, slackStatus("🟡", "Updating"));
 
   try {
-    await slack.post(`New desired state\n\`\`\`${JSON.stringify(ctx.object, undefined, 2)}\`\`\``);
+    await slack.post(`New desired state\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
     
     await publishEvent(ctx.object, {
       type: "Normal",
