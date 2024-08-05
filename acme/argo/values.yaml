@@ -1,5 +1,7 @@
 # ingressHost: argo.myhost.com
 argo-cd:
   configs:
+    cm:
+      timeout.reconciliation: 30s
     params:
       server.insecure: true
