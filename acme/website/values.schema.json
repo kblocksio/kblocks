@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "type": "object",
+  "required": [
+    "image",
+    "backend",
+    "route"
+  ],
+  "properties": {
+    "backend": {
+      "type": "string"
+    },
+    "image": {
+      "type": "string"
+    },
+    "route": {
+      "type": "string"
+    }
+  }
+}

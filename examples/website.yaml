@@ -1,0 +1,7 @@
+apiVersion: acme.com/v1
+kind: Website
+metadata:
+  name: test-website
+backend: http://monadahq.com
+route: /hello-website
+image: wingcloudbot/vote-app:sha-8299b15
