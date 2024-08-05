@@ -8,8 +8,9 @@ RUN echo '@community https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /e
 RUN apk add --no-cache opentofu@community
 
 # # TODO: pre-cache terraform providers
-# RUN mkdir /terraform-cache
-# ENV TF_PLUGIN_CACHE_DIR="/terraform-cache"
+RUN mkdir /terraform-cache
+ENV TF_PLUGIN_CACHE_DIR="/terraform-cache"
+ENV TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE="true"
 # RUN mkdir -p /tmp/tf
 # ADD providers.tf /tmp/tf
 # RUN cd /tmp/tf && tofu init && rm -rf /tmp/tf

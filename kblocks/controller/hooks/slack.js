@@ -97,6 +97,12 @@ async function editSlackMessage(ctx, message) {
 
 const newSlackThread = async (channel, initialMessage) => {
   const threadContext = await sendSlackMessage(channel, initialMessage);
+  if (!threadContext) {
+    return {
+      update: async () => {},
+      post: async () => {},
+    };
+  }
 
   const post = async (message) => {
     await sendSlackMessage(channel, message, threadContext.ts);
