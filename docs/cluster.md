@@ -83,3 +83,13 @@ the remote cluster.
 
 It updates your hosts file to map `kind-control-plane` as well as
 `kind-registry` to your host public ip.
+
+## Setting up `kubectl` to connect to monadahq.com
+
+Download `dev.pem` from [Google Drive](https://drive.google.com/file/d/1O8YL3pyWL5cx3-Mw3smGzeztNfcFk5G7/view?usp=sharing) into your `$HOME` directory.
+
+Run:
+
+```sh
+DEV_SERVER_IP=18.134.129.140 ./scripts/remote-kubectl.sh
+```
