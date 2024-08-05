@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const fs = require("fs");
-const { synth } = require("./synth");
+const { synth } = require("/app");
 
 const kblock = JSON.parse(fs.readFileSync("kblock.json", "utf8"));
 if (!kblock.config) {

@@ -1,6 +1,7 @@
 const { exec, patchStatus, kblockOutputs } = require("./util");
 const fs = require("fs");
 const { applyTerraform } = require("./tf");
+const { addOwnerReferences } = require("./ownership");
 
 async function applyWing(engine, ctx, values) {
   const entrypoint = createEntrypoint(ctx, values);
@@ -40,35 +41,39 @@ async function applyWingKubernetes(entrypoint, ctx) {
     ...obj.metadata.labels,
   };
 
-  console.error(fs.readFileSync(entrypoint, "utf-8"));
-
   await exec("wing", ["compile", "-t", "@winglibs/k8s", entrypoint], {
     env: {
       WING_K8S_LABELS: JSON.stringify(labels),
       WING_K8S_NAMESPACE: namespace,
     } 
   });
-
-  // update the "status" field of the object with the outputs from the Wing program
-  const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
-  await patchStatus(ctx.object, outputs);
-
+ 
   // if we receive a delete event, we delete all resources marked with the object id label. this is
   // more robust than synthesizing the manifest and deleting just the resources within the manifest
   // because the manifest may have changed since the last apply.
   if (ctx.watchEvent === "Deleted") {
     await exec("kubectl", [
       "delete",
-      "-f", "target/main.k8s/*.yaml",
+      "--ignore-not-found",
+      "-f", manifest,
     ]);
-  } else {
-    await exec("kubectl", [
-      "apply", 
-      "--prune",
-      "--selector", `${objidLabel}=${objid}`,
-      "-f", "target/main.k8s/*.yaml"]
-    );
+    return;
   }
+
+  // add owner references to the generated manifest
+  const manifest = addOwnerReferences(ctx.object, "target/main.k8s", "manifest.yaml");
+  console.error(fs.readFileSync(manifest, "utf-8"));
+  
+  // update the "status" field of the object with the outputs from the Wing program
+  const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
+  await patchStatus(ctx.object, outputs);
+
+  await exec("kubectl", [
+    "apply", 
+    "--prune",
+    "--selector", `${objidLabel}=${objid}`,
+    "-f", manifest]
+  );
 }
 
 function createEntrypoint(ctx, values) {
@@ -98,5 +103,6 @@ function createEntrypoint(ctx, values) {
 
   return entrypoint;
 }
+
 
 exports.applyWing = applyWing;

@@ -56,6 +56,7 @@ function tryGetenv(k) {
 
 async function patchStatus(obj, patch) {
   try {
+    console.error("status update:", patch);
     const namespace = obj.metadata.namespace ?? "default";
     const group = obj.apiVersion.split("/")[0];
     const type = `${obj.kind.toLowerCase()}.${group}`;
@@ -69,8 +70,7 @@ async function patchStatus(obj, patch) {
       "--patch", JSON.stringify({ status: patch }),
     ]);
   } catch (err) {
-    console.error("WARNING: unable to update status:", err.stack);
-    console.error(patch);
+    // just ignore errors
   }
 }
 

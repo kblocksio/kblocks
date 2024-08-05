@@ -29,11 +29,15 @@ async function synth(engine, ctx) {
   });
 
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
-  const slackStatus = (icon, reason) => `${icon} *${ctx.object.metadata.namespace ?? "default"}/${ctx.object.metadata.name}* (_${ctx.object.kind}_): ${reason}`;
-  const slack = await newSlackThread(slackChannel, slackStatus("🟡", "Updating"));
+  const slackStatus = (icon, reason) => `${icon} _${ctx.object.kind}_ *${ctx.object.metadata.namespace ?? "default"}/${ctx.object.metadata.name}*: ${reason}`;
+
+  const deleted = ctx.watchEvent === "Deleted";
+  const slack = await newSlackThread(slackChannel, slackStatus("🟡", deleted ? "Deleting" : "Updating"));
 
   try {
-    await slack.post(`New desired state\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
+    if (!deleted) {
+      await slack.post(`New desired state\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
+    }
     
     await publishEvent(ctx.object, {
       type: "Normal",
@@ -42,6 +46,7 @@ async function synth(engine, ctx) {
     });
 
     // resolve references by waiting for the referenced objects to be ready
+    
     await updateReadyCondition(false, "Resolving references");
     ctx.object = await resolveReferences(ctx.object);
     
@@ -65,16 +70,19 @@ async function synth(engine, ctx) {
         throw new Error(`unsupported engine: ${engine}`);
     }
 
-    await updateReadyCondition(true, "Update succeeded");
-    await slack.update(slackStatus("🟢", "Success"));
-    await slack.post(`Resource updated successfully 🚀`);
-
-    await publishEvent(ctx.object, {
-      type: "Normal",
-      reason: "UpdateSucceeded",
-      message: "Resource updated successfully",
-    });
-
+    if (deleted) {
+      await slack.update(slackStatus("⚪", "Deleted"));
+      await slack.post(`Resource deleted successfully 🗑️`);
+    } else {
+      await updateReadyCondition(true, "Update succeeded");
+      await publishEvent(ctx.object, {
+        type: "Normal",
+        reason: "UpdateSucceeded",
+        message: "Resource updated successfully",
+      });  
+      await slack.update(slackStatus("🟢", "Success"));
+      await slack.post(`Resource updated successfully 🚀`);
+    }
   } catch (err) {
     console.error(err.stack);
 
@@ -83,10 +91,8 @@ async function synth(engine, ctx) {
       reason: "UpdateFailed",
       message: err.stack,
     });
-
     await slack.update(slackStatus("🔴", "Failure"));
     await slack.post(`Update failed with the following error:\n\`\`\`${err.stack}\`\`\``);
-
     await updateReadyCondition(false, "Update failed");
   }
 }
