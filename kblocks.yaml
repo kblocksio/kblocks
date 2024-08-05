@@ -1,4 +1,10 @@
 output: helm
+operators:
+  env:
+    SLACK_CHANNEL: monadaco-platform
+  envSecrets:
+    SLACK_API_TOKEN: slack-token
+
 include:
   - ./acme/bucket
   - ./acme/cron

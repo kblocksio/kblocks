@@ -66,3 +66,21 @@ function cleanupSchema(schema) {
 
   return schema;
 }
+
+export function mergeEnv(resource, global) {
+  return {
+    definition: resource?.definition,
+    engine: resource?.engine,
+    operator: {
+      ...resource?.operator,
+      env: {
+        ...resource?.operator?.env,
+        ...global?.env,
+      },
+      envSecrets: {
+        ...resource?.operator?.envSecrets,
+        ...global?.envSecrets,
+      }
+    },
+  };
+}

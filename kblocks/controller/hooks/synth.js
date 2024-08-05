@@ -3,6 +3,7 @@ const { patchStatus, publishEvent } = require("./util");
 const { applyHelm } = require("./helm");
 const { applyWing } = require("./wing");
 const { resolveReferences } = require("./refs");
+const { sendSlackMessage } = require("./slack");
 
 async function synth(engine, ctx) {
 
@@ -27,6 +28,8 @@ async function synth(engine, ctx) {
     }]
   });
 
+  const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
+  const slackNotify = async (icon, message) => sendSlackMessage(slackChannel, `${icon} *${ctx.object.metadata.name}* (_${ctx.object.kind}_): ${message}`);
 
   try {
     await publishEvent(ctx.object, {
@@ -34,6 +37,8 @@ async function synth(engine, ctx) {
       reason: "UpdateStarted",
       message: "Starting to update resource",
     });
+
+    await slackNotify("🟡", "The resource has been modified, applying changes...");
 
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, "Resolving references");
@@ -60,6 +65,7 @@ async function synth(engine, ctx) {
     }
 
     await updateReadyCondition(true, "Update succeeded");
+    await slackNotify("🟢", "🚀 Changes applied successfully, _some resource may still be updating_");
 
     await publishEvent(ctx.object, {
       type: "Normal",
@@ -77,6 +83,7 @@ async function synth(engine, ctx) {
     });
 
     await updateReadyCondition(false, "Update failed");
+    await slackNotify("🔴", `😔 Failed to update resource\n\`\`\`${err.stack}\`\`\``);
   }
 }
 

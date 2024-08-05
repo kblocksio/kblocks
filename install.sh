@@ -33,4 +33,10 @@ if [ -n "${TF_BACKEND_CONFIG:-}" ]; then
   kubectl create configmap $tf_backend_cm -n $namespace --from-env-file=$TEMP_TF_CONFIG
 fi
 
+if [ -n "${SLACK_API_TOKEN}" ]; then
+  slack_secret_name="slack-token"
+  kubectl delete secret $slack_secret_name -n $namespace 2>/dev/null || true
+  kubectl create secret generic $slack_secret_name -n $namespace --from-literal=SLACK_API_TOKEN=$SLACK_API_TOKEN
+fi
+
 helm upgrade --install acme-platform ./dist
