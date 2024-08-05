@@ -47,6 +47,9 @@ async function applyWingKubernetes(entrypoint, ctx) {
       WING_K8S_NAMESPACE: namespace,
     } 
   });
+
+  // add owner references to the generated manifest
+  const manifest = addOwnerReferences(ctx.object, "target/main.k8s", "manifest.yaml");
  
   // if we receive a delete event, we delete all resources marked with the object id label. this is
   // more robust than synthesizing the manifest and deleting just the resources within the manifest
@@ -59,11 +62,7 @@ async function applyWingKubernetes(entrypoint, ctx) {
     ]);
     return;
   }
-
-  // add owner references to the generated manifest
-  const manifest = addOwnerReferences(ctx.object, "target/main.k8s", "manifest.yaml");
-  console.error(fs.readFileSync(manifest, "utf-8"));
-  
+ 
   // update the "status" field of the object with the outputs from the Wing program
   const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
   await patchStatus(ctx.object, outputs);
