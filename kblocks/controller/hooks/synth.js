@@ -3,7 +3,7 @@ const { patchStatus, publishEvent } = require("./util");
 const { applyHelm } = require("./helm");
 const { applyWing } = require("./wing");
 const { resolveReferences } = require("./refs");
-const { sendSlackMessage } = require("./slack");
+const { newSlackThread } = require("./slack");
 
 async function synth(engine, ctx) {
 
@@ -29,16 +29,17 @@ async function synth(engine, ctx) {
   });
 
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
-  const slackNotify = async (icon, message) => sendSlackMessage(slackChannel, `${icon} *${ctx.object.metadata.name}* (_${ctx.object.kind}_): ${message}`);
+  const slackStatus = (icon, reason) => `${icon} *${ctx.object.metadata.namespace ?? "default"}/${ctx.object.metadata.name}* (_${ctx.object.kind}_): ${reason}`;
+  const slack = await newSlackThread(slackChannel, slackStatus("🟡", "Updating"));
 
   try {
+    await slack.post(`New desired state\n\`\`\`${JSON.stringify(ctx.object, undefined, 2)}\`\`\``);
+    
     await publishEvent(ctx.object, {
       type: "Normal",
       reason: "UpdateStarted",
       message: "Starting to update resource",
     });
-
-    await slackNotify("🟡", "The resource has been modified, applying changes...");
 
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, "Resolving references");
@@ -65,7 +66,8 @@ async function synth(engine, ctx) {
     }
 
     await updateReadyCondition(true, "Update succeeded");
-    await slackNotify("🟢", "🚀 Changes applied successfully, _some resource may still be updating_");
+    await slack.update(slackStatus("🟢", "Success"));
+    await slack.post(`Resource updated successfully 🚀`);
 
     await publishEvent(ctx.object, {
       type: "Normal",
@@ -82,8 +84,10 @@ async function synth(engine, ctx) {
       message: err.stack,
     });
 
+    await slack.update(slackStatus("🔴", "Failure"));
+    await slack.post(`Update failed with the following error:\n\`\`\`${err.stack}\`\`\``);
+
     await updateReadyCondition(false, "Update failed");
-    await slackNotify("🔴", `😔 Failed to update resource\n\`\`\`${err.stack}\`\`\``);
   }
 }
 
