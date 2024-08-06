@@ -91,5 +91,5 @@ Download `dev.pem` from [Google Drive](https://drive.google.com/file/d/1O8YL3pyW
 Run:
 
 ```sh
-DEV_SERVER_IP=18.134.129.140 ./scripts/remote-kubectl.sh
+DEV_SERVER_IP=18.134.129.140 ./scripts/kubectl-remote.sh
 ```
