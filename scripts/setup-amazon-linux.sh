@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# This script is intended to run on an Amazon Linux EC2 host
+#
 set -euo pipefail
 
 if [ "$(uname -m)" != "aarch64" ]; then

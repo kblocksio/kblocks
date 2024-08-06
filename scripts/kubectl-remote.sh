@@ -18,14 +18,9 @@ if [ ! -f $pem ]; then
 fi
 chmod 400 $pem
 
-echo "Adding entries 'kind-control-plane' and 'kind-registry' to /etc/hosts..."
-cat /etc/hosts | grep -v "kind-" > /tmp/hosts
-echo "$DEV_SERVER_IP kind-registry" >> /tmp/hosts
-echo "$DEV_SERVER_IP kind-control-plane" >> /tmp/hosts
-sudo cp /etc/hosts /etc/hosts.bak
-sudo cp /tmp/hosts /etc/hosts
+./update-hosts.sh $DEV_SERVER_IP
 
-echo "Setting up local kubectl"
+echo "Setting up kubectl to connect to $DEV_SERVER_IP..."
 scp -i $pem $user@$host:/home/$user/.kube/config /tmp/kubeconfig
 cat /tmp/kubeconfig | sed -e s/0\.\0\.\0\.0/$host/ > ~/.kube/config
 

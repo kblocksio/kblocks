@@ -1,5 +1,6 @@
 #!/bin/sh
 set -o errexit
+cd "$(dirname "$0")"
 
 # trying to delete any existing cluster
 kind delete cluster || true
@@ -88,11 +89,5 @@ EOF
 # Deploy nginx ingress controller
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
-echo "Adding entries 'kind-control-plane' and 'kind-registry' to /etc/hosts..."
-cat /etc/hosts | grep -v "kind-" > /tmp/hosts
-echo "127.0.0.1 kind-registry" >> /tmp/hosts
-echo "127.0.0.1 kind-control-plane" >> /tmp/hosts
-
-echo "Please enter your password if prompted"
-sudo cp /etc/hosts /etc/hosts.bak
-sudo cp /tmp/hosts /etc/hosts
+# Update /etc/hosts to point kind-control-plane and kind-registry to 127.0.0.1
+./update-hosts.sh 127.0.0.1
