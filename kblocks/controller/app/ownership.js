@@ -6,28 +6,26 @@ function renderYaml(parent, all) {
   // adding "ownerReferences" to the generated manifest to ensure that the resources are deleted
   // when the owner is deleted.
   const docs = yaml.parseAllDocuments(all);
-  const objects = [];
-  for (const doc of docs) {
-    const obj = doc.contents?.toJSON();
-    if (obj) {
-      // owner references are only added if the object and the parent object are in the same namespace
-      if ((obj.metadata.namespace ?? "default") === (parent.metadata.namespace ?? "default")) {
-        obj.metadata.ownerReferences = obj.metadata.ownerReferences ?? [];
-        obj.metadata.ownerReferences.push({
-          apiVersion: parent.apiVersion,
-          kind: parent.kind,
-          name: parent.metadata.name,
-          uid: parent.metadata.uid,
-          controller: true,
-          blockOwnerDeletion: true,
-        });
-      }
 
-      objects.push(obj);
+  for (const doc of docs) {
+    const metadata = doc.get("metadata");
+    const ownerRef = "ownerReferences";
+    
+    if (!metadata.has(ownerRef)) {
+      metadata.set(ownerRef, new yaml.YAMLSeq());
     }
+
+    metadata.get(ownerRef).add({
+      apiVersion: parent.apiVersion,
+      kind: parent.kind,
+      name: parent.metadata.name,
+      uid: parent.metadata.uid,
+      controller: true,
+      blockOwnerDeletion: true,
+    });
   }
 
-  return objects.map(o => yaml.stringify(o)).join("\n---\n");
+  return docs.map(doc => yaml.stringify(doc)).join("\n---\n");
 }
 
 function addOwnerReferences(parent, targetdir, outfile) {
