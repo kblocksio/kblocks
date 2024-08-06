@@ -6,17 +6,16 @@ const { resolveReferences } = require("./refs");
 const { newSlackThread } = require("./slack");
 
 async function synth(engine, ctx) {
-
   // skip updates to the "status" subresource
   if (ctx.watchEvent === "Modified") {
     const managedFields = ctx.object.metadata?.managedFields ?? [];
     const last = managedFields.length > 0 ? managedFields[managedFields.length - 1] : undefined;
     if (last?.subresource === "status") {
-      console.error("ignoring 'status' update");
       return;
     }
   }
 
+  const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
   const updateReadyCondition = async (ready, message) => patchStatus(ctx.object, {
     conditions: [{
@@ -30,15 +29,9 @@ async function synth(engine, ctx) {
 
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
   const slackStatus = (icon, reason) => `${icon} _${ctx.object.kind}_ *${ctx.object.metadata.namespace ?? "default"}/${ctx.object.metadata.name}*: ${reason}`;
-
-  const deleted = ctx.watchEvent === "Deleted";
-  const slack = await newSlackThread(slackChannel, slackStatus("🟡", deleted ? "Deleting" : "Updating"));
+  const slack = await newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
 
   try {
-    if (!deleted) {
-      await slack.post(`New desired state\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
-    }
-    
     await publishEvent(ctx.object, {
       type: "Normal",
       reason: "UpdateStarted",
@@ -46,13 +39,13 @@ async function synth(engine, ctx) {
     });
 
     // resolve references by waiting for the referenced objects to be ready
-    
     await updateReadyCondition(false, "Resolving references");
     ctx.object = await resolveReferences(ctx.object);
     
+    console.error("-------------------------------------------------------------------------------------------");
     console.error(JSON.stringify(ctx, undefined, 2));
 
-    await updateReadyCondition(false, "Update in progress");
+    await updateReadyCondition(false, "In progress");
 
     const values = "values.json";
     fs.writeFileSync(values, JSON.stringify(ctx.object));
@@ -70,30 +63,28 @@ async function synth(engine, ctx) {
         throw new Error(`unsupported engine: ${engine}`);
     }
 
-    if (deleted) {
+    if (isDeletion) {
       await slack.update(slackStatus("⚪", "Deleted"));
-      await slack.post(`Resource deleted successfully 🗑️`);
     } else {
-      await updateReadyCondition(true, "Update succeeded");
+      await updateReadyCondition(true, "Success");
       await publishEvent(ctx.object, {
         type: "Normal",
         reason: "UpdateSucceeded",
         message: "Resource updated successfully",
       });  
-      await slack.update(slackStatus("🟢", "Success"));
-      await slack.post(`Resource updated successfully 🚀`);
+      await slack.update(slackStatus("🟢", "Success 🚀"));
     }
   } catch (err) {
     console.error(err.stack);
-
     await publishEvent(ctx.object, {
       type: "Warning",
-      reason: "UpdateFailed",
+      reason: "Error",
       message: err.stack,
     });
     await slack.update(slackStatus("🔴", "Failure"));
+    await slack.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
     await slack.post(`Update failed with the following error:\n\`\`\`${err.stack}\`\`\``);
-    await updateReadyCondition(false, "Update failed");
+    await updateReadyCondition(false, "Error");
   }
 }
 

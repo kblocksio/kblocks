@@ -2,22 +2,10 @@ const fs = require("fs");
 const yaml = require("yaml");
 const path = require("path");
 
-function addOwnerReferences(parent, targetdir, outfile) {
-  let yamlFile;
-  for (const file of fs.readdirSync(targetdir)) {
-    if (file.endsWith(".yaml")) {
-      yamlFile = file;
-      break;
-    }
-  }
-
-  if (!yamlFile) {
-    throw new Error(`no YAML file found in ${targetdir}`);
-  }
-  
+function renderYaml(parent, all) {
   // adding "ownerReferences" to the generated manifest to ensure that the resources are deleted
   // when the owner is deleted.
-  const docs = yaml.parseAllDocuments(fs.readFileSync(path.join(targetdir, yamlFile), "utf-8"));
+  const docs = yaml.parseAllDocuments(all);
   const objects = [];
   for (const doc of docs) {
     const obj = doc.contents?.toJSON();
@@ -39,11 +27,29 @@ function addOwnerReferences(parent, targetdir, outfile) {
     }
   }
 
-  fs.writeFileSync(outfile, objects.map(o => yaml.stringify(o)).join("\n---\n"));
+  return objects.map(o => yaml.stringify(o)).join("\n---\n");
+}
+
+function addOwnerReferences(parent, targetdir, outfile) {
+  let yamlFile;
+  for (const file of fs.readdirSync(targetdir)) {
+    if (file.endsWith(".yaml")) {
+      yamlFile = file;
+      break;
+    }
+  }
+
+  if (!yamlFile) {
+    throw new Error(`no YAML file found in ${targetdir}`);
+  }
+
+  const output = renderYaml(fs.readFileSync(path.join(targetdir, yamlFile), "utf-8"));
+  fs.writeFileSync(outfile, output);
   return outfile;
 }
 
 exports.addOwnerReferences = addOwnerReferences;
+exports.renderYaml = renderYaml;
 
 // const parent = {
 //   apiVersion: "acme.com/v1",

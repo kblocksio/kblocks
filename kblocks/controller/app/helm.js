@@ -1,4 +1,5 @@
 const { exec, patchStatus } = require("./util");
+const postRenderPath = require.resolve("./helm-add-ownership");
 
 async function applyHelm(ctx, values) {
   const obj = ctx.object;
@@ -22,12 +23,12 @@ async function applyHelm(ctx, values) {
     "--values", values
   ]);
 
-  // print the template for debugging
-  await exec("helm", [
-    "template",
-    release, ".",
-      "--values", values
-  ]);
+  // // print the template for debugging
+  // await exec("helm", [
+  //   "template",
+  //   release, ".",
+  //     "--values", values
+  // ]);
 
   // install/upgrade
   const output = await exec("helm", [
@@ -39,18 +40,26 @@ async function applyHelm(ctx, values) {
     "--wait",
     "--reset-values",
     "--values", values,
-    "--output", "json" 
-  ]);
+    "--output", "json",
+    "--post-renderer", postRenderPath
+  ], { 
+    env: { OWNER_REF: JSON.stringify(ctx.object) } 
+  });
 
   const helmOutput = JSON.parse(output);
   const notes = helmOutput?.info?.notes ?? "{}";
-  console.error({ notes });
   try {
     const actualOutputs = JSON.parse(notes);
-    console.log("outputs:", actualOutputs);
-    await patchStatus(ctx.object, actualOutputs);
+    if (typeof(actualOutputs) !== "object" || Array.isArray(actualOutputs)) {
+      throw new Error("Expecting JSON object");
+    }
+
+    if (Object.keys(actualOutputs).length > 0) {
+      await patchStatus(ctx.object, actualOutputs);
+    }
   } catch (e) {
-    console.error("Helm notes are not valid JSON:", e); 
+    console.error(notes);
+    console.error("No outputs in NOTES.txt:", e.message);
   }
 }
 

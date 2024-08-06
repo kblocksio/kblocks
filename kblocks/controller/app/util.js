@@ -68,7 +68,7 @@ async function patchStatus(obj, patch) {
       "--type", "merge",
       "--subresource", "status",
       "--patch", JSON.stringify({ status: patch }),
-    ]);
+    ], { stdio: "ignore" });
   } catch (err) {
     // just ignore errors
   }

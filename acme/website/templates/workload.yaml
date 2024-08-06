@@ -1,7 +1,9 @@
 apiVersion: acme.com/v1
 kind: Workload
 metadata:
-  name: workload
+  name: {{ .Release.Name }}-workload
+  namespace: {{ .Release.Namespace }}
+  
 image: {{ .Values.image }}
 route: {{ .Values.route }}
 replicas: 1
