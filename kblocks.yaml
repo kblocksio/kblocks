@@ -4,6 +4,7 @@ operators:
     SLACK_CHANNEL: monadaco-platform
   envSecrets:
     SLACK_API_TOKEN: slack-token
+    OPENAI_API_KEY: openai-token
 
 include:
   - ./acme/bucket

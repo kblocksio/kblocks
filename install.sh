@@ -39,4 +39,10 @@ if [ -n "${SLACK_API_TOKEN:-}" ]; then
   kubectl create secret generic $slack_secret_name -n $namespace --from-literal=SLACK_API_TOKEN=$SLACK_API_TOKEN
 fi
 
+if [ -n "${OPENAI_API_KEY:-}" ]; then
+  openai_secret="openai-token"
+  kubectl delete secret $openai_secret -n $namespace 2>/dev/null || true
+  kubectl create secret generic $openai_secret -n $namespace --from-literal=OPENAI_API_KEY=$OPENAI_API_KEY
+fi
+
 helm upgrade --install acme-platform ./dist

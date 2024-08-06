@@ -4,6 +4,7 @@ const { applyHelm } = require("./helm");
 const { applyWing } = require("./wing");
 const { resolveReferences } = require("./refs");
 const { newSlackThread } = require("./slack");
+const { explainError } = require("./ai");
 
 async function synth(engine, ctx) {
   // skip updates to the "status" subresource
@@ -83,7 +84,19 @@ async function synth(engine, ctx) {
     });
     await slack.update(slackStatus("🔴", "Failure"));
     await slack.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
-    await slack.post(`Update failed with the following error:\n\`\`\`${err.stack}\`\`\``);
+    await slack.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
+    const explanation = await explainError(ctx, err.message);
+    if (explanation?.blocks) {
+      explanation?.blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "✨ _AI-generated_",
+        },
+      });
+      await slack.postBlocks(explanation.blocks);
+    }
+
     await updateReadyCondition(false, "Error");
   }
 }

@@ -9,33 +9,45 @@ async function resolveReferences(obj) {
   const objCopy = { ...obj };
 
   return await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }) => {
-    await publishEvent(objCopy, {
-      type: "Normal",
-      reason: "Resolving",
-      message: ref,
-    });
+    try {
+      await publishEvent(objCopy, {
+        type: "Normal",
+        reason: "Resolving",
+        message: ref,
+      });
+  
+      await exec("kubectl", [ 
+        "wait",
+        "--for=condition=Ready",
+        `${apiGroup}/${name}`,
+        "--timeout=5m",
+        "-n", namespace
+      ]);
+  
+      const value = await exec("kubectl", [ 
+        "get", `${apiGroup}/${name}`,
+        "-n", namespace,
+        "-o", `jsonpath={.status.${field}}`
+      ]);
+  
+      await publishEvent(objCopy, {
+        type: "Normal",
+        reason: "Resolved",
+        message: `${ref}=${value}`,
+      });
+  
+      return value;  
+    } catch (e) {
+      console.error(e);
+      
+      await publishEvent(objCopy, {
+        type: "Warning",
+        reason: "ResolveError",
+        message: `Error resolving ${ref}: ${e.message}`,
+      });
 
-    await exec("kubectl", [ 
-      "wait",
-      "--for=condition=Ready",
-      `${apiGroup}/${name}`,
-      "--timeout=5m",
-      "-n", namespace
-    ]);
-
-    const value = await exec("kubectl", [ 
-      "get", `${apiGroup}/${name}`,
-      "-n", namespace,
-      "-o", `jsonpath={.status.${field}}`
-    ]);
-
-    await publishEvent(objCopy, {
-      type: "Normal",
-      reason: "Resolved",
-      message: `${ref}=${value}`,
-    });
-
-    return value;
+      return "<error>";
+    }
   });
 }
 
