@@ -1,23 +1,8 @@
-const { join } = require("path");
-const { exec, getenv, patchStatus, kblockOutputs, tryGetenv } = require("./util");
+const { exec, patchStatus, kblockOutputs, tryGetenv } = require("./util");
 const fs = require("fs");
 
 async function applyTerraform(ctx, dir) {
   try {
-    const tfjson = join(dir, "main.tf.json");
-    const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
-  
-    tf.terraform.backend = {
-      s3: {
-        bucket: getenv("TF_BACKEND_BUCKET"),
-        region: getenv("TF_BACKEND_REGION"),
-        key: `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`,
-        dynamodb_table: tryGetenv("TF_BACKEND_DYNAMODB"),
-      }
-    };
-  
-    fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
-  
     await exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: dir });
   
     if (ctx.watchEvent === "Deleted") {

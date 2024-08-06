@@ -5,6 +5,7 @@ const { applyWing } = require("./wing");
 const { resolveReferences } = require("./refs");
 const { newSlackThread } = require("./slack");
 const { explainError } = require("./ai");
+const { applyTofu } = require("./tofu");
 
 async function synth(engine, ctx) {
   // skip updates to the "status" subresource
@@ -59,6 +60,9 @@ async function synth(engine, ctx) {
         break;
       case "wing":
         await applyWing(engine, ctx, values);
+        break;
+      case "tofu":
+        await applyTofu(ctx, values);
         break;
       default:
         throw new Error(`unsupported engine: ${engine}`);

@@ -10,9 +10,11 @@ const prompt = "Provide the root cause of this error with concise instructions o
 async function explainError(context, error) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
+    console.error("Skipping AI analysis because OPENAI_API_KEY is not set");
     return undefined;
   }
 
+  console.error("Analyzing error with AI...");
   const client = new openai.OpenAI({ apiKey });
   const response = await client.chat.completions.create({
     model: "gpt-4o",
@@ -24,12 +26,14 @@ async function explainError(context, error) {
   })
 
   if (!response.choices?.[0]?.message?.content) {
+    console.error("WARNING: Did not receive a response from the AI");
     return undefined;
   }
 
   try {
     return JSON.parse(response.choices?.[0]?.message?.content);
-  } catch {
+  } catch (e) {
+    console.error("WARNING: Could not parse AI response", e);
     return undefined;
   }
 }

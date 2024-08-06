@@ -166,6 +166,10 @@ operator:
 The `Queue` class can be implemented using Wing's standard library (`cloud.*`) and compiled to
 `tf-aws` for deployment.
 
+## Terraform/OpenTofu Resources
+
+See the [acme/topic](./acme/topic/) example.
+
 ## References and Outputs
 
 You can add an `outputs` field under `definition` with a list of names of post-apply outputs produced by the kblock.

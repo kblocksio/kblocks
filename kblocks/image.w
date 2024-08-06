@@ -9,13 +9,19 @@ pub struct ImageOptions {
 
 pub class Image {
   new(image: str, options: ImageOptions) {
-    let imagedir = "{nodeof(this).app.workdir}/image-{nodeof(this).addr}";
+    // first, let's build the base controller image (common to all resources)
+    let controller = "{@dirname}/controller";
+    let controllerImageTag = "kblocks-controller-base";
+    Image.docker(["build", "-t", controllerImageTag, "."], controller);
+
+    // now, we create the Dockerfile for the resource-specific image
+  
+    let imagedir = "{nodeof(this).app.workdir}/image-{fs.basename(options.source)}";
 
     fs.mkdir(imagedir);
-    Image.copy("{@dirname}/controller", imagedir);
     Image.copy(options.source, "{imagedir}/kblock");
 
-    fs.writeFile("{imagedir}/hooks/kblock.json", Json.stringify({
+    fs.writeFile("{imagedir}/kblock.json", Json.stringify({
       engine: options.engine,
       config: {
         configVersion: "v1",
@@ -28,6 +34,14 @@ pub class Image {
         ]  
       }
     }));
+
+    fs.writeFile("{imagedir}/Dockerfile", [
+      "FROM {controllerImageTag}",
+      "COPY kblock.json /hooks/kblock.json",
+      "COPY kblock /kblock",
+      "RUN cd /kblock && ([ -f package.json ] && npm i --omit=dev || true)",
+      "RUN cd /kblock && ([ -f Chart.yaml ] && helm dependency update || true)",
+    ].join("\n"));
 
     Image.docker(["build", "-t", image, "."], imagedir);
     Image.docker(["push", image]);

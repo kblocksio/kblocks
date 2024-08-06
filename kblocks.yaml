@@ -18,3 +18,4 @@ include:
   - ./acme/service
   - ./acme/portal
   - ./acme/website
+  - ./acme/topic

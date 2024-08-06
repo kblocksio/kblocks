@@ -131,7 +131,7 @@ pub class Resource {
 
     if engine == "wing" || engine.startsWith("wing/") {
       return Resource.generateSchemaFromWingStruct(sourcedir, "{props.definition.kind}Spec");
-    } elif engine == "helm" {
+    } elif engine == "helm" || engine == "tofu" {
       let f = "{sourcedir}/values.schema.json";
       if !fs.exists(f) {
         log("warning: values.schema.json not found");

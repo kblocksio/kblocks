@@ -1,7 +1,8 @@
-const { exec, patchStatus, kblockOutputs } = require("./util");
+const { exec, patchStatus, kblockOutputs, getenv, tryGetenv } = require("./util");
 const fs = require("fs");
 const { applyTerraform } = require("./tf");
 const { addOwnerReferences } = require("./ownership");
+const { join } = require("path");
 
 async function applyWing(engine, ctx, values) {
   const entrypoint = createEntrypoint(ctx, values);
@@ -24,7 +25,23 @@ async function applyWing(engine, ctx, values) {
 
 async function applyWingTerraform(entrypoint, ctx, target) {
   await exec("wing", ["compile", "-t", target, entrypoint]);
-  await applyTerraform(ctx, "target/main.tfaws");
+  
+  const dir = "target/main.tfaws";
+  const tfjson = join(dir, "main.tf.json");
+  const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
+
+  tf.terraform.backend = {
+    s3: {
+      bucket: getenv("TF_BACKEND_BUCKET"),
+      region: getenv("TF_BACKEND_REGION"),
+      key: `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`,
+      dynamodb_table: tryGetenv("TF_BACKEND_DYNAMODB"),
+    }
+  };
+
+  fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
+
+  await applyTerraform(ctx, dir);
 }
 
 async function applyWingKubernetes(entrypoint, ctx) {

@@ -27,8 +27,3 @@ ADD app /app
 RUN echo "installing app dependencies"
 RUN cd /app && ([ -f package.json ] && npm i --omit=dev || true)
 
-# the "wing" directory contains the kblock
-RUN mkdir /kblock
-ADD kblock /kblock
-RUN cd /kblock && ([ -f package.json ] && npm i --omit=dev || true)
-RUN cd /kblock && ([ -f Chart.yaml ] && helm dependency update || true)

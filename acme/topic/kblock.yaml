@@ -1,0 +1,22 @@
+engine: tofu
+definition:
+  group: acme.com
+  version: v1
+  kind: Topic
+  plural: topics
+  outputs:
+    - topicArn
+operator:
+  namespace: acme-operators
+  envSecrets:
+    AWS_ACCESS_KEY_ID: aws-credentials
+    AWS_SECRET_ACCESS_KEY: aws-credentials  
+  envConfigMaps:
+    AWS_DEFAULT_REGION: tf-backend-config
+    TF_BACKEND_BUCKET: tf-backend-config
+    TF_BACKEND_REGION: tf-backend-config
+    TF_BACKEND_KEY: tf-backend-config
+  permissions:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]
