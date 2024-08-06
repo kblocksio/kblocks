@@ -5,24 +5,30 @@ const path = require("path");
 function renderYaml(parent, all) {
   // adding "ownerReferences" to the generated manifest to ensure that the resources are deleted
   // when the owner is deleted.
+  const parentNamespace = parent.metadata?.namespace ?? "default";
   const docs = yaml.parseAllDocuments(all);
 
   for (const doc of docs) {
     const metadata = doc.get("metadata");
-    const ownerRef = "ownerReferences";
-    
-    if (!metadata.has(ownerRef)) {
-      metadata.set(ownerRef, new yaml.YAMLSeq());
-    }
 
-    metadata.get(ownerRef).add({
-      apiVersion: parent.apiVersion,
-      kind: parent.kind,
-      name: parent.metadata.name,
-      uid: parent.metadata.uid,
-      controller: true,
-      blockOwnerDeletion: true,
-    });
+    const namespace = metadata.get("namespace") ?? "default";
+    if (parentNamespace === namespace) {
+
+      const ownerRef = "ownerReferences";
+      
+      if (!metadata.has(ownerRef)) {
+        metadata.set(ownerRef, new yaml.YAMLSeq());
+      }
+
+      metadata.get(ownerRef).add({
+        apiVersion: parent.apiVersion,
+        kind: parent.kind,
+        name: parent.metadata.name,
+        uid: parent.metadata.uid,
+        controller: true,
+        blockOwnerDeletion: true,
+      });
+    }
   }
 
   return docs.map(doc => yaml.stringify(doc)).join("\n---\n");
@@ -50,14 +56,14 @@ function addOwnerReferences(parent, targetdir, outfile) {
 exports.addOwnerReferences = addOwnerReferences;
 exports.renderYaml = renderYaml;
 
-// const parent = {
-//   apiVersion: "acme.com/v1",
-//   kind: "Workload",
-//   metadata: {
-//     name: "workload.test.k8s",
-//     uid: "1234",
-//   },
-// };
+const parent = {
+  apiVersion: "acme.com/v1",
+  kind: "Workload",
+  metadata: {
+    name: "workload.test.k8s",
+    uid: "1234",
+  },
+};
 
-// const out = addOwnerReference(parent, "acme/workload/target/workload.test.k8s", "my-output.yaml");
-// console.log(out);
+const out = addOwnerReferences(parent, "/Users/eladb/code/kblocks/acme/service/target/main.k8s", "my-output.yaml");
+console.log(out);
