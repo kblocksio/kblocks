@@ -43,7 +43,8 @@ function addOwnerReferences(parent, targetdir, outfile) {
     throw new Error(`no YAML file found in ${targetdir}`);
   }
 
-  const output = renderYaml(fs.readFileSync(path.join(targetdir, yamlFile), "utf-8"));
+  const input = fs.readFileSync(path.join(targetdir, yamlFile), "utf-8");
+  const output = renderYaml(parent, input);
   fs.writeFileSync(outfile, output);
   return outfile;
 }
