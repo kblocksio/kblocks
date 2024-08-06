@@ -56,7 +56,6 @@ function tryGetenv(k) {
 
 async function patchStatus(obj, patch) {
   try {
-    console.error("status update:", patch);
     const namespace = obj.metadata.namespace ?? "default";
     const group = obj.apiVersion.split("/")[0];
     const type = `${obj.kind.toLowerCase()}.${group}`;
@@ -73,8 +72,6 @@ async function patchStatus(obj, patch) {
     // just ignore errors
   }
 }
-
-// kubectl patch cm chart-app-workload2-notmetadata-c882a278 --type=merge --patch 'metadata: {'ownerReferences': [{'apiVersion': 'acme.com/v1', 'kind': 'Workload', 'name': 'ggguuueeesss', 'uid': '50921dc8-650b-4bfb-8836-1ab67206a7f2'}]}'
 
 async function publishEvent(obj, event) {
   try {
