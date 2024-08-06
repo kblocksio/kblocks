@@ -11,13 +11,12 @@ if [ -z "${DEV_SERVER_IP:-}" ]; then
   exit 1
 fi
 
-echo -n "Checking if $pem exists...\r"
+echo "Verifying $pem exists"
 if [ ! -f $pem ]; then
   echo "Expected $pem to include the keypair file of your server"
   exit 1
 fi
 chmod 400 $pem
-echo "Checking if $pem exists... OK"
 
 echo "Adding entries 'kind-control-plane' and 'kind-registry' to /etc/hosts..."
 cat /etc/hosts | grep -v "kind-" > /tmp/hosts
@@ -26,8 +25,8 @@ echo "$DEV_SERVER_IP kind-control-plane" >> /tmp/hosts
 sudo cp /etc/hosts /etc/hosts.bak
 sudo cp /tmp/hosts /etc/hosts
 
-echo -n "Setting up local kubectl...\r"
+echo "Setting up local kubectl"
 scp -i $pem $user@$host:/home/$user/.kube/config /tmp/kubeconfig
 cat /tmp/kubeconfig | sed -e s/0\.\0\.\0\.0/$host/ > ~/.kube/config
-echo "Setting up local kubectl... OK"
 
+kubectl get all
