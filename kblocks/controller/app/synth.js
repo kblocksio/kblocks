@@ -15,6 +15,7 @@ async function synth(engine, ctx) {
     }
   }
 
+  console.error("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
   const updateReadyCondition = async (ready, message) => patchStatus(ctx.object, {
@@ -42,7 +43,6 @@ async function synth(engine, ctx) {
     await updateReadyCondition(false, "Resolving references");
     ctx.object = await resolveReferences(ctx.object);
     
-    console.error("-------------------------------------------------------------------------------------------");
     console.error(JSON.stringify(ctx, undefined, 2));
 
     await updateReadyCondition(false, "In progress");
