@@ -2,6 +2,10 @@ bring util;
 bring "cdktf" as cdktf;
 bring "@cdktf/provider-github" as github;
 
+class Helpers {
+  extern "./util.js" pub static randomHexColor(): str;
+}
+
 pub struct File  {
   path: str;
   content: str;
@@ -16,6 +20,8 @@ pub struct RepositorySpec {
   public: bool?;
   files: Array<File>?;
   tags: Array<str>?;
+  labels: Array<str>?;
+  hasIssuesTab: bool?;
 }
 
 pub class Repository {
@@ -25,8 +31,15 @@ pub class Repository {
     if spec.public == false {
       visibility = "private";
     }
-
-    let repo = new github.repository.Repository(name: spec.name, visibility: visibility);
+    let var hasIssues = false;
+    if spec.hasIssuesTab == true {
+      hasIssues = true;
+    }
+    let repo = new github.repository.Repository(
+      name: spec.name,
+      visibility: visibility,
+      hasIssues: hasIssues
+    );
 
     if let files = spec.files {
       for file in files {
@@ -46,6 +59,16 @@ pub class Repository {
         };
 
         new github.repositoryFile.RepositoryFile(repoProps) as "file-{file.path.replaceAll("/", "-")}";
+      }
+
+      if let labels = spec.labels {
+        for label in labels {
+          new github.issueLabel.IssueLabel(
+            repository: repo.name,
+            name: label,
+            color: Helpers.randomHexColor(),
+          ) as "label-{label}";
+        }
       }
 
       if let tags = spec.tags {
