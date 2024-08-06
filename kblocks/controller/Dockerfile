@@ -24,6 +24,7 @@ RUN npm i -g winglang
 ADD hooks /hooks
 
 ADD app /app
+RUN echo "installing app dependencies"
 RUN cd /app && ([ -f package.json ] && npm i --omit=dev || true)
 
 # the "wing" directory contains the kblock

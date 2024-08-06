@@ -56,14 +56,14 @@ function addOwnerReferences(parent, targetdir, outfile) {
 exports.addOwnerReferences = addOwnerReferences;
 exports.renderYaml = renderYaml;
 
-const parent = {
-  apiVersion: "acme.com/v1",
-  kind: "Workload",
-  metadata: {
-    name: "workload.test.k8s",
-    uid: "1234",
-  },
-};
+// const parent = {
+//   apiVersion: "acme.com/v1",
+//   kind: "Workload",
+//   metadata: {
+//     name: "workload.test.k8s",
+//     uid: "1234",
+//   },
+// };
 
-const out = addOwnerReferences(parent, "/Users/eladb/code/kblocks/acme/service/target/main.k8s", "my-output.yaml");
-console.log(out);
+// const out = addOwnerReferences(parent, "/Users/eladb/code/kblocks/acme/service/target/main.k8s", "my-output.yaml");
+// console.log(out);
