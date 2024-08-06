@@ -35,6 +35,11 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
 jobs:
   create_new_service_file:
     if: contains(github.event.issue.labels.*.name, 'new-service')
@@ -143,6 +148,7 @@ body:
       files: files.copy(),
       tags: ["latest"],
       labels: ["new-service"],
+      hasIssuesTab: true,
     })) as "portal-repo";
 
     let repoURL = "https://github.com/{spec.repo.owner}/{spec.repo.name}.git";
