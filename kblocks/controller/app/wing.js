@@ -58,12 +58,12 @@ async function applyWingKubernetes(entrypoint, ctx) {
     ...obj.metadata.labels,
   };
 
-  await exec("wing", ["compile", "-t", "@winglibs/k8s", entrypoint], {
-    env: {
-      WING_K8S_LABELS: JSON.stringify(labels),
-      WING_K8S_NAMESPACE: namespace,
-    } 
-  });
+  const env = {
+    WING_K8S_LABELS: JSON.stringify(labels),
+    WING_K8S_NAMESPACE: namespace,
+  };
+
+  await exec("wing", ["compile", "-t", "@winglibs/k8s", entrypoint], { env });
 
   // add owner references to the generated manifest
   const manifest = addOwnerReferences(ctx.object, "target/main.k8s", "manifest.yaml");

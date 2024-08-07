@@ -13,7 +13,6 @@ function renderYaml(parent, all) {
 
     const namespace = metadata.get("namespace") ?? "default";
     if (parentNamespace === namespace) {
-
       const ownerRef = "ownerReferences";
       
       if (!metadata.has(ownerRef)) {
