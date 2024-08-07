@@ -6,5 +6,6 @@ schedule: "* * * * *"
 image: busybox:1.28
 command:
   - /bin/sh
+  - ${ref://food.acme.com/bar/baz}
   - -c
   - date; echo World

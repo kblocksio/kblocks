@@ -8,6 +8,10 @@ namespace="acme-operators"
 # create the "acme-operators" namespace if it doesn't exist
 kubectl create namespace $namespace 2>/dev/null || true
 
+env="prod"
+if [ "$(cat /etc/hosts | grep kind-control-plane | cut -d" " -f1)" == "127.0.0.1" ]; then
+  env="dev"
+fi
 
 secret_name="aws-credentials"
 
@@ -37,6 +41,19 @@ if [ -n "${SLACK_API_TOKEN:-}" ]; then
   slack_secret_name="slack-token"
   kubectl delete secret $slack_secret_name -n $namespace 2>/dev/null || true
   kubectl create secret generic $slack_secret_name -n $namespace --from-literal=SLACK_API_TOKEN=$SLACK_API_TOKEN
+
+  if [ $env == "dev" ]; then
+    slack_channel="kblocks-dev-$USER"
+  else
+    # production
+    slack_channel="monadaco-platform"
+  fi
+
+  slack_config="slack-config"
+  kubectl delete configmap $slack_config -n $namespace 2>/dev/null || true
+  kubectl create configmap $slack_config -n $namespace --from-literal=SLACK_CHANNEL=$slack_channel
+
+  echo " 👾 Slack Channel: $slack_channel"
 fi
 
 if [ -n "${OPENAI_API_KEY:-}" ]; then

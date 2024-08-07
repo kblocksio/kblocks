@@ -80,7 +80,11 @@ export function mergeEnv(resource, global) {
       envSecrets: {
         ...resource?.operator?.envSecrets,
         ...global?.envSecrets,
-      }
+      },
+      envConfigMaps: {
+        ...resource?.operator?.envConfigMaps,
+        ...global?.envConfigMaps,
+      },
     },
   };
 }

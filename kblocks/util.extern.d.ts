@@ -36,5 +36,6 @@ export interface ResourceProps {
 }
 export interface OperatorsConfig {
   readonly env?: (Readonly<Record<string, string>>) | undefined;
+  readonly envConfigMaps?: (Readonly<Record<string, string>>) | undefined;
   readonly envSecrets?: (Readonly<Record<string, string>>) | undefined;
 }

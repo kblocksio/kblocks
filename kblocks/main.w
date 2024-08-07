@@ -22,6 +22,7 @@ struct Config {
 struct OperatorsConfig {
   env: Map<str>?;
   envSecrets: Map<str>?;
+  envConfigMaps: Map<str>?;
 }
 
 let x = fs.readYaml(configfile);

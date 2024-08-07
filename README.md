@@ -27,9 +27,17 @@ Install deps:
 npm i
 ```
 
-## Setup Development Cluster
+## Setup
 
-See [Cluster Setup](./docs/cluster.md) for instructions on how to setup your development cluster.
+### Development Cluster
+
+See [Cluster Setup](./docs/cluster.md) for instructions on how to setup your development cluster
+either locally or remotely.
+
+### Slack Notifications
+
+You will need to create a Slack channel called `#kblocks-dev-$USER` and invite `@MonadaCo Platform`
+to it in order to receive notifications from your local cluster.
 
 ## Build & Install the Acme Operators
 
@@ -230,10 +238,3 @@ This script will call `kblocks build` and then install it via Helm:
 
 - [ ] The "spec" struct must be called `XxxSpec` (we use this convention to find it).
 
-## Acme Example
-
-- [ ] Backstage
-- [ ] Backstage widgets for resources
-- [x] Implement a resource using a Helm chart
-- [ ] Crossplane/ACK resource
-- [ ] Terraform and/or CDK resource
