@@ -6,58 +6,48 @@ const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
 
 
 async function resolveReferences(obj) {
-  const objCopy = { ...obj };
 
   return await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }) => {
-    try {
-      await publishEvent(objCopy, {
-        type: "Normal",
-        reason: "Resolving",
-        message: ref,
-      });
-  
-      await exec("kubectl", [ 
-        "wait",
-        "--for=condition=Ready",
-        `${apiGroup}/${name}`,
-        "--timeout=5m",
-        "-n", namespace
-      ]);
-  
-      const value = await exec("kubectl", [ 
-        "get", `${apiGroup}/${name}`,
-        "-n", namespace,
-        "-o", `jsonpath={.status.${field}}`
-      ]);
-  
-      await publishEvent(objCopy, {
-        type: "Normal",
-        reason: "Resolved",
-        message: `${ref}=${value}`,
-      });
-  
-      return value;  
-    } catch (e) {
-      console.error(e);
-      
-      await publishEvent(objCopy, {
-        type: "Warning",
-        reason: "ResolveError",
-        message: `Error resolving ${ref}: ${e.message}`,
-      });
+    await publishEvent(obj, {
+      type: "Normal",
+      reason: "Resolving",
+      message: ref,
+    });
 
-      return "<error>";
-    }
+    await exec("kubectl", [ 
+      "wait",
+      "--for=condition=Ready",
+      `${apiGroup}/${name}`,
+      "--timeout=5m",
+      "-n", namespace
+    ]);
+
+    const value = await exec("kubectl", [ 
+      "get", `${apiGroup}/${name}`,
+      "-n", namespace,
+      "-o", `jsonpath={.status.${field}}`
+    ]);
+
+    await publishEvent(obj, {
+      type: "Normal",
+      reason: "Resolved",
+      message: `${ref}=${value}`,
+    });
+
+    return value;  
   });
 }
 
-async function resolveReferencesInternal(obj, resolver) {
-  const metadata = obj.metadata;
-  const status = obj.status;
+async function resolveReferencesInternal(originalObj, resolver) {
+  const metadata = originalObj.metadata;
+  const status = originalObj.status;
   const namespace = metadata.namespace ?? "default";
 
-  delete obj.metadata;
-  delete obj.status;
+  const objCopy = {
+    ...originalObj,
+    metadata: undefined,
+    status: undefined
+  };
 
   const refs = {};
   
@@ -74,18 +64,23 @@ async function resolveReferencesInternal(obj, resolver) {
     return value;
   };
 
-  JSON.stringify(obj, finder);
+  // we use JSON.stringify to deeply visit all properties of the object
+  JSON.stringify(objCopy, finder);
 
   const resolved = {};
 
   for (const [ ref, { apiGroup, name, field } ] of Object.entries(refs)) {
-    resolved[ref] = await resolver({
-      ref,
-      apiGroup,
-      name,
-      namespace,
-      field
-    });
+    try {
+      resolved[ref] = await resolver({
+        ref,
+        apiGroup,
+        name,
+        namespace,
+        field
+      });
+    } catch (e) {
+      throw new Error(`Error resolving ${ref}: ${e.message}`);
+    }
   }
 
   const replacer = (_, value) => {
@@ -106,7 +101,7 @@ async function resolveReferencesInternal(obj, resolver) {
   };
 
   return {
-    ...JSON.parse(JSON.stringify(obj, replacer)),
+    ...JSON.parse(JSON.stringify(objCopy, replacer)),
     metadata,
     status,
   };
