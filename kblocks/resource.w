@@ -81,7 +81,7 @@ pub class Resource {
     let controller = new k8s.Deployment(
       metadata: {
         namespace: props.operator.namespace,
-        name: "{kind}-controller",
+        name: "kblocks-{kind}",
       },
       serviceAccount: serviceAccount,
       replicas: 1,
@@ -131,7 +131,7 @@ pub class Resource {
 
     if engine == "wing" || engine.startsWith("wing/") {
       return Resource.generateSchemaFromWingStruct(sourcedir, "{props.definition.kind}Spec");
-    } elif engine == "helm" || engine == "tofu" {
+    } else if engine == "helm" || engine == "tofu" {
       let f = "{sourcedir}/values.schema.json";
       if !fs.exists(f) {
         log("warning: values.schema.json not found");
