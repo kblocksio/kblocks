@@ -57,8 +57,7 @@ pub class Service {
     
     files.push({
       path: "./templates/workload.yaml",
-      content: "
-apiVersion: acme.com/v1
+      content: "apiVersion: acme.com/v1
 kind: Workload
 metadata:
   name: workload
@@ -75,8 +74,7 @@ env:
     
     files.push({
       path: "./.github/workflows/build.yml",
-      content: "
-name: Build
+      content: "name: Build
 on:
   push:
     branches:
@@ -125,8 +123,7 @@ jobs:
 
     files.push({
       path: "./.github/workflows/pull-request.yml",
-      content: "
-name: Build Pull Request
+      content: "name: Build Pull Request
 on:
   pull_request:
     types: [opened, reopened]
