@@ -166,7 +166,7 @@ jobs:
         content: "name: Build Pull Request
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 permissions:
   contents: write
 jobs:
