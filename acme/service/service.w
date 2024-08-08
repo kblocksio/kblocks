@@ -50,15 +50,15 @@ pub class Service {
       files.push({
         path: "./templates/workload.yaml",
         content: "apiVersion: acme.com/v1
-  kind: Workload
-  metadata:
-    name: workload
-  image: busybox
-  port: 5678
-  route: /{spec.repo.name}(/|$)(.*)
-  rewrite: /$2
-  replicas: 2
-  ",
+kind: Workload
+metadata:
+  name: workload
+image: busybox
+port: 5678
+route: /{spec.repo.name}(/|$)(.*)
+rewrite: /$2
+replicas: 2
+",
         readonly: false,
       });
     } else {
@@ -98,114 +98,114 @@ pub class Service {
       files.push({
         path: "./templates/workload.yaml",
         content: "apiVersion: acme.com/v1
-  kind: Workload
-  metadata:
-    name: workload
-  image: wingcloudbot/{spec.repo.name}:sha-\{\{ .Values.revision }}
-  port: 5678
-  route: /{spec.repo.name}(/|$)(.*)
-  rewrite: /$2
-  replicas: 2
-  env:
-    ECHO_TEXT: \"hello from {spec.repo.name}\"
-  ",
+kind: Workload
+metadata:
+name: workload
+image: wingcloudbot/{spec.repo.name}:sha-\{\{ .Values.revision }}
+port: 5678
+route: /{spec.repo.name}(/|$)(.*)
+rewrite: /$2
+replicas: 2
+env:
+ECHO_TEXT: \"hello from {spec.repo.name}\"
+",
         readonly: false,
       });
       
       files.push({
         path: "./.github/workflows/build.yml",
         content: "name: Build
-  on:
-    push:
-      branches:
-        - main
-  permissions:
-    contents: write
-  jobs:
-    build:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-          name: Checkout repository
-          with:
-            fetch-depth: 0
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v3
-        - name: Log in to Docker Hub
-          uses: docker/login-action@v3
-          with:
-            username: $$\{\{ secrets.DOCKER_USERNAME }}
-            password: $$\{\{ secrets.DOCKER_PASSWORD }}
-        - name: Extract metadata for Docker
-          id: meta
-          uses: docker/metadata-action@v5
-          with:
-            images: wingcloudbot/{spec.repo.name}
-            tags: |
-              type=raw,value=latest,enable=\{\{is_default_branch}}
-              type=sha
-        - name: Build and push Docker image
-          id: push
-          uses: docker/build-push-action@v5
-          with:
-            push: true
-            platforms: linux/amd64,linux/arm64
-            tags: $$\{\{ steps.meta.outputs.tags }}
-            labels: $$\{\{ steps.meta.outputs.labels }}
-        - uses: rickstaa/action-create-tag@v1
-          with:
-            tag: \"latest\"
-            force_push_tag: true
-            message: \"Latest release\"
-  ",
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: $$\{\{ secrets.DOCKER_USERNAME }}
+          password: $$\{\{ secrets.DOCKER_PASSWORD }}
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: wingcloudbot/{spec.repo.name}
+          tags: |
+            type=raw,value=latest,enable=\{\{is_default_branch}}
+            type=sha
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: $$\{\{ steps.meta.outputs.tags }}
+          labels: $$\{\{ steps.meta.outputs.labels }}
+      - uses: rickstaa/action-create-tag@v1
+        with:
+          tag: \"latest\"
+          force_push_tag: true
+          message: \"Latest release\"
+",
         readonly: true,
       });
   
       files.push({
         path: "./.github/workflows/pull-request.yml",
         content: "name: Build Pull Request
-  on:
-    pull_request:
-      types: [opened, reopened]
-  permissions:
-    contents: write
-  jobs:
-    build:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-          name: Checkout repository
-          with:
-            fetch-depth: 0
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v3
-        - name: Log in to Docker Hub
-          uses: docker/login-action@v3
-          with:
-            username: $$\{\{ secrets.DOCKER_USERNAME }}
-            password: $$\{\{ secrets.DOCKER_PASSWORD }}
-        - name: Extract metadata for Docker
-          id: meta
-          uses: docker/metadata-action@v5
-          with:
-            images: wingcloudbot/{spec.repo.name}
-            tags: |
-              type=raw,value=latest,enable=\{\{is_default_branch}}
-              type=sha
-        - name: Build and push Docker image
-          id: push
-          uses: docker/build-push-action@v5
-          with:
-            push: true
-            platforms: linux/amd64,linux/arm64
-            tags: $$\{\{ steps.meta.outputs.tags }}
-            labels: $$\{\{ steps.meta.outputs.labels }}
-        - uses: rickstaa/action-create-tag@v1
-          with:
-            tag: \"$$\{\{github.head_ref}}-latest\"
-            force_push_tag: true
-            message: \"Latest $$\{\{github.head_ref}} release\"
-  ",
+on:
+  pull_request:
+    types: [opened, reopened]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: $$\{\{ secrets.DOCKER_USERNAME }}
+          password: $$\{\{ secrets.DOCKER_PASSWORD }}
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: wingcloudbot/{spec.repo.name}
+          tags: |
+            type=raw,value=latest,enable=\{\{is_default_branch}}
+            type=sha
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: $$\{\{ steps.meta.outputs.tags }}
+          labels: $$\{\{ steps.meta.outputs.labels }}
+      - uses: rickstaa/action-create-tag@v1
+        with:
+          tag: \"$$\{\{github.head_ref}}-latest\"
+          force_push_tag: true
+          message: \"Latest $$\{\{github.head_ref}} release\"
+",
         readonly: true,
       });
     }
