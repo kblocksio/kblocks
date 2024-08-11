@@ -23,11 +23,14 @@ pub class Service {
   new(spec: ServiceSpec) {
     let files = MutArray<File>[];
     let var configRepo = false;
+    let var revision = "latest";
     if let configOnly = spec.configOnly {
       configRepo = configOnly;
     }
 
     if configRepo {
+      revision = "main";
+
       files.push({
         path: "README.md",
         content: "Hello, World!",
@@ -230,7 +233,7 @@ jobs:
         project: "default",
         source: {
           repoURL,
-          targetRevision: "latest",
+          targetRevision: revision,
           path: "./",
           helm: {
             parameters: [{
