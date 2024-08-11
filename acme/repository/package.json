@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@cdktf/provider-github": "^14.2.3",
+    "@cdktf/provider-null": "^10.0.0",
     "@winglibs/k8s": "^0.0.8",
     "cdk8s": "^2.68.86",
     "cdk8s-plus-30": "^2.0.6",

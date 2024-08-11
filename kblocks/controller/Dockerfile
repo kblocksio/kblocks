@@ -1,7 +1,7 @@
 FROM ghcr.io/flant/shell-operator:latest
 ENV LOG_TYPE=color
 
-RUN apk add --no-cache npm nodejs helm
+RUN apk add --no-cache npm nodejs helm curl
 
 # install opentofu
 RUN echo '@community https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
