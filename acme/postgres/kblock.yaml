@@ -11,9 +11,11 @@ definition:
     - port
     - passwordSecret
     - passwordKey
+  readme: README.md
+  icon: heroicon://database
 operator:
   namespace: acme-operators
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]

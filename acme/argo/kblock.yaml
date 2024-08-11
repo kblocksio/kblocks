@@ -4,9 +4,11 @@ definition:
   version: v1
   kind: Argo
   plural: argos
+  readme: README.md
+  icon: heroicon://cube
 operator:
   namespace: acme-operators
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]

@@ -1,5 +1,10 @@
 #!/bin/sh
 set -euo pipefail
+root=$(cd $(dirname $0) && pwd)
+
+for r in acme/*; do
+  (cd $r && $root/kblocks/bin/kblocks docs)
+done
 
 kblocks/bin/kblocks build
 

@@ -1,4 +1,5 @@
 bring "cdk8s" as cdk8s;
+bring fs;
 
 pub struct CustomResourceProps {
   group: str;
@@ -7,6 +8,7 @@ pub struct CustomResourceProps {
   plural: str;
   singular: str?;
   categories: Array<str>?;
+  annotations: Map<str>?;
   listKind: str?;
   shortNames: Array<str>?;
   schema: Json?;
@@ -98,6 +100,7 @@ pub class CustomResource {
       kind: "CustomResourceDefinition",
       metadata: {
         name: "{def.plural}.{def.group}",
+        annotations: def.annotations,
       },
       spec: {
         group: def.group,

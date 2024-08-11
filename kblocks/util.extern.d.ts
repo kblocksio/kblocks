@@ -5,13 +5,18 @@ export default interface extern {
   makeExecutable: (path: string) => void,
   mergeEnv: (resource: ResourceProps, global: OperatorsConfig) => ResourceProps,
 }
-export interface CustomResourceProps {
+export interface ResourceDefinition {
+  readonly annotations?: (Readonly<Record<string, string>>) | undefined;
   readonly categories?: ((readonly (string)[])) | undefined;
   readonly group: string;
+  /**  The icon to use for the resource (must have a "heroicon://" prefix) */
+  readonly icon: string;
   readonly kind: string;
   readonly listKind?: (string) | undefined;
   readonly outputs?: ((readonly (string)[])) | undefined;
   readonly plural: string;
+  /**  The location of the README file (usually this would be "README.md") */
+  readonly readme: string;
   readonly schema?: (Readonly<any>) | undefined;
   readonly shortNames?: ((readonly (string)[])) | undefined;
   readonly singular?: (string) | undefined;
@@ -30,7 +35,7 @@ export interface ResourceOperator {
   readonly permissions: (readonly (Permission)[]);
 }
 export interface ResourceProps {
-  readonly definition: CustomResourceProps;
+  readonly definition: ResourceDefinition;
   readonly engine: string;
   readonly operator: ResourceOperator;
 }

@@ -34,9 +34,8 @@ build() {
 }
 
 # ---------------------------------------------
-install() {
-  echo "install"
-
+docs() {
+  node $kblocks/bin/docgen.js $@
 }
 
 # ---------------------------------------------
@@ -45,11 +44,10 @@ install() {
 command="${1:-}"
 
 if [ "$command" == "build" ]; then
-  build
-elif [ "$command" == "install" ]; then
-  build
-  install
+  build "${@:2}"
+elif [ "$command" == "docs" ]; then
+  docs "${@:2}"
 else
-  echo "Usage: $(basename $0) [build|install]"
+  echo "Usage: $(basename $0) [build|docs]"
   exit 1
 fi

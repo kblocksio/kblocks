@@ -4,11 +4,13 @@ definition:
   version: v1
   kind: Portal
   plural: portals
+  readme: README.md
+  icon: heroicon://cloud
 operator:
   namespace: acme-operators
   envSecrets:
     GITHUB_TOKEN: github-token
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]

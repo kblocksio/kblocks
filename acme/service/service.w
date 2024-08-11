@@ -9,13 +9,21 @@ pub struct File  {
 }
 
 pub struct RepoSpec {
+  /// The name of the GitHub repository.
   name: str;
+
+  /// The organization or user that owns the GitHub repository.
   owner: str;
+
+  /// Whether the repository is public or not.
   public: bool?;
 }
 
 pub struct ServiceSpec {
+  /// The repository to create the service for.
   repo: RepoSpec;
+
+  /// Whether to create a config-only repository (without a Dockerfile).
   configOnly: bool?;
 }
 

@@ -4,11 +4,13 @@ definition:
   version: v1
   kind: Service
   plural: services
+  readme: README.md
+  icon: heroicon://book-open
 operator:
   namespace: acme-operators
   envSecrets:
     GITHUB_TOKEN: github-token
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]

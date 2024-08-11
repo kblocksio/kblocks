@@ -5,7 +5,7 @@ definition:
   kind: Workload
   plural: workloads
   singular: workload
-  categories: 
+  categories:
     - all
   listKind: WorkloadList
   shortNames:
@@ -13,9 +13,11 @@ definition:
   outputs:
     - host
     - port
+  readme: README.md
+  icon: heroicon://cube
 operator:
   namespace: acme-operators
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]

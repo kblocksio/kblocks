@@ -4,9 +4,11 @@ definition:
   version: v1
   kind: Cron
   plural: crons
+  readme: README.md
+  icon: heroicon://clock
 operator:
   namespace: acme-operators
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]

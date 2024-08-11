@@ -4,9 +4,11 @@ definition:
   version: v1
   kind: Website
   plural: websites
+  readme: README.md
+  icon: heroicon://globe-alt
 operator:
   namespace: acme-operators
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]

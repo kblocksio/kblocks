@@ -2,13 +2,22 @@ bring "cdk8s" as cdk8s;
 bring "cdk8s-plus-30" as k8s;
 bring "./image.w" as i;
 bring "./crd.w" as crd;
+bring "./docs.w" as d;
 bring fs;
 bring util;
 
 pub struct ResourceProps {
   engine: str;
-  definition: crd.CustomResourceProps;
+  definition: ResourceDefinition;
   operator: ResourceOperator;
+}
+
+pub struct ResourceDefinition extends crd.CustomResourceProps {
+  /// The location of the README file (usually this would be "README.md")
+  readme: str;
+
+  /// The icon to use for the resource (must have a "heroicon://" prefix)
+  icon: str;
 }
 
 pub struct ResourceOperator {
@@ -34,6 +43,20 @@ pub class Resource {
 
     let schema = this.resolveSchema(sourcedir, props);
     def.set("schema", schema);
+
+    let docs = new d.Docs(
+      sourcedir, 
+      namespace: props.operator.namespace,
+      version: props.definition.version,
+      group: props.definition.group,
+      kind: kind,
+      icon: props.definition.icon, 
+      readme: props.definition.readme
+    );
+
+    def.set("annotations", {
+      "kblocks.io/docs": docs.name,
+    });
 
     let c = new crd.CustomResource(crd.CustomResourceProps.fromJson(def));
     

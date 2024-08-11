@@ -1,4 +1,4 @@
-# kblocks
+ kblocks
 
 kblocks is a tool for packaging Helm charts and IaC modules as native high-level Kubernetes objects.
 
@@ -67,6 +67,16 @@ The `kblock.yaml` file is the configuration for a single resource and includes t
 - The `definition` field includes the CRD definition, without the schema.
 - The `operator` field sets options for the generated Kubernetes operator.
 
+## Resource documentation
+
+- The `definition.readme` field points to a README file for this resource.
+- The `definition.icon` field indicates the [heroicon](https://heroicons.com/) to use.
+
+You can use `kblocks docs` to generate an initial README and suggest an icon for your kblock.
+
+For each kblock, a `kblocks-xxx-metadata` ConfigMap will be deployed and will include the contents
+of the README and the icon.
+
 ## Helm Resources
 
 You can expose any [helm](https://helm.sh/) chart as a kblock. See [acme/cron](./acme/cron/) as an
@@ -95,6 +105,8 @@ operator:
 The schema of the object will be read from the file `values.json.schema` which is the standard way
 for helm to validate values schema with [helm lint](https://helm.sh/docs/helm/helm_lint/) which will
 be executed before `upgrade`.
+
+
 
 ## Wing Kubernetes Resources
 

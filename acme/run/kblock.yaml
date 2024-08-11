@@ -4,9 +4,11 @@ definition:
   version: v1
   kind: Run
   plural: runs
+  readme: README.md
+  icon: heroicon://play
 operator:
   namespace: acme-operators
   permissions:
-    - apiGroups: ["*"]
-      resources: ["*"]
-      verbs: ["*"]
+    - apiGroups: [ "*" ]
+      resources: [ "*" ]
+      verbs: [ "*" ]
