@@ -10,7 +10,7 @@ kblocks="$dir/packages/@kblocks/cli/bin/kblocks"
 
 rm -fr dist
 
-for block in $(cat $dir/kblocks.list); do
+for block in $(cat $dir/kblocks.list | grep -v "^#"); do
   if [ ! -d $block ]; then
     continue;
   fi

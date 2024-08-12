@@ -29,17 +29,17 @@ npm i
 
 ## Setup
 
-### Development Cluster
+1. Development Cluster
 
 See [Cluster Setup](./docs/cluster.md) for instructions on how to setup your development cluster
 either locally or remotely.
 
-### Slack Notifications
+2. Slack Notifications
 
 You will need to create a Slack channel called `#kblocks-dev-$USER` and invite `@MonadaCo Platform`
 to it in order to receive notifications from your local cluster.
 
-## Build & Install the Acme Operators
+3. Build & Install the Acme Operators
 
 This script will build a helm chart with your operators and install them into your Kubernetes
 cluster. Note that images are going to be pushed to `kind-registry:5001`.
@@ -48,24 +48,16 @@ cluster. Note that images are going to be pushed to `kind-registry:5001`.
 ./install.sh
 ```
 
+> The `./build.sh` script will only build, push the images and produce the Helm chart that contains
+> all the controllers under `dist/`.
+
 ## Usage
 
-The `kblocks.yaml` defines which resources to include in the package:
+The `kblocks.list` file includes a list of directories to build. You can comment out lines there
+with "#" to skip.
 
-```yaml
-include:
-  - ./acme/bucket
-  - ./acme/cron
-  - ./acme/workload
-```
-
-This is basically a list of directories, each one has to include a `kblock.yaml` file.
-
-The `kblock.yaml` file is the configuration for a single resource and includes the following fields:
-
-- The `engine` field specifies how the resource is implemented.
-- The `definition` field includes the CRD definition, without the schema.
-- The `operator` field sets options for the generated Kubernetes operator.
+There's a shared `kblocks.yaml` file under [`acme/kblocks.yaml`](./acme/kblocks.yaml). It is
+`include`d by the specific blocks.
 
 ## Resource documentation
 
@@ -249,4 +241,3 @@ This script will call `kblocks build` and then install it via Helm:
 ## Known Issues
 
 - [ ] The "spec" struct must be called `XxxSpec` (we use this convention to find it).
-
