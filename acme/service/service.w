@@ -235,7 +235,8 @@ jobs:
       apiVersion: "argoproj.io/v1alpha1",
       kind: "Application",
       metadata: {
-        namespace: "argocd"
+        namespace: "argocd",
+        name: spec.repo.name,
       },
       spec: {
         project: "default",
@@ -269,7 +270,8 @@ jobs:
       apiVersion: "argoproj.io/v1alpha1",
       kind: "ApplicationSet",
       metadata: {
-        namespace: "argocd"
+        namespace: "argocd",
+        name: "{spec.repo.name}-appset",
       },
       spec: {
         goTemplate: true,
