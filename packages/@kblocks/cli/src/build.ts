@@ -84,8 +84,8 @@ async function resolveSchema(sourcedir: string, props: Manifest): Promise<JsonSc
   if (props.engine === "helm" || props.engine === "tofu") {
     const schemaFile = `${sourcedir}/values.schema.json`;
 
-    if (await fs.access(schemaFile, fs.constants.R_OK).then(() => true).catch(() => false)) {
-      console.warn("warning: no 'values.schema.json', assuming empty schema");
+    if (!(await fs.access(schemaFile, fs.constants.R_OK).then(() => true).catch(() => false))) {
+      console.warn(`warning: no 'values.schema.json' under ${sourcedir}, assuming empty schema`);
       return {
         type: "object",
         properties: {},
