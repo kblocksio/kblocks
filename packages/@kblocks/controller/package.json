@@ -1,0 +1,16 @@
+{
+  "name": "@kblocks/controller",
+  "type": "commonjs",
+  "dependencies": {
+    "openai": "^4.0.0",
+    "yaml": "^2.5.0"
+  },
+  "index": "index.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

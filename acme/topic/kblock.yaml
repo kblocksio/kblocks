@@ -1,3 +1,5 @@
+include:
+  - ../kblocks.yaml
 engine: tofu
 definition:
   group: acme.com

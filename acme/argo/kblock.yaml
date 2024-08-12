@@ -1,3 +1,5 @@
+include:
+  - ../kblocks.yaml
 engine: helm
 definition:
   group: acme.com

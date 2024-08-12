@@ -1,0 +1,1 @@
+export { synth } from "./synth";

@@ -1,3 +1,5 @@
+include:
+  - ../kblocks.yaml
 engine: wing/tf-aws
 definition:
   group: acme.com
@@ -7,7 +9,7 @@ definition:
   outputs:
     - queueUrl
   readme: README.md
-  icon: heroicon://queue-list
+  icon: heroicon://cloud-queue
 operator:
   namespace: acme-operators
   envSecrets:

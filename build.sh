@@ -1,29 +1,29 @@
 #!/bin/sh
 set -euo pipefail
+dir=$(cd $(dirname $0); pwd)
 
-target_root="wing-operator/target"
+# npm i
 
-rm -fr $target_root
+kblocks="$dir/packages/@kblocks/cli/bin/kblocks"
 
-wing compile -t @winglibs/k8s wing-operator/main.w
+(cd packages/@kblocks/cli && tsc)
+
+rm -fr dist
+
+for block in $(cat $dir/kblocks.list); do
+  if [ ! -d $block ]; then
+    continue;
+  fi
+
+  $kblocks build --output dist/templates $block
+done
 
 if [ ! -f Chart.yaml ]; then
   echo "Chart.yaml not found"
   exit 1
 fi
 
-target="$target_root/main.k8s"
-templates="$target/templates"
+cp Chart.yaml dist/
 
-mkdir -p $templates
-mv $target/*.yaml $templates/
-cp Chart.yaml $target/
 
-output="./dist"
-
-rm -fr $output
-mv $target $output
-rm -fr $output/.wing
-rm -fr $target_root
-
-echo "Helm chart created under: $output"
+echo "Helm chart created under: ./dist"
