@@ -56,6 +56,7 @@ export async function build(opts: Options) {
     annotations: {
       "kblocks.io/icon": block.definition.icon,
       "kblocks.io/metadata": meta.name,
+      "kblocks.io/docs": meta.name,
     },
     schema,
   });
