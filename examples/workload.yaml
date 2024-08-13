@@ -1,3 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-workload-config
+data:
+  message: hello, worldload!
+
+---
 apiVersion: acme.com/v1
 kind: Workload
 metadata:
@@ -9,8 +17,11 @@ image: hashicorp/http-echo
 route: /my-service(/|$)(.*)
 rewrite: /$2
 replicas: 2
-env:
-  ECHO_TEXT: bing
+envFrom:
+  ECHO_TEXT:
+    configmap:
+      name: my-workload-config
+      key: message
 port: 5678
 ---
 apiVersion: acme.com/v1

@@ -1,13 +1,10 @@
 bring "cdk8s-plus-30" as k8s;
 bring "cdk8s" as cdk8s;
+bring "./shared.w" as api;
 
-pub struct WorkloadSpec {
-  image: str;
+pub struct WorkloadSpec extends api.ContainerSpec, api.PolicySpec {
+  /// The number of replicas to create for this container
   replicas: num?;
-  port: num?;
-  env: Map<str>?;
-  envSecrets: Map<EnvSecret>?;
-  command: Array<str>?;
 
   /// Ingress path for this workload. If specified, this workload will be exposed publicly.
   route: str?;
@@ -16,45 +13,19 @@ pub struct WorkloadSpec {
   rewrite: str?;
 }
 
-pub struct EnvSecret {
-  name: str;
-  key: str;
-}
-
 pub class Workload {
   pub host: str?;
   pub port: str?;
 
   new(spec: WorkloadSpec) {
+
     let d = new k8s.Deployment(
       replicas: spec.replicas ?? 1,
       automountServiceAccountToken: true,
+      serviceAccount: api.newServiceAccount(spec),
     );
 
-    let c = d.addContainer(
-      image: spec.image, 
-      portNumber: spec.port, 
-      command: spec.command,
-      resources: {
-        cpu: {
-          request: k8s.Cpu.millis(100),
-          limit: k8s.Cpu.units(1),
-        },
-      },
-      securityContext: {
-        readOnlyRootFilesystem: false,
-        ensureNonRoot: false,
-      },
-    );
-   
-    for e in (spec.env ?? {}).entries() {
-      c.env.addVariable(e.key, k8s.EnvValue.fromValue(e.value));
-    }
-
-    for e in (spec.envSecrets ?? {}).entries() {
-      let secret = k8s.Secret.fromSecretName(this, "credentials-{e.key}-{e.value.name}-{e.value.name}", e.value.name);
-      c.env.addVariable(e.key, k8s.EnvValue.fromSecretValue(k8s.SecretValue { secret, key: e.value.key }));
-    }
+    d.addContainer(api.newContainer(spec));
 
     if let port = spec.port {
       let service = d.exposeViaService(ports: [{ port }]);

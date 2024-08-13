@@ -1,0 +1,15 @@
+apiVersion: acme.com/v1
+kind: Run
+metadata:
+  name: kubectl-example
+image: bitnami/kubectl
+command:
+  - kubectl
+  - get
+  - pods
+grant:
+  - apiGroup: ""
+    resource: pods
+    verbs:
+      - get
+      - list

@@ -1,86 +1,87 @@
 # Workload
 
-A Kubernetes custom resource to manage application workloads with deployment, service, and ingress configurations.
+A Kubernetes custom resource for deploying and managing containerized applications with custom policies.
 
 ## Usage
 
-### Example: basic-workload
-A simple workload with only mandatory fields.
+### Example: Simple Workload
+
+This example demonstrates a basic instance of a `Workload` resource with a specified container image and port.
 
 ```yaml
 apiVersion: acme.com/v1
 kind: Workload
 metadata:
-  name: basic-workload
+  name: example-workload
 
-image: my-image
+image: nginx
+port: 80
 ```
 
-### Example: workload-with-port
-A workload that exposes a service on a specific port.
+### Example: Workload with Environment Variables
+
+This example shows how to pass environment variables and environment variables from secrets to the container.
 
 ```yaml
 apiVersion: acme.com/v1
 kind: Workload
 metadata:
-  name: workload-with-port
+  name: env-workload
 
-image: my-image
-port: 8080
-```
-
-### Example: workload-with-env
-A workload that uses environment variables and secrets.
-
-```yaml
-apiVersion: acme.com/v1
-kind: Workload
-metadata:
-  name: workload-with-env
-
-image: my-image
+image: nginx
 port: 80
 env:
-  MY_ENV_VAR: "value"
+  EXAMPLE_VAR: "example value"
 envSecrets:
-  MY_SECRET: 
-    name: "secret-name"
-    key: "secret-key"
+  SECRET_VAR:
+    name: example-secret
+    key: secret-key
+```
+
+### Example: Workload with Ingress
+
+This example demonstrates how to configure a workload with an ingress to expose it publicly.
+
+```yaml
+apiVersion: acme.com/v1
+kind: Workload
+metadata:
+  name: ingress-workload
+
+image: nginx
+port: 80
+route: /example
+rewrite: /$1
 ```
 
 ## Configuration
 
-The following fields can be defined in the CRD:
-
-- `image` (str): **[mandatory]** The container image for the workload.
-- `replicas` (num): The number of replica pods to run. Default: `1`.
-- `port` (num): The port number to expose.
-- `env` (Map<str>): A map of environment variables to set in the container.
-- `envSecrets` (Map<EnvSecret>): A map of environment variables to set from Kubernetes secrets.
-  - `EnvSecret`:
-    - `name` (str): The name of the secret.
-    - `key` (str): The key to use within the secret.
-- `command` (Array<str>): Command to run in the container.
-- `route` (str): Ingress path for the workload. If specified, the workload will be exposed publicly.
-- `rewrite` (str): Rewrite host header on backend.
+- **image**: The container image to use.
+- **port** (optional): The port number the container listens on.
+- **command** (optional): The command to run in the container.
+- **readiness** (optional): The command to run to determine if the container is ready.
+- **env** (optional): Environment variables to set in the container.
+- **envSecrets** (optional): Environment variables to set in the container from a secret.
+- **envFrom** (optional): Environment variables to set in the container from a config map or secret.
+- **replicas** (optional): The number of replicas to create for this container.
+- **route** (optional): Ingress path for this workload. If specified, this workload will be exposed publicly.
+- **rewrite** (optional): Rewrite host header on backend.
+- **allow** (optional): Specifies which API resources this workload can access and which verbs can be used.
 
 ## Outputs
 
-The custom resource will generate the following fields under the `status` subresource:
+- **host**: The hostname of the service exposed by the workload.
+- **port**: The port number the workload is accessible on.
 
-- `host` (str): The hostname of the service.
-- `port` (str): The port on which the service is exposed.
-
-These fields can be referenced from other kblocks through `${ref://workload.acme.com/<name>/<field>}`.
+These fields will be available under the `status` subresource of the custom resource and can also be referenced from other kblocks through `${ref://workload.acme.com/<name>/<field>}`.
 
 ## Resources
 
-The following child resources are created and managed by the custom resource:
-
-- **Deployment**: Manages the replica pods for the workload.
-- **Service**: Exposes the workload pods on a specified port.
-- **Ingress**: (optional) Route traffic to the workload through a specified path.
+- **Deployment**: Manages the deployment of the containerized workload.
+- **ServiceAccount**: Associates the workload with the appropriate permissions.
+- **Service**: Exposes the containerized workload (if `port` is specified).
+- **Ingress**: Configures ingress rules for the workload (if `route` is specified).
 
 ## Behavior
 
-The resource is implemented by creating a `Wing` object named `Workload` and synthesizing it into Kubernetes manifests. Once applied to the cluster, the Kblocks controller reconciles the state of the cluster with the desired state by converting the object into an instantiation of the `Workload` object. The desired state of the Kubernetes object is passed as the `WorkloadSpec` properties to the new object, which ensures the cluster state matches the specified configuration. Associated resources like deployments, services, and ingress rules are automatically created and managed.
+The `Workload` resource is implemented by creating a Wing object named `Workload` and synthesizing it into Kubernetes manifests. Once the resource is applied to the cluster, the Kblocks controller will reconcile the state of the cluster with the desired state by converting the object into an instantiation of the `Workload` object, passing the Kubernetes object desired state as the `WorkloadSpec` properties to the new object. The resources created will be associated with the parent custom resource and tracked by it.

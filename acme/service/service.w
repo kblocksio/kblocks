@@ -36,6 +36,8 @@ pub class Service {
       configRepo = configOnly;
     }
 
+    let image  = "wingcloudbot/{spec.repo.name}";
+
     if configRepo {
       revision = "main";
 
@@ -73,6 +75,7 @@ replicas: 2
         readonly: false,
       });
     } else {
+
       files.push({
         path: "README.md",
         content: "Hello, World!",
@@ -112,7 +115,7 @@ replicas: 2
 kind: Workload
 metadata:
 name: workload
-image: wingcloudbot/{spec.repo.name}:sha-\{\{ .Values.revision }}
+image: /\{\{ .Values.image }}:sha-\{\{ .Values.revision }}
 port: 5678
 route: /{spec.repo.name}(/|$)(.*)
 rewrite: /$2
@@ -151,7 +154,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: wingcloudbot/{spec.repo.name}
+          images: {image}
           tags: |
             type=raw,value=latest,enable=\{\{is_default_branch}}
             type=sha
@@ -199,7 +202,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: wingcloudbot/{spec.repo.name}
+          images: {image}
           tags: |
             type=raw,value=latest,enable=\{\{is_default_branch}}
             type=sha
@@ -231,6 +234,20 @@ jobs:
     })) as "service-repo";
 
     let repoURL = "https://github.com/{spec.repo.owner}/{spec.repo.name}.git";
+    let params = MutArray<Json>[];
+
+    params.push({
+      name: "revision",
+      value: "$ARGOCD_APP_REVISION_SHORT",
+    });
+
+    if !configRepo {
+      params.push({
+        name: "image",
+        value: image,
+      });
+    }
+
     new k8s.ApiObject(
       apiVersion: "argoproj.io/v1alpha1",
       kind: "Application",
@@ -245,10 +262,7 @@ jobs:
           targetRevision: revision,
           path: "./",
           helm: {
-            parameters: [{
-              name: "revision",
-              value: "$ARGOCD_APP_REVISION_SHORT",
-            }],
+            parameters: params.copy(),
           },
         },
         destination: {
@@ -258,6 +272,7 @@ jobs:
         syncPolicy: {
           automated: {
             selfHeal: true,
+            prune: true
           },
           syncOptions: [
             "CreateNamespace=true"
@@ -300,10 +315,7 @@ jobs:
               targetRevision: "\{\{.branch}}-latest",
               path: "./",
               helm: {
-                parameters: [{
-                  name: "revision",
-                  value: "$ARGOCD_APP_REVISION_SHORT",
-                }],
+                parameters: params.copy(),
               },
             },
             destination: {
@@ -313,6 +325,7 @@ jobs:
             syncPolicy: {
               automated: {
                 selfHeal: true,
+                prune: true
               },
               syncOptions: [
                 "CreateNamespace=true"
