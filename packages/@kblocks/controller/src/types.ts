@@ -1,6 +1,7 @@
+import path from "path";
 
 export type BindingContext = {
-  watchEvent: string;
+  watchEvent: "Deleted" | "Modified" | "Added";
   object: ApiObject;
 };
 
@@ -23,3 +24,12 @@ export type ApiObject =  {
 
   
 };
+
+
+export interface Event {
+  type: string;
+  reason: string;
+  message: string;
+}
+
+

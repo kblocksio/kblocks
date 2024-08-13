@@ -3,11 +3,9 @@ import fs from "fs";
 import { getenv, tryGetenv } from "./util";
 import { join } from "path";
 import type { BindingContext } from "./types";
+import { RuntimeHost } from "./host";
 
-export async function applyTofu(ctx: BindingContext, valuesFile: string) {
-  const workdir = "/tmp/tofu";
-  fs.cpSync(process.cwd(), workdir, { recursive: true });
-
+export async function applyTofu(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string) {
   const key = `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`;
 
 
@@ -38,5 +36,5 @@ terraform {
   }
   
   fs.writeFileSync(join(workdir, "terraform.tfvars"), tfvars.join("\n"));
-  await applyTerraform(ctx, workdir);
+  await applyTerraform(host, workdir, ctx);
 }

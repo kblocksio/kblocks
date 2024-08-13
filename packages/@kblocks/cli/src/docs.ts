@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import openai from "openai";
 import yaml from "yaml";
 import fs from "fs/promises";

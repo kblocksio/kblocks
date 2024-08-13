@@ -1,4 +1,8 @@
 import { z } from "zod";
+import path from "path";
+import yaml from "yaml";
+import fs from "fs/promises";
+import deepmerge from "deepmerge";
 
 export const CustomResourceDefinition = z.object({
   group: z.string(),
@@ -43,3 +47,22 @@ export const Manifest = z.object({
 });
 
 export type Manifest = z.infer<typeof Manifest>;
+
+
+export async function readManifest(dir: string): Promise<Manifest> {
+  const yamlfile = path.join(dir, "kblock.yaml");
+
+  if (!await fs.access(yamlfile).then(() => true).catch(() => false)) {
+    throw new Error(`${yamlfile} not found`);
+  }
+
+  const config = yaml.parse(await fs.readFile(yamlfile, "utf8"));
+  let block = Manifest.parse(config);
+
+  for (const include of block.include ?? []) {
+    const x = yaml.parse(await fs.readFile(path.join(dir, include), "utf8"));
+    block = deepmerge(block, x);
+  }
+
+  return block;
+}

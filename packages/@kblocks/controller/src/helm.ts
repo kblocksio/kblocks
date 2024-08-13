@@ -1,39 +1,32 @@
+import { patchStatus, RuntimeHost } from "./host";
 import type { BindingContext } from "./types";
 
-const { exec, patchStatus } = require("./util");
 const postRenderPath = require.resolve("./helm-add-ownership");
 
-export async function applyHelm(ctx: BindingContext, values: string) {
+export async function applyHelm(dir: string, host: RuntimeHost, ctx: BindingContext, values: string) {
   const obj = ctx.object;
 
   const namespace = obj.metadata.namespace ?? "default";
   const release = obj.metadata.name;
 
   if (ctx.watchEvent == "Deleted") {
-    await exec("helm", [
+    await host.exec("helm", [
       "uninstall", release, 
       "--namespace", namespace
-    ]);
+    ], { cwd: dir });
 
     return;
   }
 
   // verify schema
-  await exec("helm", [
+  await host.exec("helm", [
     "lint", 
     ".", 
     "--values", values
-  ]);
-
-  // // print the template for debugging
-  // await exec("helm", [
-  //   "template",
-  //   release, ".",
-  //     "--values", values
-  // ]);
+  ], { cwd: dir });
 
   // install/upgrade
-  const output = await exec("helm", [
+  const output = await host.exec("helm", [
     "upgrade",
     release, ".", 
     "--namespace", namespace,
@@ -45,10 +38,18 @@ export async function applyHelm(ctx: BindingContext, values: string) {
     "--output", "json",
     "--post-renderer", postRenderPath
   ], { 
+    cwd: dir,
     env: { OWNER_REF: JSON.stringify(ctx.object) } 
   });
 
-  const helmOutput = JSON.parse(output);
+  const helmOutput = (() => {
+    try {
+      return JSON.parse(output);
+    } catch {
+      return {};
+    }
+  })();
+
   const notes = helmOutput?.info?.notes ?? "{}";
   try {
     const actualOutputs = JSON.parse(notes);
@@ -57,12 +58,10 @@ export async function applyHelm(ctx: BindingContext, values: string) {
     }
 
     if (Object.keys(actualOutputs).length > 0) {
-      await patchStatus(ctx.object, actualOutputs);
+      await patchStatus(host, ctx.object, actualOutputs);
     }
   } catch (e: any) {
     console.error(notes);
     console.error("No outputs in NOTES.txt:", e.message);
   }
 }
-
-exports.applyHelm = applyHelm;

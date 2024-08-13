@@ -1,51 +1,48 @@
-import { exec, patchStatus, kblockOutputs, getenv, tryGetenv } from "./util";
 import fs from "fs";
+import path from "path";
 import { applyTerraform } from "./tf";
 import { addOwnerReferences } from "./ownership";
 import { join } from "path";
 import type { BindingContext } from "./types";
+import { kblockOutputs, patchStatus, RuntimeHost } from "./host";
+import { exec as realExec } from "./util"
+import type { SpawnOptions } from "child_process";
 
-export async function applyWing(engine: string, ctx: BindingContext, values: string) {
-  const entrypoint = createEntrypoint(ctx, values);
- 
+export async function applyWing(workdir: string, host: RuntimeHost, engine: string, ctx: BindingContext, values: string) {
+  const entrypoint = createEntrypoint(workdir, host, ctx, values);
   const [_, target] = engine.split("/");
 
-  try {
-    if (!target) {
-      await applyWingKubernetes(entrypoint, ctx);
-    } else if (target.startsWith("tf-")) {
-      await applyWingTerraform(entrypoint, ctx, target);
-    } else {
-      throw new Error(`unsupported Wing target: ${target}`);
-    }
-  
-  } finally {
-    fs.rmSync(entrypoint);
+  if (!target) {
+    await applyWingKubernetes(workdir, host, entrypoint, ctx);
+  } else if (target.startsWith("tf-")) {
+    await applyWingTerraform(workdir, host, entrypoint, ctx, target);
+  } else {
+    throw new Error(`unsupported Wing target: ${target}`);
   }
 }
 
-async function applyWingTerraform(entrypoint: string, ctx: BindingContext, target: string) {
-  await exec("wing", ["compile", "-t", target, entrypoint]);
+async function applyWingTerraform(workdir: string, host: RuntimeHost, entrypoint: string, ctx: BindingContext, target: string) {
+  await wingcli(["compile", "-t", target, entrypoint], { cwd: workdir });
   
-  const dir = "target/main.tfaws";
-  const tfjson = join(dir, "main.tf.json");
+  const tmpdir = "target/main.tfaws";
+  const tfjson = join(tmpdir, "main.tf.json");
   const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
 
   tf.terraform.backend = {
     s3: {
-      bucket: getenv("TF_BACKEND_BUCKET"),
-      region: getenv("TF_BACKEND_REGION"),
-      key: `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`,
-      dynamodb_table: tryGetenv("TF_BACKEND_DYNAMODB"),
+      bucket: host.getenv("TF_BACKEND_BUCKET"),
+      region: host.getenv("TF_BACKEND_REGION"),
+      key: `${host.getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`,
+      dynamodb_table: host.tryGetenv("TF_BACKEND_DYNAMODB"),
     }
   };
 
   fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
 
-  await applyTerraform(ctx, dir);
+  await applyTerraform(host, tmpdir, ctx);
 }
 
-async function applyWingKubernetes(entrypoint: string, ctx: BindingContext) {
+async function applyWingKubernetes(workdir: string, host: RuntimeHost, entrypoint: string, ctx: BindingContext) {
   const obj = ctx.object;
   const objidLabel = "kblock-id";
   const objid = obj.metadata.uid;
@@ -64,37 +61,38 @@ async function applyWingKubernetes(entrypoint: string, ctx: BindingContext) {
     WING_K8S_NAMESPACE: namespace,
   };
 
-  await exec("wing", ["compile", "-t", "@winglibs/k8s", entrypoint], { env });
+  const k8sTarget = require.resolve("@winglibs/k8s/lib/index.js");
+  await wingcli(["compile", "-t", k8sTarget, entrypoint], { env, cwd: workdir });
 
   // add owner references to the generated manifest
-  const manifest = addOwnerReferences(ctx.object, "target/main.k8s", "manifest.yaml");
+  const manifest = addOwnerReferences(ctx.object, path.join(workdir, "target/main.k8s"), path.join(workdir, "manifest.yaml"));
  
   // if we receive a delete event, we delete all resources marked with the object id label. this is
   // more robust than synthesizing the manifest and deleting just the resources within the manifest
   // because the manifest may have changed since the last apply.
   if (ctx.watchEvent === "Deleted") {
-    await exec("kubectl", [
+    await host.exec("kubectl", [
       "delete",
       "--ignore-not-found",
       "-f", manifest,
-    ]);
+    ], { cwd: workdir });
     return;
   }
  
   // update the "status" field of the object with the outputs from the Wing program
   const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
-  await patchStatus(ctx.object, outputs);
+  await patchStatus(host, ctx.object, outputs);
 
-  await exec("kubectl", [
+  await host.exec("kubectl", [
     "apply", 
     "--prune",
     "--selector", `${objidLabel}=${objid}`,
     "-f", manifest]
-  );
+  , { cwd: workdir });
 }
 
-function createEntrypoint(ctx: BindingContext, valuesFile: string) {
-  const entrypoint = "main.w";
+function createEntrypoint(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string) {
+  const entrypoint = path.join(workdir, "main.w");
   const obj = ctx.object;
 
   const code = [
@@ -105,7 +103,7 @@ function createEntrypoint(ctx: BindingContext, valuesFile: string) {
     `let obj = new lib.${obj.kind}(spec) as \"${obj.metadata.name}\";`,
   ];
 
-  const outputs = kblockOutputs();
+  const outputs = kblockOutputs(host);
   code.push(`let outputs = {`);
 
   for (const name of outputs) {
@@ -113,7 +111,6 @@ function createEntrypoint(ctx: BindingContext, valuesFile: string) {
   }
 
   code.push(`};`);
-
   code.push(`fs.writeJson("outputs.json", outputs);`);
 
   fs.writeFileSync(entrypoint, code.join("\n"));
@@ -121,3 +118,7 @@ function createEntrypoint(ctx: BindingContext, valuesFile: string) {
   return entrypoint;
 }
 
+async function wingcli(args: string[], options: SpawnOptions = {}) {
+  const cli = require.resolve("winglang/bin/wing");
+  return await realExec(cli, args, options);
+}

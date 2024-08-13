@@ -1,6 +1,7 @@
 import yargs from "yargs";
 import { build } from "./build";
 import { docs } from "./docs";
+import { render } from "./render";
 
 export async function cli() {
   return yargs
@@ -38,9 +39,28 @@ export async function cli() {
         describe: "The path to the kblock",
       }), argv => docs(argv))
 
+    .command("render <manifest>", "Renders the output by applying the manifest for a Kblock", yargs => yargs
+      .positional("manifest", {
+        type: "string",
+        demandOption: true,
+        describe: "The path to the YAML manifest file to use as an input to the kblock",
+      })
+      .option("path", {
+        type: "string",
+        default: ".",
+        describe: "The path to the kblock",
+      }), argv => render(argv))
+
     .showHelpOnFail(false)
-    .fail((_, err) => {
-      console.error(err.stack);
+    .fail((message, err) => {
+      if (message) {
+        console.error(message);
+      }
+
+      if (err) {
+        console.error(err.stack);
+      }
+      
       process.exit(1);
     })
     .argv;

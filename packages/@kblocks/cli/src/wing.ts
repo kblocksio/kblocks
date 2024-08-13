@@ -1,22 +1,28 @@
 import { join } from "path";
 import fs from "fs";
-import { spawnSync } from "child_process";
+import cp from "child_process";
 
-export function generateSchemaFromWingStruct(source: string, struct: string) {
-  const tmpfile = join(source, ".tmp.schema.main.w");
+function wingcli(cwd: string, args: string[]) {
+  const cli = require.resolve("winglang/bin/wing");
+  return cp.spawnSync(cli, args, { cwd });
+}
+
+export function generateSchemaFromWingStruct(workdir: string, struct: string) {
+  const tmpfile = join(workdir, ".tmp.schema.main.w");
+  
   fs.writeFileSync(tmpfile, `
     bring "./" as l;
     log(l.${struct}.schema().asStr());
   `);
 
-  const result = spawnSync("wing", ["compile", tmpfile], { cwd: source });
+  const result = wingcli(workdir, ["compile", tmpfile]);
   if (result.status !== 0) {
     console.error(result.stderr.toString());
     throw new Error(`wing compile ${tmpfile} failed with status ${result.status}`);
   }
 
   fs.rmSync(tmpfile, { recursive: true, force: true });
-  fs.rmSync(join(source, "target"), { recursive: true, force: true });
+  fs.rmSync(join(workdir, "target"), { recursive: true, force: true });
 
   const out = JSON.parse(result.stdout.toString());
   return cleanupSchema(out);

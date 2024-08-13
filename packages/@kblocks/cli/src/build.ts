@@ -1,7 +1,6 @@
 import path from "path";
-import yaml from "yaml";
 import fs from "fs/promises";
-import { Manifest } from "./types";
+import { Manifest, readManifest } from "./types";
 import { App, Chart } from "cdk8s";
 import { Operator } from "./operator";
 import { BlockMetadata } from "./metadata";
@@ -11,7 +10,6 @@ import { generateSchemaFromWingStruct } from "./wing";
 import { buildImage } from "./image";
 import { hashAll } from "./util";
 import { docs } from "./docs";
-import deepmerge from "deepmerge";
 
 interface Options {
   path: string;
@@ -23,7 +21,6 @@ export async function build(opts: Options) {
   await docs(opts);
 
   const kblockDir = path.resolve(opts.path);
-
   const block = await readManifest(kblockDir);  
 
   const app = new App({ outdir: opts.output });
@@ -101,20 +98,3 @@ async function resolveSchema(sourcedir: string, props: Manifest): Promise<JsonSc
   throw new Error(`unsupported engine: ${props.engine}`);
 }
 
-async function readManifest(dir: string): Promise<Manifest> {
-  const yamlfile = path.join(dir, "kblock.yaml");
-
-  if (!await fs.access(yamlfile).then(() => true).catch(() => false)) {
-    throw new Error(`${yamlfile} not found`);
-  }
-
-  const config = yaml.parse(await fs.readFile(yamlfile, "utf8"));
-  let block = Manifest.parse(config);
-
-  for (const include of block.include ?? []) {
-    const x = yaml.parse(await fs.readFile(path.join(dir, include), "utf8"));
-    block = deepmerge(block, x);
-  }
-
-  return block;
-}

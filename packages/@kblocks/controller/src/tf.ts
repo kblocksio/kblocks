@@ -1,34 +1,27 @@
+import { patchStatus, kblockOutputs, RuntimeHost } from "./host";
 import type { BindingContext } from "./types";
-import { exec, patchStatus, kblockOutputs, tryGetenv } from "./util";
-import fs from "fs";
 
-export async function applyTerraform(ctx: BindingContext, dir: string) {
-  try {
-    await exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: dir });
-  
-    if (ctx.watchEvent === "Deleted") {
-      await exec("tofu", ["destroy", "-auto-approve", "-no-color"], { cwd: dir });
-      return;
-    }
-  
-    await exec("tofu", ["apply", "-input=false", "-auto-approve", "-no-color"], { cwd: dir });
-  
-    const outputs = kblockOutputs();
-    const results: Record<string, any> = {};
-    for (const name of outputs) {
-      const value = await exec("tofu", ["output", "-no-color", name], { cwd: dir });
-      try {
-        results[name] = JSON.parse(value);
-        console.error(`OUTPUT! ${name}=${value}`);
-      } catch (e) {
-        console.error(`No outputs found.`);
-      }
-    }
-  
-    await patchStatus(ctx.object, results);
-  } finally {
-    // delete the target folder because the 
-    // tf backend key is changing between resources
-    fs.rmdirSync(dir, { recursive: true });
+export async function applyTerraform(host: RuntimeHost, workdir: string, ctx: BindingContext) {
+  await host.exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: workdir });
+
+  if (ctx.watchEvent === "Deleted") {
+    await host.exec("tofu", ["destroy", "-auto-approve", "-no-color"], { cwd: workdir });
+    return;
   }
+
+  await host.exec("tofu", ["apply", "-input=false", "-auto-approve", "-no-color"], { cwd: workdir });
+
+  const outputs = kblockOutputs(host);
+  const results: Record<string, any> = {};
+  for (const name of outputs) {
+    const value = await host.exec("tofu", ["output", "-no-color", name], { cwd: workdir });
+    try {
+      results[name] = JSON.parse(value);
+      console.error(`OUTPUT! ${name}=${value}`);
+    } catch (e) {
+      console.error(`No outputs found.`);
+    }
+  }
+
+  await patchStatus(host, ctx.object, results);
 }

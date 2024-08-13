@@ -1,5 +1,9 @@
 import fs from "fs";
 import { synth } from "./synth";
+import { RuntimeHost } from "./host";
+import { exec, getenv, tryGetenv } from "./util";
+import { newSlackThread } from "./slack";
+import { chatCompletion } from "./ai";
 
 const kblock = JSON.parse(fs.readFileSync("kblock.json", "utf8"));
 if (!kblock.config) {
@@ -16,13 +20,20 @@ async function main() {
     return process.exit(0);
   }
 
-  process.chdir("/kblock");
-
   if (!process.env.BINDING_CONTEXT_PATH) {
     throw new Error("BINDING_CONTEXT_PATH is not set");
   }
 
+  const sourcedir = "/kblock";
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
+
+  const host: RuntimeHost = {
+    getenv,
+    tryGetenv,
+    exec,
+    newSlackThread,
+    chatCompletion,
+  };
 
   for (const ctx of context) {
     if ("objects" in ctx) {
@@ -30,10 +41,10 @@ async function main() {
         // copy from parent so we can reason about it.
         ctx2.type = ctx.type;
         ctx2.watchEvent = ctx.watchEvent;
-        await synth(kblock.engine, ctx2);
+        await synth(sourcedir, host, kblock.engine, ctx2);
       }
     } else if ("object" in ctx) {
-      await synth(kblock.engine, ctx);
+      await synth(sourcedir, host, kblock.engine, ctx);
     }
   }
 }

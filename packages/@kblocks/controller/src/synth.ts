@@ -1,13 +1,15 @@
-import fs from "fs";
-import { patchStatus, publishEvent } from "./util";
+import fs from "fs/promises";
+import path from "path";
 import { applyHelm } from "./helm";
+import { tempdir } from "./util";
 import { applyWing } from "./wing";
 import { resolveReferences } from "./refs";
-import { newSlackThread } from "./slack";
 import { explainError } from "./ai";
 import { applyTofu } from "./tofu";
+import { patchStatus, publishEvent, RuntimeHost } from "./host";
+import { BindingContext } from "./types";
 
-export async function synth(engine: string, ctx: any) {
+export async function synth(sourcedir: string, host: RuntimeHost, engine: string, ctx: BindingContext) {
   // skip updates to the "status" subresource
   if (ctx.watchEvent === "Modified") {
     const managedFields = ctx.object.metadata?.managedFields ?? [];
@@ -17,10 +19,14 @@ export async function synth(engine: string, ctx: any) {
     }
   }
 
+  // create a temporary directory to work in, which we will clean up at the end
+  const workdir = tempdir();
+  await fs.cp(sourcedir, workdir, { recursive: true });
+
   console.error("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
-  const updateReadyCondition = async (ready: boolean, message: string) => patchStatus(ctx.object, {
+  const updateReadyCondition = async (ready: boolean, message: string) => patchStatus(host, ctx.object, {
     conditions: [{
       type: "Ready",
       status: ready ? "True" : "False",
@@ -32,10 +38,10 @@ export async function synth(engine: string, ctx: any) {
 
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
   const slackStatus = (icon: string, reason: string) => `${icon} _${ctx.object.kind}_ *${ctx.object.metadata.namespace ?? "default"}/${ctx.object.metadata.name}*: ${reason}`;
-  const slack = await newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
+  const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
 
   try {
-    await publishEvent(ctx.object, {
+    await publishEvent(host, ctx.object, {
       type: "Normal",
       reason: "UpdateStarted",
       message: "Starting to update resource",
@@ -43,26 +49,26 @@ export async function synth(engine: string, ctx: any) {
 
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, "Resolving references");
-    ctx.object = await resolveReferences(ctx.object);
+    ctx.object = await resolveReferences(workdir, host, ctx.object);
     
     console.error(JSON.stringify(ctx, undefined, 2));
 
     await updateReadyCondition(false, "In progress");
 
-    const values = "values.json";
-    fs.writeFileSync(values, JSON.stringify(ctx.object));
+    const values = path.join(workdir, "values.json");
+    await fs.writeFile(values, JSON.stringify(ctx.object));
 
     const first = engine.split("/")[0];
   
     switch (first) {
       case "helm":
-        await applyHelm(ctx, values);
+        await applyHelm(workdir, host, ctx, values);
         break;
       case "wing":
-        await applyWing(engine, ctx, values);
+        await applyWing(workdir, host, engine, ctx, values);
         break;
       case "tofu":
-        await applyTofu(ctx, values);
+        await applyTofu(workdir, host, ctx, values);
         break;
       default:
         throw new Error(`unsupported engine: ${engine}`);
@@ -72,7 +78,7 @@ export async function synth(engine: string, ctx: any) {
       await slack.update(slackStatus("⚪", "Deleted"));
     } else {
       await updateReadyCondition(true, "Success");
-      await publishEvent(ctx.object, {
+      await publishEvent(host, ctx.object, {
         type: "Normal",
         reason: "UpdateSucceeded",
         message: "Resource updated successfully",
@@ -81,7 +87,7 @@ export async function synth(engine: string, ctx: any) {
     }
   } catch (err: any) {
     console.error(err.stack);
-    await publishEvent(ctx.object, {
+    await publishEvent(host, ctx.object, {
       type: "Warning",
       reason: "Error",
       message: err.stack,
@@ -89,7 +95,7 @@ export async function synth(engine: string, ctx: any) {
     await slack.update(slackStatus("🔴", "Failure"));
     await slack.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
     await slack.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
-    const explanation = await explainError(ctx, err.message);
+    const explanation = await explainError(host, ctx, err.message);
     if (explanation?.blocks) {
       explanation?.blocks.push({
         type: "section",
@@ -102,5 +108,11 @@ export async function synth(engine: string, ctx: any) {
     }
 
     await updateReadyCondition(false, "Error");
+  } finally {
+    if (process.env.DEBUG) {
+      console.error("DEBUG: skipped cleanup of", workdir);
+    } else {
+      await fs.rm(workdir, { recursive: true, force: true });
+    }
   }
 }
