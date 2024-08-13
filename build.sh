@@ -6,7 +6,7 @@ dir=$(cd $(dirname $0); pwd)
 
 kblocks="$dir/packages/@kblocks/cli/bin/kblocks"
 
-(cd packages/@kblocks/cli && tsc)
+(cd packages/@kblocks/cli && npx tsc)
 
 rm -fr dist
 

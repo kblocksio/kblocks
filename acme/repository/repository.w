@@ -53,9 +53,11 @@ curl -L -X PUT -H \"Accept: application/vnd.github+json\" -H \"Authorization: Be
             repository: repo.name,
             file: file.path,
             content: file.content,
+            dependsOn: deps.copy(),
           };
   
-          new github.repositoryFile.RepositoryFile(repoProps) as "file-{file.path.replaceAll("/", "-")}";
+          let resource = new github.repositoryFile.RepositoryFile(repoProps) as "file-{file.path.replaceAll("/", "-")}";
+          deps.push(resource);
         }
       }
 
