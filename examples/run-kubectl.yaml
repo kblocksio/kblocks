@@ -7,7 +7,7 @@ command:
   - kubectl
   - get
   - pods
-grant:
+allow:
   - apiGroup: ""
     resource: pods
     verbs:
