@@ -15,7 +15,7 @@ export async function buildImage(sourcedir: string, tag: string, options: BuildI
   docker(["build", "-t", basetag, "-f", path.basename(dockerfile), "."], path.dirname(dockerfile));
 
   const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), "image-"));
-  fs.cpSync(sourcedir, path.join(tmpdir, "kblock"), { recursive: true });
+  fs.cpSync(sourcedir, path.join(tmpdir, "kblock"), { recursive: true, dereference: true });
   fs.writeFileSync(path.join(tmpdir, "kblock.json"), JSON.stringify({
     engine: options.engine,
     config: {
