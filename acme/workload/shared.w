@@ -65,6 +65,9 @@ pub struct EnvSecret {
 pub struct PolicySpec {
   /// Determines which API resources can this workload access, and which verbs can be used.
   allow: Array<Rule>?;
+
+  /// Adds cluster wide rules to the workload
+  allowCluster: Array<Rule>?;
 }
 
 pub class Util {
@@ -145,6 +148,21 @@ pub class Util {
 
     let roleBinding = new k8s.RoleBinding(role: role);
     roleBinding.addSubjects(sa);
+
+    if let clusterRules = spec.allowCluster {
+      let rules = MutArray<k8s.ClusterRolePolicyRule>[];
+      
+      for r in clusterRules {
+        rules.push({
+          verbs: r.verbs,
+          endpoints: [k8s.ApiResource.custom(apiGroup: r.apiGroup, resourceType: r.resource)]
+        });
+      }
+
+      let clusterRole = new k8s.ClusterRole(rules: rules.copy());
+      let clusterRoleBinding = new k8s.ClusterRoleBinding(role: clusterRole);
+      clusterRoleBinding.addSubjects(sa);
+    }
     
     return sa;
   }

@@ -15,7 +15,7 @@
     "zod": "^3.23.8"
   },
   "scripts": {
-    "test": "vitest"
+    "test": "vitest **/*.test.ts"
   },
   "devDependencies": {
     "@types/yargs": "^17.0.33",
