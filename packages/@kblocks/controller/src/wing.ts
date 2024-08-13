@@ -61,8 +61,7 @@ async function applyWingKubernetes(workdir: string, host: RuntimeHost, entrypoin
     WING_K8S_NAMESPACE: namespace,
   };
 
-  const k8sTarget = require.resolve("@winglibs/k8s/lib/index.js");
-  await wingcli(["compile", "-t", k8sTarget, entrypoint], { env, cwd: workdir });
+  await wingcli(["compile", "-t", "@winglibs/k8s", entrypoint], { env, cwd: workdir });
 
   // add owner references to the generated manifest
   const manifest = addOwnerReferences(ctx.object, path.join(workdir, "target/main.k8s"), path.join(workdir, "manifest.yaml"));
@@ -80,7 +79,7 @@ async function applyWingKubernetes(workdir: string, host: RuntimeHost, entrypoin
   }
  
   // update the "status" field of the object with the outputs from the Wing program
-  const outputs = JSON.parse(fs.readFileSync("./outputs.json", "utf8"));
+  const outputs = JSON.parse(fs.readFileSync(path.join(workdir, "./outputs.json"), "utf8"));
   await patchStatus(host, ctx.object, outputs);
 
   await host.exec("kubectl", [
@@ -119,6 +118,5 @@ function createEntrypoint(workdir: string, host: RuntimeHost, ctx: BindingContex
 }
 
 async function wingcli(args: string[], options: SpawnOptions = {}) {
-  const cli = require.resolve("winglang/bin/wing");
-  return await realExec(cli, args, options);
+  return await realExec("wing", args, options);
 }

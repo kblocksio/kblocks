@@ -2,14 +2,23 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 import { spawnSync } from "child_process";
+import { hashAll } from "./util";
+import { readManifest } from "./types";
 
 interface BuildImageOptions {
-  readonly engine: string;
-  readonly apiVersion: string;
-  readonly kind: string;
+  readonly push?: boolean;
 }
 
-export async function buildImage(sourcedir: string, tag: string, options: BuildImageOptions) {
+export async function buildImage(sourcedir: string, options: BuildImageOptions = {}) {
+  const block = await readManifest(sourcedir);
+  const sourceHash = await hashAll([
+    path.dirname(require.resolve('@kblocks/controller/package.json')),
+    sourcedir
+  ], ["node_modules", "dist", "target"]);
+
+  const kind = block.definition.kind.toLocaleLowerCase();
+  const tag = `kind-registry:5001/kblocks:${kind}-${sourceHash}`;
+
   const dockerfile = require.resolve("@kblocks/controller/Dockerfile");
   const basetag = "kblocks-controller-base";
   docker(["build", "-t", basetag, "-f", path.basename(dockerfile), "."], path.dirname(dockerfile));
@@ -17,13 +26,13 @@ export async function buildImage(sourcedir: string, tag: string, options: BuildI
   const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), "image-"));
   fs.cpSync(sourcedir, path.join(tmpdir, "kblock"), { recursive: true, dereference: true });
   fs.writeFileSync(path.join(tmpdir, "kblock.json"), JSON.stringify({
-    engine: options.engine,
+    engine: block.engine,
     config: {
       configVersion: "v1",
       kubernetes: [
         {
-          apiVersion: options.apiVersion,
-          kind: options.kind,
+          apiVersion: `${block.definition.group}/${block.definition.version}`,
+          kind: block.definition.kind,
           executeHookOnEvent: ["Added", "Modified", "Deleted"]
         }
       ]  
@@ -39,7 +48,12 @@ export async function buildImage(sourcedir: string, tag: string, options: BuildI
   ].join("\n"));
 
   docker(["build", "-t", tag, "."], tmpdir);
-  docker(["push", tag]);
+
+  if (options.push ?? false) {
+    docker(["push", tag]);
+  }
+
+  return tag;
 }
 
 export function docker(args: string[], cwd?: string) {

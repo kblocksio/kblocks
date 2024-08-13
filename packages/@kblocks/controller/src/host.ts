@@ -66,9 +66,9 @@ export async function publishEvent(host: RuntimeHost, obj: ApiObject, event: Eve
     ]);
 
   } catch (err: any) {
-    console.error("WARNING: unable to publish event:", err.stack);
-    console.error(obj);
-    console.error(event);
+    console.warn("WARNING: unable to publish event:", err.stack);
+    console.warn(obj);
+    console.warn(event);
   } finally {
     fs.rmSync(workdir, { recursive: true, force: true });
   }

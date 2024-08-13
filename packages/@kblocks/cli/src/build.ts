@@ -26,13 +26,8 @@ export async function build(opts: Options) {
   const app = new App({ outdir: opts.output });
   const chart = new Chart(app, block.definition.kind.toLocaleLowerCase());
 
-  const sourceHash = await hashAll([
-    path.dirname(require.resolve('@kblocks/controller/package.json')),
-    kblockDir
-  ], ["node_modules", "dist", "target"]);
 
-  const kind = block.definition.kind.toLocaleLowerCase();
-  const image = `kind-registry:5001/kblocks:${kind}-${sourceHash}`;
+  const image = await buildImage(kblockDir, { push: true });
 
   new Operator(chart, "Operator", {
     image,
@@ -59,12 +54,6 @@ export async function build(opts: Options) {
   });
 
   app.synth();
-
-  await buildImage(kblockDir, image, {
-    apiVersion: crd.apiVersion,
-    engine: block.engine,
-    kind: block.definition.kind,
-  });
 }
 
 async function resolveSchema(sourcedir: string, props: Manifest): Promise<JsonSchemaProps> {

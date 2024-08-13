@@ -23,7 +23,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
   const workdir = tempdir();
   await fs.cp(sourcedir, workdir, { recursive: true });
 
-  console.error("-------------------------------------------------------------------------------------------");
+  console.log("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
   const updateReadyCondition = async (ready: boolean, message: string) => patchStatus(host, ctx.object, {
@@ -51,7 +51,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     await updateReadyCondition(false, "Resolving references");
     ctx.object = await resolveReferences(workdir, host, ctx.object);
     
-    console.error(JSON.stringify(ctx, undefined, 2));
+    console.log(JSON.stringify(ctx, undefined, 2));
 
     await updateReadyCondition(false, "In progress");
 
@@ -110,7 +110,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     await updateReadyCondition(false, "Error");
   } finally {
     if (process.env.DEBUG) {
-      console.error("DEBUG: skipped cleanup of", workdir);
+      console.warn("DEBUG: skipped cleanup of", workdir);
     } else {
       await fs.rm(workdir, { recursive: true, force: true });
     }

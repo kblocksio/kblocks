@@ -1,5 +1,3 @@
-import path from "path";
-
 export type BindingContext = {
   watchEvent: "Deleted" | "Modified" | "Added";
   object: ApiObject;

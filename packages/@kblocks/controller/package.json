@@ -3,16 +3,13 @@
   "type": "commonjs",
   "dependencies": {
     "openai": "^4.0.0",
-    "yaml": "^2.5.0",
-    "@winglibs/k8s": "^0.0.8",
-    "winglang": "0.82.5"
+    "yaml": "^2.5.0"
   },
   "main": "src/index.js",
   "scripts": {
     "test": "vitest **/*.test.ts *.test.ts",
     "watch": "tsc --watch"
   },
-
   "devDependencies": {
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
