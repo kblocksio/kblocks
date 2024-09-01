@@ -68,7 +68,11 @@ metadata:
   name: workload
 image: busybox
 port: 5678
+\{\{- if or (eq .Values.targetRevision \"latest\") (eq .Values.targetRevision \"main\") }}
 route: /{spec.repo.name}(/|$)(.*)
+\{\{- else }}
+route: /{spec.repo.name}-\{\{ .Values.targetRevision }}(/|$)(.*)
+\{\{- end }}
 rewrite: /$2
 replicas: 2
 ",
@@ -105,7 +109,9 @@ replicas: 2
       
       files.push({
         path: "values.yaml",
-        content: "revision: latest",
+        content: "revision: latest
+targetRevision: latest
+",
         readonly: false,
       });
       
@@ -114,10 +120,14 @@ replicas: 2
         content: "apiVersion: acme.com/v1
 kind: Workload
 metadata:
-name: workload
-image: /\{\{ .Values.image }}:sha-\{\{ .Values.revision }}
+  name: workload
+image: \{\{ .Values.image }}:sha-\{\{ .Values.revision }}
 port: 5678
+\{\{- if or (eq .Values.targetRevision \"latest\") (eq .Values.targetRevision \"main\") }}
 route: /{spec.repo.name}(/|$)(.*)
+\{\{- else }}
+route: /{spec.repo.name}-\{\{ .Values.targetRevision }}(/|$)(.*)
+\{\{- end }}
 rewrite: /$2
 replicas: 2
 env:
@@ -239,6 +249,9 @@ jobs:
     params.push({
       name: "revision",
       value: "$ARGOCD_APP_REVISION_SHORT",
+    }, {
+      name: "targetRevision",
+      value: "$ARGOCD_APP_SOURCE_TARGET_REVISION",
     });
 
     if !configRepo {

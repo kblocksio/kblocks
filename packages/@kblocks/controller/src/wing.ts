@@ -24,7 +24,7 @@ export async function applyWing(workdir: string, host: RuntimeHost, engine: stri
 async function applyWingTerraform(workdir: string, host: RuntimeHost, entrypoint: string, ctx: BindingContext, target: string) {
   await wingcli(["compile", "-t", target, entrypoint], { cwd: workdir });
   
-  const tmpdir = "target/main.tfaws";
+  const tmpdir = join(workdir, "target/main.tfaws");
   const tfjson = join(tmpdir, "main.tf.json");
   const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
 
