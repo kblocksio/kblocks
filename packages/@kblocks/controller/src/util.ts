@@ -57,5 +57,5 @@ export function tryGetenv(k: string) {
 }
 
 export function tempdir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "-kblocks-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "kblocks-"));
 }
