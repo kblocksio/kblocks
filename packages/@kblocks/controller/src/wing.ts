@@ -39,7 +39,7 @@ async function applyWingTerraform(workdir: string, host: RuntimeHost, entrypoint
 
   fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
 
-  await applyTerraform(host, tmpdir, ctx);
+  await applyTerraform(host, targetdir, ctx);
 }
 
 async function applyWingKubernetes(workdir: string, host: RuntimeHost, entrypoint: string, ctx: BindingContext) {
