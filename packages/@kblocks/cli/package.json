@@ -15,7 +15,8 @@
   },
   "scripts": {
     "test": "vitest **/*.test.ts",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "package": "node ../../bump-pack/bin/bump-pack.cjs -b"
   },
   "devDependencies": {
     "@types/yargs": "^17.0.33",
