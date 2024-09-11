@@ -52,7 +52,7 @@ jobs:
         working-directory: packages/bump-pack
 
       - name: Build and Package
-        run: npm exec -ws -- npm run package
+        run: npm run --if-present -ws package
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
