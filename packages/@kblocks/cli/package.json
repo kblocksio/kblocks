@@ -4,6 +4,7 @@
   "bin": {
     "kblocks": "./bin/kblocks"
   },
+  "main": "./lib/index.js",
   "dependencies": {
     "@kblocks/controller": "*",
     "cdk8s": "^2.68.93",
@@ -16,6 +17,7 @@
   "scripts": {
     "test": "vitest **/*.test.ts",
     "watch": "tsc --watch",
+    "build": "tsc",
     "package": "node ../../bump-pack/bin/bump-pack.cjs -b"
   },
   "devDependencies": {
