@@ -15,7 +15,7 @@ export async function render(opts: Options) {
 
   const tag = await buildImage(dir)
   console.log(tag);
-  // const manifest = await readManifest(dir);
+  // const manifest = readManifest(dir);
   // const docs = yaml.parseAllDocuments(await fs.readFile(opts.manifest, "utf-8"));
 
   // const host: RuntimeHost = {

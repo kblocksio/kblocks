@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs/promises";
+import yaml from "yaml";
 import { Manifest, readManifest } from "./types";
 import { App, Chart } from "cdk8s";
 import { Operator } from "./operator";
@@ -7,13 +8,15 @@ import { BlockMetadata } from "./metadata";
 import { CustomResourceDefinition } from "./crd";
 import { JsonSchemaProps } from "../imports/k8s";
 import { generateSchemaFromWingStruct } from "./wing";
-import { buildImage } from "./image";
-import { hashAll } from "./util";
+// import { buildImage } from "./image";
+// import { hashAll } from "./util";
 import { docs } from "./docs";
+import { ConfigMapFromDirectory, createTgzBase64 } from "./configmap";
+import packageJson from "../package.json";
 
 interface Options {
   path: string;
-  output?: string;
+  output: string;
   force?: boolean;
 }
 
@@ -21,16 +24,23 @@ export async function build(opts: Options) {
   await docs(opts);
 
   const kblockDir = path.resolve(opts.path);
-  const block = await readManifest(kblockDir);  
+  const block = readManifest(kblockDir);  
 
-  const app = new App({ outdir: opts.output });
+  const app = new App({ outdir: path.join(opts.output, "templates") });
   const chart = new Chart(app, block.definition.kind.toLocaleLowerCase());
 
+  const tgzBase64 = await createTgzBase64(kblockDir);
+  const configmap = new ConfigMapFromDirectory(chart, "ConfigMapVolume", {
+    path: kblockDir,
+    archive: tgzBase64,
+    namespace: block.operator.namespace,
+  });
 
-  const image = await buildImage(kblockDir, { push: true });
+  // const image = await buildImage(kblockDir, { push: true });
 
   new Operator(chart, "Operator", {
-    image,
+    image: `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`,
+    configMaps: configmap.configMaps,
     ...block.operator,
     ...block.definition
   });
@@ -43,7 +53,7 @@ export async function build(opts: Options) {
     namespace: block.operator.namespace,
   });
 
-  const crd = new CustomResourceDefinition(chart, "CRD", {
+  new CustomResourceDefinition(chart, "CRD", {
     ...block.definition,
     annotations: {
       "kblocks.io/icon": block.definition.icon,
@@ -54,6 +64,15 @@ export async function build(opts: Options) {
   });
 
   app.synth();
+
+  // write the chart file to the output directory
+  const outputDir = path.resolve(opts.output);
+  await fs.writeFile(path.join(outputDir, `Chart.yaml`),
+`apiVersion: v1
+name: ${block.definition.kind.toLocaleLowerCase()}-kblock
+version: 0.0.1
+type: application
+`);
 }
 
 async function resolveSchema(sourcedir: string, props: Manifest): Promise<JsonSchemaProps> {

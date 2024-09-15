@@ -7,6 +7,7 @@ export interface OperatorProps {
   kind: string
   plural: string;
   namespace: string;
+  configMaps: Record<string, k8s.ConfigMap>;
   envSecrets?: Record<string, string>;
   envConfigMaps?: Record<string, string>;
   env?: Record<string, string>;
@@ -63,6 +64,17 @@ export class Operator extends Construct {
       automountServiceAccountToken: true,
     });
     
+    const volumeMounts: {volume: k8s.Volume;path: string;}[] = [];
+    for (const [key, value] of Object.entries(props.configMaps)) {
+      const volume = k8s.Volume.fromConfigMap(this, `ConfigMapVolume-${key}`, value);
+      controller.addVolume(volume);
+
+      volumeMounts.push({
+        volume,
+        path: `/${key}`,
+      });
+    }
+
     const container = controller.addContainer({
       image: props.image,
       imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
@@ -76,6 +88,7 @@ export class Operator extends Construct {
         readOnlyRootFilesystem: false,
         ensureNonRoot: false,
       },
+      volumeMounts,
     });
 
     for (const [key, value] of Object.entries(props.envSecrets ?? {})) {

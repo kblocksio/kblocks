@@ -10,7 +10,7 @@ interface BuildImageOptions {
 }
 
 export async function buildImage(sourcedir: string, options: BuildImageOptions = {}) {
-  const block = await readManifest(sourcedir);
+  const block = readManifest(sourcedir);
   const sourceHash = await hashAll([
     path.dirname(require.resolve('@kblocks/controller/package.json')),
     sourcedir
