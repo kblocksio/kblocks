@@ -1,0 +1,12 @@
+{
+  "name": "quick8s",
+  "version": "1.0.0",
+  "keywords": [],
+  "dependencies": {
+    "@cdktf/provider-aws": "^19.33.0",
+    "@cdktf/provider-local": "^10.1.1",
+    "@cdktf/provider-null": "^10.0.1",
+    "@winglibs/k8s": "^0.0.10",
+    "@winglibs/tf": "^0.1.0"
+  }
+}

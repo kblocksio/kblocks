@@ -6,7 +6,7 @@ import { applyWing } from "./wing";
 import { resolveReferences } from "./refs";
 import { explainError } from "./ai";
 import { applyTofu } from "./tofu";
-import { patchStatus, publishEvent, RuntimeHost } from "./host";
+import { patchObjectStatus, publishEvent, RuntimeHost } from "./host";
 import { BindingContext } from "./types";
 
 export async function synth(sourcedir: string, host: RuntimeHost, engine: string, ctx: BindingContext) {
@@ -26,7 +26,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
   console.log("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
-  const updateReadyCondition = async (ready: boolean, message: string) => patchStatus(host, ctx.object, {
+  const updateReadyCondition = async (ready: boolean, message: string) => patchObjectStatus(host, ctx.object, {
     conditions: [{
       type: "Ready",
       status: ready ? "True" : "False",
@@ -59,19 +59,24 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     await fs.writeFile(values, JSON.stringify(ctx.object));
 
     const first = engine.split("/")[0];
+    let outputs: Record<string, any> = {};
   
     switch (first) {
       case "helm":
-        await applyHelm(workdir, host, ctx, values);
+        outputs = await applyHelm(workdir, host, ctx, values);
         break;
       case "wing":
-        await applyWing(workdir, host, engine, ctx, values);
+        outputs = await applyWing(workdir, host, engine, ctx, values);
         break;
       case "tofu":
-        await applyTofu(workdir, host, ctx, values);
+        outputs = await applyTofu(workdir, host, ctx, values);
         break;
       default:
         throw new Error(`unsupported engine: ${engine}`);
+    }
+
+    if (Object.keys(outputs).length > 0) {
+      await patchObjectStatus(host, ctx.object, outputs);
     }
 
     if (isDeletion) {
@@ -82,8 +87,14 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
         type: "Normal",
         reason: "UpdateSucceeded",
         message: "Resource updated successfully",
-      });  
-      await slack.update(slackStatus("🟢", "Success 🚀"));
+      });
+
+      const outputDesc = [];
+      for (const [key, value] of Object.entries(outputs)) {
+        outputDesc.push(`*${key}:* ${value}`);
+      }
+
+      await slack.update(slackStatus("🟢", `Success 🚀\n${outputDesc.join("\n")}`));
     }
   } catch (err: any) {
     console.error(err.stack);

@@ -11,3 +11,4 @@ acme/service
 acme/topic 
 acme/website 
 acme/workload
+acme/quick8s

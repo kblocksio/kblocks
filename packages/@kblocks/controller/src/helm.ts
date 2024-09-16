@@ -1,9 +1,9 @@
-import { patchStatus, RuntimeHost } from "./host";
+import { RuntimeHost } from "./host";
 import type { BindingContext } from "./types";
 
 const postRenderPath = require.resolve("./helm-add-ownership");
 
-export async function applyHelm(dir: string, host: RuntimeHost, ctx: BindingContext, values: string) {
+export async function applyHelm(dir: string, host: RuntimeHost, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const obj = ctx.object;
 
   const namespace = obj.metadata.namespace ?? "default";
@@ -15,7 +15,7 @@ export async function applyHelm(dir: string, host: RuntimeHost, ctx: BindingCont
       "--namespace", namespace
     ], { cwd: dir });
 
-    return;
+    return {};
   }
 
   // verify schema
@@ -57,11 +57,11 @@ export async function applyHelm(dir: string, host: RuntimeHost, ctx: BindingCont
       throw new Error("Expecting JSON object");
     }
 
-    if (Object.keys(actualOutputs).length > 0) {
-      await patchStatus(host, ctx.object, actualOutputs);
-    }
+    return actualOutputs;
   } catch (e: any) {
     console.error(notes);
     console.error("No outputs in NOTES.txt:", e.message);
+
+    return {};
   }
 }
