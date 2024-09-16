@@ -142,7 +142,7 @@ jobs:
       - name: Cut Development Release
         uses: softprops/action-gh-release@v1
         with:
-          name: "Wing ${{ needs.build.outputs.version }}"
+          name: "Kblocks ${{ needs.build.outputs.version }}"
           tag_name: "v${{ needs.build.outputs.version }}"
           body_path: CHANGELOG.md
           files: dist/*
