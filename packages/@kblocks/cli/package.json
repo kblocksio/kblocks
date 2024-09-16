@@ -5,9 +5,8 @@
     "kblocks": "./bin/kblocks"
   },
   "version": "0.0.0",
-  "main": "./lib/index.js",
+  "main": "./src/cli.js",
   "dependencies": {
-    "@kblocks/controller": "*",
     "cdk8s": "^2.68.93",
     "cdk8s-plus-30": "^2.0.10",
     "deepmerge": "^4.3.1",

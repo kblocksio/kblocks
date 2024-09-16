@@ -1,8 +1,4 @@
 import path from "path";
-import { synth as controllerSynth, BindingContext, RuntimeHost, ApiObject } from "@kblocks/controller";
-import { readManifest } from "./types";
-import yaml from "yaml";
-import fs from "fs/promises";
 import { buildImage } from "./image";
 
 export interface Options {
