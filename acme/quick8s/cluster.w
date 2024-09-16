@@ -29,6 +29,7 @@ pub class Q8sCluster {
         cidrBlocks: ["0.0.0.0/0"],
       }],
 
+      // allow all ingress
       ingress: [{
         fromPort: 0,
         toPort: 65535,
@@ -39,7 +40,9 @@ pub class Q8sCluster {
 
     let userData = fs.readFile("{@dirname}/setup/userdata.sh");
     let userDataBase64 = util.base64Encode(userData);
+    let user = "ec2-user";
 
+    // generate an ssh key for our host
     let sshKey = new TlsPrivateKey();
 
     let keypair = new aws.keyPair.KeyPair(
@@ -70,25 +73,22 @@ pub class Q8sCluster {
         httpPutResponseHopLimit: 2,
         httpProtocolIpv6: "disabled",
       },
-      connection: {
-        type: "ssh",
-        host: "self.publicDns",
-        user: "ec2-user",
-        privateKey: sshKey.privateKeyPem,
-      },
       lifecycle: {
         ignoreChanges: ["ami"],
       },
     );
 
+    let connection = {
+      type: "ssh",
+      host: instance.publicDns,
+      user,
+      privateKey: sshKey.privateKeyPem,
+    };
+
+    // wait for the userdata script to finish
     let userDataCompletion = new tfnull.resource.Resource(
       dependsOn: [instance],
-      connection: {
-        type: "ssh",
-        host: instance.publicDns,
-        user: "ec2-user",
-        privateKey: sshKey.privateKeyPem,
-      },
+      connection: connection,
       provisioners: [
         {
           type: "remote-exec",
@@ -103,28 +103,22 @@ pub class Q8sCluster {
     let workdir = fs.mkdtemp();
     let configPath = "{workdir}/kubeconfig";
     let keyPath = "{workdir}/key.pem";
-
+    
     let downloadKubeconfig = new tfnull.resource.Resource(
       dependsOn: [userDataCompletion],
-      connection: {
-        type: "ssh",
-        host: instance.publicDns,
-        user: "ec2-user",
-        privateKey: sshKey.privateKeyPem,
-      },
+      connection: connection,
       provisioners: [
         {
           type: "local-exec",
           command: [
             "echo '$\{sensitive({sshKey.privateKeyPem})}' > {keyPath}",
             "chmod 600 {keyPath}",
-            "ssh -o StrictHostKeyChecking=no -i {keyPath} ec2-user@{instance.publicDns} 'kind export kubeconfig && cat ~/.kube/config' > {configPath}",
+            "ssh -o StrictHostKeyChecking=no -i {keyPath} {user}@{instance.publicDns} 'kind export kubeconfig && cat ~/.kube/config' > {configPath}",
             "rm {keyPath}",
           ].join("\n")
         },
       ]
     ) as "downloadKubeconfig";
-
 
     let kubeConfig = new local.dataLocalFile.DataLocalFile(
       filename: configPath,

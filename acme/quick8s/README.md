@@ -1,10 +1,12 @@
-# Quick8s
-A Kubernetes custom resource for managing Quick8s objects.
+# Quick8s Cluster
+
+A Kubernetes cluster for development and testing.
 
 ## Usage
 
 ### Example: basic-usage
-Create a simple Quick8s resource.
+
+Create a cluster.
 
 ```yaml
 apiVersion: acme.com/v1
@@ -28,6 +30,7 @@ metadata:
 ```
 
 ### Example: dev-environment
+
 Setting up a Quick8s resource for a development environment.
 
 ```yaml
@@ -68,4 +71,9 @@ The following explicit Kubernetes child resources are created by the Quick8s cus
   
 ## Behavior
 
-The Quick8s resource is implemented by creating a Wing object of the name `Quick8s` and synthesizing it into Kubernetes manifests. Once the resource is applied to the cluster, the Kblocks controller will reconcile the state of the cluster with the desired state by converting the object into an instantiation of the `Quick8s` object. The Kubernetes object's desired state will be passed as `Quick8sSpec` properties to the new object. The resources created will be associated with the parent custom resource and tracked by it.
+The Quick8s resource is implemented by creating a Wing object of the name `Quick8s` and synthesizing
+it into Kubernetes manifests. Once the resource is applied to the cluster, the Kblocks controller
+will reconcile the state of the cluster with the desired state by converting the object into an
+instantiation of the `Quick8s` object. The Kubernetes object's desired state will be passed as
+`Quick8sSpec` properties to the new object. The resources created will be associated with the parent
+custom resource and tracked by it.
