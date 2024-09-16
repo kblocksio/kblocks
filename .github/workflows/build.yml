@@ -89,6 +89,7 @@ jobs:
       - name: Build and push controller
         uses: docker/build-push-action@v6
         with:
+          context: packages/@kblocks/controller
           push: true
           tags: wingcloudbot/kblocks-controller:latest,wingcloudbot/kblocks-controller:${{ needs.build.outputs.version }}
 
