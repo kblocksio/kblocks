@@ -3,7 +3,6 @@ import yaml from "yaml";
 import fs from "fs/promises";
 import { readAll } from "./util";
 import path from "path";
-const oai = new openai.OpenAI();
 
 interface DocsOptions {
   readonly path: string;
@@ -66,6 +65,7 @@ export async function docs(options: DocsOptions) {
 }
 
 async function findHeroIcon(readme: string) {
+  const oai = new openai.OpenAI();
   const result = await oai.chat.completions.create({
     model: "gpt-4o",
     max_tokens: 10,
@@ -174,6 +174,7 @@ async function generateReadme(dir: string, options: Options): Promise<string> {
   };
 
   console.log("Generating README.md for project in", dir);
+  const oai = new openai.OpenAI();
   const result = await oai.chat.completions.create({
     model: "gpt-4o",
     max_tokens: 2048,
