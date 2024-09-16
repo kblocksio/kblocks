@@ -3,6 +3,7 @@
   "type": "commonjs",
   "dependencies": {
     "openai": "^4.0.0",
+    "tar": "^7.4.3",
     "yaml": "^2.5.0"
   },
   "main": "src/index.js",

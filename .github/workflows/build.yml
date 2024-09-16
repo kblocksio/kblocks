@@ -1,0 +1,143 @@
+name: Build
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20.11.1"
+
+jobs:
+  build:
+    name: "Build"
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
+      last-version: ${{ fromJson(steps.changelog.outputs.data).lastVersion }}
+      changelog: ${{ fromJson(steps.changelog.outputs.data).changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Derive appropriate SHAs for base and head
+        id: shas
+        uses: nrwl/nx-set-shas@v3
+
+      - name: Changelog Generation
+        id: changelog
+        env:
+          GENERATE_VERSION: ${{ github.event_name != 'push' || github.repository != 'winglang/kblocks' }}
+        run: node bin/bump-pack.cjs
+        working-directory: packages/bump-pack
+
+      - name: Build
+        run: npm run --if-present -ws build
+
+      - name: Package
+        run: npm run --if-present -ws package
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  publish:
+    name: Publish
+    if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Tag commit
+        uses: tvdias/github-tagger@v0.0.1
+        if: ${{ needs.build.outputs.last-version != needs.build.outputs.version }}
+        with:
+          repo-token: "${{ secrets.PROJEN_GITHUB_TOKEN }}"
+          tag: "v${{ needs.build.outputs.version }}"
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push controller
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: wingcloudbot/kblocks-controller:latest,wingcloudbot/kblocks-controller:${{ needs.build.outputs.version }}
+
+      - name: Login to NPM registry
+        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      - name: Publish NPM packages
+        uses: nick-fields/retry@v3
+        env:
+          PACKAGE_VERSION: ${{ needs.build.outputs.version }}
+        with:
+          max_attempts: 7
+          timeout_minutes: 5
+          command: |
+            set -o pipefail
+
+            cd dist
+            PACKAGES=("@kblocks/cli")
+            for PACKAGE in "${PACKAGES[@]}"; do
+              # Check if already published
+              VERSION_FOUND=$(npm view "$PACKAGE@$PACKAGE_VERSION" version --verbose || true)
+              if [ "$VERSION_FOUND" = "$PACKAGE_VERSION" ]; then
+                echo "$PACKAGE@$PACKAGE_VERSION already published, skipping"
+                continue
+              fi
+
+              # remove "@" and replace "/" with "-"
+              TARBALL=$(echo "$PACKAGE-$PACKAGE_VERSION.tgz" | sed 's/@//g' | sed 's/\//-/g')
+
+              npm publish "$TARBALL" --access public --verbose
+
+              if [ $? -ne 0 ]; then
+                echo "Publishing $PACKAGE failed, exiting"
+                exit 1
+              fi
+            done
+
+      - name: Write Changelog
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: "CHANGELOG.md"
+          contents: ${{ needs.build.outputs.changelog }}
+          write-mode: overwrite
+
+      - name: Cut Development Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "Wing ${{ needs.build.outputs.version }}"
+          tag_name: "v${{ needs.build.outputs.version }}"
+          body_path: CHANGELOG.md
+          files: dist/*
+          token: ${{ secrets.PROJEN_GITHUB_TOKEN }}

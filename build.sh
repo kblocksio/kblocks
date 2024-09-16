@@ -15,7 +15,7 @@ for block in $(cat $dir/kblocks.list | grep -v "^#"); do
     continue;
   fi
 
-  $kblocks build --output dist/templates $block
+  $kblocks build --output dist $block
 done
 
 if [ ! -f Chart.yaml ]; then
