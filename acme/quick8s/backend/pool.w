@@ -1,11 +1,20 @@
 bring cloud;
 bring "./types.w" as t;
+bring "cdktf" as cdktf;
+bring aws;
 
 pub class Pool {
   pub bucket: cloud.Bucket;
 
   new() {
     this.bucket = new cloud.Bucket();
+
+    if let s3Bucket = aws.Bucket.from(this.bucket) {
+      new cdktf.TerraformOutput(
+        value: s3Bucket.bucketName,
+        staticId: true,
+      ) as "PoolBucketName";
+    }
   }
 
   pub inflight tryAlloc(options: t.ClusterAttributes): t.Host? {

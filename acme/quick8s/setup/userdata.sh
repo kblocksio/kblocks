@@ -4,6 +4,9 @@
 #
 set -euo pipefail
 
+# Display all commands being executed
+set -x
+
 if [ "$(uname -m)" != "aarch64" ]; then
   echo "Unsupported architecture $(uname -m). This script is intended to run on an arm machine."
   exit 1
@@ -20,7 +23,9 @@ sudo systemctl start docker
 sudo usermod -aG docker ec2-user
 newgrp docker
 
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
+kubectl_version=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+echo "Installing kubectl ${kubectl_version}..."
+curl -LO "https://dl.k8s.io/release/${kubectl_version}/bin/linux/arm64/kubectl"
 chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin/kubectl
 

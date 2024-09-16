@@ -5,6 +5,7 @@ bring "@cdktf/provider-local" as local;
 bring fs;
 bring tf;
 bring util;
+bring "./backend/types.w" as t;
 
 pub struct Q8sClusterSpec {
 
@@ -12,11 +13,15 @@ pub struct Q8sClusterSpec {
 
 pub class Q8sCluster {
   new(props: Q8sClusterSpec) {
+    let poolBucket = "bucket-c8f519ec-20240916101414983700000007";
 
     new tfnull.provider.NullProvider();
     new local.provider.LocalProvider();
 
     let id = nodeof(this).id;
+    let workdir = fs.mkdtemp();
+    let configPath = "{workdir}/kubeconfig";
+    let keyPath = "{workdir}/key.pem";
 
     let securityGroup = new aws.securityGroup.SecurityGroup(
       description: "quick8s security group",
@@ -50,7 +55,7 @@ pub class Q8sCluster {
     );
 
     let instance = new aws.instance.Instance(
-      ami: "ami-09a87715cee8d3868",
+      ami: "ami-06e4cdf7c9ff067ca",
       instanceType: "t4g.2xlarge",
       keyName: keypair.keyName,
       vpcSecurityGroupIds: [securityGroup.id],
@@ -85,48 +90,78 @@ pub class Q8sCluster {
       privateKey: sshKey.privateKeyPem,
     };
 
+    let waitCommand = [
+      #"sudo cloud-init status --wait || { cat /var/log/cloud-init-output.log; exit 1; }",
+      "echo 'User data script has completed successfully'",
+    ];
+
     // wait for the userdata script to finish
     let userDataCompletion = new tfnull.resource.Resource(
       dependsOn: [instance],
       connection: connection,
+      triggers: {
+        command: util.sha256(waitCommand.join("\n")),
+      },
       provisioners: [
         {
           type: "remote-exec",
-          inline: [
-            "sudo cloud-init status --wait", // Wait for cloud-init to complete
-            "echo 'User data script has completed'",
-          ]
+          inline: waitCommand,
         },
       ]
     ) as "userDataCompletion";
 
-    let workdir = fs.mkdtemp();
-    let configPath = "{workdir}/kubeconfig";
-    let keyPath = "{workdir}/key.pem";
+    let command = [
+      "set -euo pipefail",
+      "echo '$\{sensitive({sshKey.privateKeyPem})}' > {keyPath}",
+      "chmod 600 {keyPath}",
+      "ssh -o StrictHostKeyChecking=no -i {keyPath} {user}@{instance.publicDns} 'kind export kubeconfig && cat ~/.kube/config' > {configPath}",
+      "rm {keyPath}",
+    ].join("\n");
     
     let downloadKubeconfig = new tfnull.resource.Resource(
       dependsOn: [userDataCompletion],
       connection: connection,
+      triggers: {
+        command: util.sha256(command),
+      },
       provisioners: [
         {
           type: "local-exec",
-          command: [
-            "echo '$\{sensitive({sshKey.privateKeyPem})}' > {keyPath}",
-            "chmod 600 {keyPath}",
-            "ssh -o StrictHostKeyChecking=no -i {keyPath} {user}@{instance.publicDns} 'kind export kubeconfig && cat ~/.kube/config' > {configPath}",
-            "rm {keyPath}",
-          ].join("\n")
+          command,
         },
       ]
-    ) as "downloadKubeconfig";
+    ) as "DownloadKubeconfig";
+
+    fs.writeFile(configPath, "<dummmy>");
 
     let kubeConfig = new local.dataLocalFile.DataLocalFile(
       filename: configPath,
       dependsOn: [downloadKubeconfig],
     ) as "kubeconfigFile";
 
+    let region = new aws.dataAwsRegion.DataAwsRegion();
+
+    let hostJson = t.Host {
+      instanceId: instance.id,
+      publicIp: instance.publicIp,
+      sshPrivateKey: sshKey.privateKeyPem,
+      region: region.name,
+      provider: t.Provider.aws,
+      size: t.Size.medium,
+      kubeconfig: kubeConfig.getStringAttribute("content"),
+      registryPassword: "<TBD>",
+    };
+
+    new aws.s3Object.S3Object(
+      bucket: poolBucket,
+      key: "aws/{region.name}/medium/{instance.id}",
+      content: Json.stringify(hostJson),
+      contentType: "application/json",
+    );
+
     new cdktf.TerraformOutput(value: instance.publicDns, staticId: true) as "host";
-    new cdktf.TerraformOutput(value: kubeConfig.getStringAttribute("content"), staticId: true) as "kubeconfig";
+    new cdktf.TerraformOutput(value: kubeConfig.getStringAttribute("content"), staticId: true, sensitive: true) as "kubeconfig";
+    new cdktf.TerraformOutput(value: sshKey.privateKeyPem, staticId: true, sensitive: true) as "pem";
   }
 }
 

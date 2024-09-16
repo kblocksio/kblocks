@@ -35,6 +35,7 @@ let populatePool = inflight () => {
       provider: provider,
       region: region,
       size: size,
+      sshPrivateKey: "<private-key-{i}>",
       instanceId: "i-{i}",
       kubeconfig: "<kubeconfig-{i}>",
       registryPassword: "<password-{i}>",
@@ -66,10 +67,11 @@ test "create new cluster with defaults" {
       provider: "aws",
       region: "us-east-1",
       size: "medium",
-      instanceId: "i-1",
-      kubeconfig: "<kubeconfig-1>",
-      registryPassword: "<password-1>",
-      publicIp: "1.2.3.1",
+      instanceId: "i-2",
+      sshPrivateKey: "<private-key-2>",
+      kubeconfig: "<kubeconfig-2>",
+      registryPassword: "<password-2>",
+      publicIp: "1.2.3.2",
     }
   });
 }
@@ -92,6 +94,7 @@ test "create new cluster with custom options" {
       region: "america",
       size: "small",
       instanceId: "i-1",
+      sshPrivateKey: "<private-key-1>",
       kubeconfig: "<kubeconfig-1>",
       registryPassword: "<password-1>",
       publicIp: "1.2.3.1",
@@ -109,7 +112,7 @@ test "no host available" {
   expect.equal(response.status, 503);
   expect.equal(Json.parse(response.body), {
     status: 503,
-    error: #"No available hosts in pool that match the requested attributes: {\"size\":\"xlarge\"}"
+    error: #"No available hosts in pool that match the requested attributes: {\"provider\":\"aws\",\"region\":\"us-east-1\",\"size\":\"xlarge\"}"
   });
 }
 
@@ -126,8 +129,8 @@ test "list clusters" {
 
   expect.equal(list, {
     "clusters":[
-      {"host":{"instanceId":"i-2","kubeconfig":"<kubeconfig-2>","provider":"aws","publicIp":"1.2.3.2","region":"us-east-1","registryPassword":"<password-2>","size":"medium"},"name":"q8s-0"},
-      {"host":{"instanceId":"i-3","kubeconfig":"<kubeconfig-3>","provider":"aws","publicIp":"1.2.3.3","region":"us-east-1","registryPassword":"<password-3>","size":"medium"},"name":"q8s-1"},
+      {"host":{"instanceId":"i-2","kubeconfig":"<kubeconfig-2>","provider":"aws","publicIp":"1.2.3.2","region":"us-east-1","registryPassword":"<password-2>","size":"medium","sshPrivateKey":"<private-key-2>"},"name":"q8s-0"},
+      {"host":{"instanceId":"i-3","kubeconfig":"<kubeconfig-3>","provider":"aws","publicIp":"1.2.3.3","region":"us-east-1","registryPassword":"<password-3>","size":"medium","sshPrivateKey":"<private-key-3>"},"name":"q8s-1"},
     ]
   });
 }
@@ -170,6 +173,7 @@ test "get cluster" {
       region: "us-east-1",
       size: "medium",
       instanceId: "i-2",
+      sshPrivateKey: "<private-key-2>",
       kubeconfig: "<kubeconfig-2>",
       registryPassword: "<password-2>",
       publicIp: "1.2.3.2",

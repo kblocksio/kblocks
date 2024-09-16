@@ -52,12 +52,13 @@ pub class Api {
       }
     
       let options = t.ClusterOptions.parseJson(body);
-
-      if let host = pool.tryAlloc(
+      let attributes = t.ClusterAttributes {
         provider: options.provider ?? t.Defaults.provider(),
         region: options.region ?? t.Defaults.region(),
         size: options.size ?? t.Defaults.size()
-      ) {
+      };
+
+      if let host = pool.tryAlloc(attributes) {
 
         let name = names.next();
     
@@ -68,7 +69,7 @@ pub class Api {
         // TODO: yak!
         return statusOk(unsafeCast(cluster));
       } else {
-        return statusError(503, "No available hosts in pool that match the requested attributes: {Json.stringify(options)}");
+        return statusError(503, "No available hosts in pool that match the requested attributes: {Json.stringify(attributes)}");
       }
     });
     

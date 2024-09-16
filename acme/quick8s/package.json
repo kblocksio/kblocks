@@ -7,6 +7,7 @@
     "@cdktf/provider-local": "^10.1.1",
     "@cdktf/provider-null": "^10.0.1",
     "@winglibs/k8s": "^0.0.10",
-    "@winglibs/tf": "^0.1.0"
+    "@winglibs/tf": "^0.1.0",
+    "cdktf": "^0.20.8"
   }
 }

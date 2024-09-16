@@ -13,6 +13,7 @@ test "object is deleted after alloc" {
   pool.add(
     provider: t.Provider.aws,
     instanceId: "i-small-001",
+    sshPrivateKey: "<private-key-0>",
     region: "us-east-1",
     size: t.Size.small,
     kubeconfig: "<kubeconfig-0>",
@@ -25,7 +26,8 @@ test "object is deleted after alloc" {
     instanceId: "i-medium-001",
     region: "us-east-1",
     size: t.Size.medium,
-    kubeconfig: "<kubeconfig-0>",
+    sshPrivateKey: "<private-key-1>",
+    kubeconfig: "<kubeconfig-1>",
     publicIp: "1.2.3.99",
     registryPassword: "passpass-99"
   );
@@ -39,6 +41,7 @@ test "object is deleted after alloc" {
     provider: "aws",
     region: "us-east-1",
     size: "small",
+    sshPrivateKey: "<private-key-0>",
     kubeconfig: "<kubeconfig-0>",
     publicIp: "1.2.3.0",
     registryPassword: "passpass-0"
