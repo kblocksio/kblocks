@@ -4,24 +4,24 @@ import { applyTerraform } from "./tf";
 import { addOwnerReferences } from "./ownership";
 import { join } from "path";
 import type { BindingContext } from "./types";
-import { kblockOutputs, patchStatus, RuntimeHost } from "./host";
+import { kblockOutputs, RuntimeHost } from "./host";
 import { exec as realExec } from "./util"
 import type { SpawnOptions } from "child_process";
 
-export async function applyWing(workdir: string, host: RuntimeHost, engine: string, ctx: BindingContext, values: string) {
-  const entrypoint = createEntrypoint(workdir, host, ctx, values);
+export async function applyWing(workdir: string, host: RuntimeHost, engine: string, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const [_, target] = engine.split("/");
 
   if (!target) {
-    await applyWingKubernetes(workdir, host, entrypoint, ctx);
+    return await applyWingKubernetes(workdir, host, values, ctx);
   } else if (target.startsWith("tf-")) {
-    await applyWingTerraform(workdir, host, entrypoint, ctx, target);
+    return await applyWingTerraform(workdir, host, values, ctx, target);
   } else {
     throw new Error(`unsupported Wing target: ${target}`);
   }
 }
 
-async function applyWingTerraform(workdir: string, host: RuntimeHost, entrypoint: string, ctx: BindingContext, target: string) {
+async function applyWingTerraform(workdir: string, host: RuntimeHost, values: string, ctx: BindingContext, target: string): Promise<Record<string, any>> {
+  const entrypoint = createEntrypoint(workdir, host, ctx, values, false);
   await wingcli(["compile", "-t", target, entrypoint], { cwd: workdir });
   
   const targetdir = join(workdir, "target/main.tfaws");
@@ -39,10 +39,11 @@ async function applyWingTerraform(workdir: string, host: RuntimeHost, entrypoint
 
   fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
 
-  await applyTerraform(host, targetdir, ctx);
+  return await applyTerraform(host, targetdir, ctx);
 }
 
-async function applyWingKubernetes(workdir: string, host: RuntimeHost, entrypoint: string, ctx: BindingContext) {
+async function applyWingKubernetes(workdir: string, host: RuntimeHost, values: string, ctx: BindingContext): Promise<Record<string, any>> {
+  const entrypoint = createEntrypoint(workdir, host, ctx, values, true);
   const obj = ctx.object;
   const objidLabel = "kblock-id";
   const objid = obj.metadata.uid;
@@ -75,12 +76,12 @@ async function applyWingKubernetes(workdir: string, host: RuntimeHost, entrypoin
       "--ignore-not-found",
       "-f", manifest,
     ], { cwd: workdir });
-    return;
+
+    return {};
   }
  
   // update the "status" field of the object with the outputs from the Wing program
   const outputs = JSON.parse(fs.readFileSync(path.join(workdir, "./outputs.json"), "utf8"));
-  await patchStatus(host, ctx.object, outputs);
 
   await host.exec("kubectl", [
     "apply", 
@@ -88,9 +89,11 @@ async function applyWingKubernetes(workdir: string, host: RuntimeHost, entrypoin
     "--selector", `${objidLabel}=${objid}`,
     "-f", manifest]
   , { cwd: workdir });
+
+  return outputs;
 }
 
-function createEntrypoint(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string) {
+function createEntrypoint(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string, withOutputs: boolean) {
   const entrypoint = path.join(workdir, "main.w");
   const obj = ctx.object;
 
@@ -103,14 +106,17 @@ function createEntrypoint(workdir: string, host: RuntimeHost, ctx: BindingContex
   ];
 
   const outputs = kblockOutputs(host);
-  code.push(`let outputs = {`);
 
-  for (const name of outputs) {
-    code.push(`"${name}": obj.${name},`);
+  if (withOutputs) {
+    code.push(`let outputs = {`);
+
+    for (const name of outputs) {
+      code.push(`"${name}": obj.${name},`);
+    }
+
+    code.push(`};`);
+    code.push(`fs.writeJson("outputs.json", outputs);`);
   }
-
-  code.push(`};`);
-  code.push(`fs.writeJson("outputs.json", outputs);`);
 
   fs.writeFileSync(entrypoint, code.join("\n"));
 

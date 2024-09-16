@@ -17,7 +17,7 @@ export function kblockOutputs(host: RuntimeHost) {
   return (host.tryGetenv("KBLOCK_OUTPUTS") ?? "").split(",").filter(x => x);
 }
 
-export async function patchStatus(host: RuntimeHost, obj: ApiObject, patch: any) {
+export async function patchObjectStatus(host: RuntimeHost, obj: ApiObject, patch: any) {
   try {
     const namespace = obj.metadata.namespace ?? "default";
     const group = obj.apiVersion.split("/")[0];

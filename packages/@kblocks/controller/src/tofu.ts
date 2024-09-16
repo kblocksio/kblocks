@@ -5,9 +5,8 @@ import { join } from "path";
 import type { BindingContext } from "./types";
 import { RuntimeHost } from "./host";
 
-export async function applyTofu(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string) {
+export async function applyTofu(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
   const key = `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`;
-
 
   const dynamodb = tryGetenv("TF_BACKEND_DYNAMODB");
   const tableLine = dynamodb ? `dynamodb_table = "${dynamodb}` : "";
@@ -36,5 +35,5 @@ terraform {
   }
   
   fs.writeFileSync(join(workdir, "terraform.tfvars"), tfvars.join("\n"));
-  await applyTerraform(host, workdir, ctx);
+  return await applyTerraform(host, workdir, ctx);
 }

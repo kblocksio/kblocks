@@ -1,12 +1,12 @@
-import { patchStatus, kblockOutputs, RuntimeHost } from "./host";
+import { kblockOutputs, RuntimeHost } from "./host";
 import type { BindingContext } from "./types";
 
-export async function applyTerraform(host: RuntimeHost, workdir: string, ctx: BindingContext) {
+export async function applyTerraform(host: RuntimeHost, workdir: string, ctx: BindingContext): Promise<Record<string, any>> {
   await host.exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: workdir });
 
   if (ctx.watchEvent === "Deleted") {
     await host.exec("tofu", ["destroy", "-auto-approve", "-no-color"], { cwd: workdir });
-    return;
+    return {};
   }
 
   await host.exec("tofu", ["apply", "-input=false", "-auto-approve", "-no-color"], { cwd: workdir });
@@ -23,5 +23,5 @@ export async function applyTerraform(host: RuntimeHost, workdir: string, ctx: Bi
     }
   }
 
-  await patchStatus(host, ctx.object, results);
+  return results;
 }
