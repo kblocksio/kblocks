@@ -1,8 +1,7 @@
 import path from "path";
 import fs from "fs/promises";
-import yaml from "yaml";
-import { Manifest, readManifest } from "./types";
 import { App, Chart } from "cdk8s";
+import { Manifest, readManifest } from "./types";
 import { Operator } from "./operator";
 import { BlockMetadata } from "./metadata";
 import { CustomResourceDefinition } from "./crd";
