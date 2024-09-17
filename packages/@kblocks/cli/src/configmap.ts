@@ -73,7 +73,7 @@ export async function createTgzBase64(directory: string): Promise<string> {
     { 
       gzip: true, 
       cwd: directory,
-      filter: (path) => !excludedFolders.some(folder => path.startsWith(folder))
+      filter: (path) => !excludedFolders.some(folder => path.includes(folder))
     }, 
     ['.']
   );
