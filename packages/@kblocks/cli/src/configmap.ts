@@ -1,9 +1,6 @@
 import { Construct } from "constructs";
 import { ConfigMap } from "cdk8s-plus-30";
-import * as fs from "fs";
-import * as path from "path";
 import * as tar from "tar";
-import * as zlib from "zlib";
 import { readManifest } from "./types";
 
 export interface ConfigMapVolumeProps {
@@ -70,13 +67,23 @@ export class ConfigMapFromDirectory extends Construct {
 // }
 
 export async function createTgzBase64(directory: string): Promise<string> {
-  const tarStream = tar.create({ gzip: true, cwd: directory }, ['.']);
+  const excludedFolders = ["node_modules", ".git", "target", ".DS_Store"];
+  
+  const tarStream = tar.create(
+    { 
+      gzip: true, 
+      cwd: directory,
+      filter: (path) => !excludedFolders.some(folder => path.startsWith(folder))
+    }, 
+    ['.']
+  );
+  
   const chunks: Buffer[] = [];
   
   return new Promise<string>((resolve, reject) => {
-    tarStream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-    tarStream.on('end', () => resolve(Buffer.concat(chunks).toString('base64')));
-    tarStream.on('error', reject);
+    tarStream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    tarStream.on("end", () => resolve(Buffer.concat(chunks).toString("base64")));
+    tarStream.on("error", reject);
   });
 }
 
