@@ -108,16 +108,12 @@ test "create new cluster with defaults" {
 
   expect.equal(body, {
     name: "q8s-0",
-    host: {
-      provider: "aws",
-      region: "us-east-1",
-      size: "medium",
-      instanceId: "i-2",
-      sshPrivateKey: "<private-key-2>",
-      kubeconfig: kubeconfigBase64,
-      registryPassword: "<password-2>",
-      publicIp: "1.2.3.2",
-    },
+    provider: "aws",
+    region: "us-east-1",
+    size: "medium",
+    sshPrivateKey: "<private-key-2>",
+    registryPassword: "<password-2>",
+    publicIp: "1.2.3.2",
     hostname: "q8s-0.dummy.com",
     kubeconfig: expectedKubeConfig("q8s-0"),
   });
@@ -138,16 +134,12 @@ test "create new cluster with custom options" {
     name: "q8s-0",
     hostname: "q8s-0.dummy.com",
     kubeconfig: expectedKubeConfig("q8s-0"),
-    host: {
-      provider: "gcp",
-      region: "america",
-      size: "small",
-      instanceId: "i-1",
-      sshPrivateKey: "<private-key-1>",
-      kubeconfig: kubeconfigBase64,
-      registryPassword: "<password-1>",
-      publicIp: "1.2.3.1",
-    }
+    provider: "gcp",
+    region: "america",
+    size: "small",
+    sshPrivateKey: "<private-key-1>",
+    registryPassword: "<password-1>",
+    publicIp: "1.2.3.1",
   });
 }
 
@@ -218,16 +210,12 @@ test "get cluster" {
     name: "q8s-0",
     hostname: "q8s-0.dummy.com",
     kubeconfig: expectedKubeConfig("q8s-0"),
-    host: {
-      provider: "aws",
-      region: "us-east-1",
-      size: "medium",
-      instanceId: "i-2",
-      sshPrivateKey: "<private-key-2>",
-      kubeconfig: kubeconfigBase64,
-      registryPassword: "<password-2>",
-      publicIp: "1.2.3.2",
-    }
+    provider: "aws",
+    region: "us-east-1",
+    size: "medium",
+    sshPrivateKey: "<private-key-2>",
+    registryPassword: "<password-2>",
+    publicIp: "1.2.3.2",
   });
 }
 

@@ -73,7 +73,17 @@ pub class Api {
 
         // mangle the kubeconfig to match our new hostname
         let kubeconfig = kc.renderKubeConfig(host.kubeconfig, name: name, hostname: hostname);
-        let cluster: t.Cluster = { name, host, hostname, kubeconfig };
+        let cluster: t.Cluster = { 
+          name, 
+          hostname, 
+          kubeconfig, 
+          provider: host.provider,
+          region: host.region,
+          size: host.size,
+          publicIp: host.publicIp, 
+          registryPassword: host.registryPassword, 
+          sshPrivateKey: host.sshPrivateKey 
+        };
       
         clusters.put(user, cluster);
     
@@ -106,7 +116,7 @@ pub class Api {
     api.delete("/clusters/:name", inflight (req) => {
       if let name = req.vars.tryGet("name") {
         if let existing = clusters.tryGet(user, name) {
-          this.dns.removeARecord(existing.name, existing.host.publicIp);
+          this.dns.removeARecord(existing.name, existing.publicIp);
           let deleted = clusters.delete(user, name);
           return statusOk({ name, deleted });
         } else {

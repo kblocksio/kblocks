@@ -24,12 +24,13 @@ pub struct ClusterAttributes {
   provider: Provider;
 }
 
-pub struct Cluster {
+pub struct Cluster extends ClusterAttributes {
   name: str;
-  host: Host;
-
   hostname: str;
   kubeconfig: Json;
+  sshPrivateKey: str;
+  registryPassword: str;
+  publicIp: str;
 }
 
 pub struct Host extends ClusterAttributes {
