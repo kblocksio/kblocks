@@ -8,20 +8,28 @@ bring util;
 bring "./backend/types.w" as t;
 
 pub struct Q8sClusterSpec {
+  size: t.Size;
+}
 
+class Providers {
+ new() {
+    new tfnull.provider.NullProvider();
+    new local.provider.LocalProvider();
+ }
 }
 
 pub class Q8sCluster {
   new(spec: Q8sClusterSpec) {
+    this.installProviders();
+
     let poolBucketName = util.env("QUICK8S_POOL_BUCKET");
-
-    new tfnull.provider.NullProvider();
-    new local.provider.LocalProvider();
-
+    
     let id = nodeof(this).id;
     let workdir = fs.mkdtemp();
     let configPath = "{workdir}/kubeconfig";
     let keyPath = "{workdir}/key.pem";
+
+    let instanceType = this.findInstanceType(spec.size);
 
     let securityGroup = new aws.securityGroup.SecurityGroup(
       description: "quick8s security group",
@@ -56,7 +64,7 @@ pub class Q8sCluster {
 
     let instance = new aws.instance.Instance(
       ami: "ami-06e4cdf7c9ff067ca",
-      instanceType: "t4g.2xlarge",
+      instanceType: instanceType.name,
       keyName: keypair.keyName,
       vpcSecurityGroupIds: [securityGroup.id],
       associatePublicIpAddress: true,
@@ -147,14 +155,15 @@ pub class Q8sCluster {
       sshPrivateKey: cdktf.Fn.base64encode(sshKey.privateKeyPem),
       region: region.name,
       provider: t.Provider.aws,
-      size: t.Size.medium,
+      size: instanceType.size,
       kubeconfig: cdktf.Fn.base64encode(kubeConfig.getStringAttribute("content")),
       registryPassword: "<TBD>",
+      instanceType: instanceType,
     };
 
     new aws.s3Object.S3Object(
       bucket: poolBucketName,
-      key: "aws/{region.name}/medium/{instance.id}",
+      key: "{instanceType.provider}/{region.name}/{instanceType.size}/{instance.id}",
       content: Json.stringify(hostJson),
       contentType: "application/json",
     );
@@ -163,7 +172,33 @@ pub class Q8sCluster {
     new cdktf.TerraformOutput(value: kubeConfig.getStringAttribute("content"), staticId: true, sensitive: true) as "kubeconfig";
     new cdktf.TerraformOutput(value: sshKey.privateKeyPem, staticId: true, sensitive: true) as "pem";
   }
+
+  findInstanceType(size: t.Size): t.InstanceType {
+    let types: Array<t.InstanceType> = [
+      { size: t.Size.small, name: "t4g.small", dailyCost: 0.2016, monthlyCost: 6.13, vcpu: 2, memory: 2, provider: t.Provider.aws   },
+      { size: t.Size.medium, name: "t4g.medium", dailyCost: 0.4032, monthlyCost: 12.26, vcpu: 2, memory: 4, provider: t.Provider.aws },
+      { size: t.Size.large, name: "t4g.xlarge", dailyCost: 1.6128, monthlyCost: 49.06, vcpu: 4, memory: 16, provider: t.Provider.aws },
+      { size: t.Size.xlarge, name: "t4g.2xlarge", dailyCost: 3.2256, monthlyCost: 98.11, vcpu: 8, memory: 32, provider: t.Provider.aws },
+    ];
+
+    // lookup the instance type based on the size
+    for type in types {
+      if (type.size == size) {
+        return type;
+      }
+    }
+  
+    throw "Invalid size: {size}";
+  }
+
+  installProviders() {
+    let root = nodeof(this).root;
+    if nodeof(root).tryFindChild("providers") == nil {
+      new Providers() as "providers" in root;
+    }
+  }
 }
+
 
 class TlsPrivateKey {
   pub publicKeyOpenSsh: str;

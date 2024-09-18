@@ -5,6 +5,17 @@ pub enum Size {
   xlarge,
 }
 
+pub struct InstanceType {
+  provider: Provider;
+  size: Size;
+  name: str;
+  dailyCost: num;
+  monthlyCost: num;
+  vcpu: num;
+  memory: num;
+}
+
+
 pub enum Provider {
   aws,
   gcp,
@@ -39,6 +50,7 @@ pub struct Host extends ClusterAttributes {
   sshPrivateKey: str;
   kubeconfig: str;
   registryPassword: str;
+  instanceType: InstanceType;
 }
 
 pub struct ClusterList {
