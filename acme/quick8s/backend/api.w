@@ -1,23 +1,27 @@
 bring cloud;
-bring "./names.w" as n;
+bring "./names" as names;
 bring "./types.w" as t;
 bring "./clusters.w" as c;
 bring "./pool.w" as p;
+bring "./dns" as d;
 
 pub struct ApiProps {
   clusters: c.Clusters;
   pool: p.Pool;
-  names: n.INameGenerator;
+  names: names.INameGenerator;
   user: str;
+  dns: d.IDns;
 }
 
 pub class Api {
   pub url: str;
+  dns: d.IDns;
 
   new(props: ApiProps) {
     let user = props.user;
     let api = new cloud.Api(cors: true);
     let pool = props.pool;
+    this.dns = props.dns;
 
     this.url = api.url;
 
@@ -59,12 +63,13 @@ pub class Api {
       };
 
       if let host = pool.tryAlloc(attributes) {
-
         let name = names.next();
-    
         let cluster: t.Cluster = { name, host };
       
         clusters.put(user, cluster);
+
+        log("Adding DNS record: {name} => {host.publicIp}");
+        this.dns.addARecord(name, host.publicIp);
     
         // TODO: yak!
         return statusOk(unsafeCast(cluster));
@@ -94,8 +99,13 @@ pub class Api {
         
     api.delete("/clusters/:name", inflight (req) => {
       if let name = req.vars.tryGet("name") {
-        let deleted = clusters.delete(user, name);
-        return statusOk({ name, deleted });
+        if let existing = clusters.tryGet(user, name) {
+          this.dns.removeARecord(existing.name, existing.host.publicIp);
+          let deleted = clusters.delete(user, name);
+          return statusOk({ name, deleted });
+        } else {
+          return statusOk({ name, deleted: false });
+        }
       }
       
       return statusError(400, "Cluster name is required");

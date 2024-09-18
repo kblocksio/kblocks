@@ -4,11 +4,12 @@ bring expect;
 bring "./api.w" as a;
 bring "./clusters.w" as c;
 bring "./types.w" as t;
-bring "./names.w" as n;
+bring "./names" as names;
 bring "./pool.w" as p;
 bring "./bucket.w" as b;
+bring "./dns" as dns;
 
-class MockNames impl n.INameGenerator {
+class MockNames impl names.INameGenerator {
   c: cloud.Counter;
   new() {
     this.c = new cloud.Counter();
@@ -26,6 +27,7 @@ let pool = new p.Pool(
 let api = new a.Api(
   names: new MockNames(),
   clusters: new c.Clusters(),
+  dns: new dns.DnsSimulation(),
   user: "dummy",
   pool: pool,
 );
