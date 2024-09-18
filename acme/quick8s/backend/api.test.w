@@ -119,7 +119,7 @@ test "no host available" {
   expect.equal(response.status, 503);
   expect.equal(Json.parse(response.body), {
     status: 503,
-    error: #"No available hosts in pool that match the requested attributes: {\"provider\":\"aws\",\"region\":\"us-east-1\",\"size\":\"xlarge\"}"
+    error: #"No available clusters that match the request: {\"provider\":\"aws\",\"region\":\"us-east-1\",\"size\":\"xlarge\"}"
   });
 }
 

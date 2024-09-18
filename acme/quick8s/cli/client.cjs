@@ -2,9 +2,6 @@ const baseurl = process.env.QUICK8S_URL ?? "https://api.quick8s.sh";
 
 async function req(method, pathname, body = undefined) {
   const url = `${baseurl}${pathname}`;
-
-
-
   const resp = await fetch(url, { 
     method, 
     body, 
@@ -21,12 +18,24 @@ async function req(method, pathname, body = undefined) {
 }
 
 async function newCluster(attrs = {}) {
-  await req("POST", "/clusters", JSON.stringify(attrs));
-  
-  console.log();
+  return req("POST", "/clusters", JSON.stringify(attrs));
 }
 
-newCluster().catch(e => {
-  console.error(e);
-  process.exit(1);
-})
+async function deleteCluster(name) {
+  return req("DELETE", `/clusters/${name}`);
+}
+
+async function listClusters() {
+  return req("GET", "/clusters");
+}
+
+async function getCluster(name) {
+  return req("GET", `/clusters/${name}`);
+}
+
+module.exports = {
+  newCluster,
+  deleteCluster,
+  listClusters,
+  getCluster,
+};

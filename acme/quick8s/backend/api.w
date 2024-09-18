@@ -90,7 +90,7 @@ pub class Api {
         // TODO: yak!
         return statusOk(unsafeCast(cluster));
       } else {
-        return statusError(503, "No available hosts in pool that match the requested attributes: {Json.stringify(attributes)}");
+        return statusError(503, "No available clusters that match the request: {Json.stringify(attributes)}");
       }
     });
     
