@@ -15,8 +15,9 @@ pub class Route53 impl api.IDns, std.IHostedLiftable {
     this.domainName = props.domainName;
   }
 
-  pub inflight addARecord(name: str, ip: str): void {
+  pub inflight addARecord(name: str, ip: str): str {
     Route53._addARecord(this.hostedZoneId, this.domainName, name, ip);
+    return "{name}.{this.domainName}";
   }
 
   pub inflight removeARecord(name: str, ip: str): void {

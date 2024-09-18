@@ -15,12 +15,12 @@ pub class Clusters {
     this.store.putJson(key, unsafeCast(cluster));
   }
 
-  pub inflight list(user: str): Array<t.Cluster> {
+  pub inflight list(user: str): Array<str> {
     let keys = this.store.list("{user}/");
-    let result = MutArray<t.Cluster>[];
+    let result = MutArray<str>[];
     for key in keys {
       let json = this.store.getJson(key);
-      result.push(t.Cluster.fromJson(json));
+      result.push(t.Cluster.fromJson(json).name);
     }
 
     return result.copy();

@@ -27,6 +27,9 @@ pub struct ClusterAttributes {
 pub struct Cluster {
   name: str;
   host: Host;
+
+  hostname: str;
+  kubeconfig: Json;
 }
 
 pub struct Host extends ClusterAttributes {
@@ -38,7 +41,7 @@ pub struct Host extends ClusterAttributes {
 }
 
 pub struct ClusterList {
-  clusters: Array<Cluster>;
+  clusters: Array<str>;
 }
 
 pub class Defaults {

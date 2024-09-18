@@ -1,9 +1,12 @@
 bring cloud;
+bring util;
+bring fs;
 bring "./names" as names;
 bring "./types.w" as t;
 bring "./clusters.w" as c;
 bring "./pool.w" as p;
 bring "./dns" as d;
+bring "./kubeconfig.w" as kc;
 
 pub struct ApiProps {
   clusters: c.Clusters;
@@ -64,12 +67,15 @@ pub class Api {
 
       if let host = pool.tryAlloc(attributes) {
         let name = names.next();
-        let cluster: t.Cluster = { name, host };
-      
-        clusters.put(user, cluster);
 
         log("Adding DNS record: {name} => {host.publicIp}");
-        this.dns.addARecord(name, host.publicIp);
+        let hostname = this.dns.addARecord(name, host.publicIp);
+
+        // mangle the kubeconfig to match our new hostname
+        let kubeconfig = kc.renderKubeConfig(host.kubeconfig, name: name, hostname: hostname);
+        let cluster: t.Cluster = { name, host, hostname, kubeconfig };
+      
+        clusters.put(user, cluster);
     
         // TODO: yak!
         return statusOk(unsafeCast(cluster));
