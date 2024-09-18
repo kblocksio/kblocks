@@ -8,7 +8,7 @@ bring "./types.w" as t;
 bring "./names" as names;
 bring "./pool.w" as p;
 bring "./bucket.w" as b;
-bring "./dns" as dns;
+bring "./dns" as d;
 
 let fixture = fs.readJson("{@dirname}/fixtures/host.json");
 let kubeconfigBase64 = fixture.get("kubeconfig").asStr();
@@ -60,14 +60,13 @@ class MockNames impl names.INameGenerator {
   }
 }
 
-let pool = new p.Pool(
-  bucket: new b.CloudBucket(),
-);
+let pool = new p.Pool(bucket: new b.CloudBucket());
+let dns = new d.DnsSimulation();
 
 let api = new a.Api(
   names: new MockNames(),
   clusters: new c.Clusters(),
-  dns: new dns.DnsSimulation(),
+  dns: dns,
   user: "dummy",
   pool: pool,
 );
@@ -117,6 +116,8 @@ test "create new cluster with defaults" {
     hostname: "q8s-0.dummy.com",
     kubeconfig: expectedKubeConfig("q8s-0"),
   });
+
+  expect.equal(dns.tryResolve("q8s-0.dummy.com"), "1.2.3.2");
 }
 
 test "create new cluster with custom options" {
@@ -180,11 +181,15 @@ test "delete cluster" {
 
   http.post("{api.url}/clusters");
 
+  expect.equal(dns.tryResolve("q8s-0.dummy.com"), "1.2.3.2");
+
   let r = http.delete("{api.url}/clusters/q8s-0");
   expect.equal(Json.parse(r.body), {
     name: "q8s-0",
     deleted: true,
   });
+
+  expect.nil(dns.tryResolve("q8s-0.dummy.com"));
 }
 
 test "delete non existent cluster" {
