@@ -6,6 +6,7 @@ bring "./clusters.w" as c;
 bring "./types.w" as t;
 bring "./names.w" as n;
 bring "./pool.w" as p;
+bring "./bucket.w" as b;
 
 class MockNames impl n.INameGenerator {
   c: cloud.Counter;
@@ -18,7 +19,9 @@ class MockNames impl n.INameGenerator {
   }
 }
 
-let pool = new p.Pool();
+let pool = new p.Pool(
+  bucket: new b.CloudBucket(),
+);
 
 let api = new a.Api(
   names: new MockNames(),

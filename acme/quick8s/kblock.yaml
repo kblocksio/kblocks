@@ -22,7 +22,7 @@ operator:
     AWS_ACCESS_KEY_ID: aws-credentials
     AWS_SECRET_ACCESS_KEY: aws-credentials
   env:
-    DEBUG: "1"
+    QUICK8S_POOL_BUCKET: eladb-quick8s-pool
     AWS_DEFAULT_REGION: eu-west-2
     TF_BACKEND_BUCKET: eladb-tfstate
     TF_BACKEND_REGION: eu-west-2

@@ -12,8 +12,8 @@ pub struct Q8sClusterSpec {
 }
 
 pub class Q8sCluster {
-  new(props: Q8sClusterSpec) {
-    let poolBucket = "bucket-c8f519ec-20240916101414983700000007";
+  new(spec: Q8sClusterSpec) {
+    let poolBucketName = util.env("QUICK8S_POOL_BUCKET");
 
     new tfnull.provider.NullProvider();
     new local.provider.LocalProvider();
@@ -144,16 +144,16 @@ pub class Q8sCluster {
     let hostJson = t.Host {
       instanceId: instance.id,
       publicIp: instance.publicIp,
-      sshPrivateKey: sshKey.privateKeyPem,
+      sshPrivateKey: cdktf.Fn.base64encode(sshKey.privateKeyPem),
       region: region.name,
       provider: t.Provider.aws,
       size: t.Size.medium,
-      kubeconfig: kubeConfig.getStringAttribute("content"),
+      kubeconfig: cdktf.Fn.base64encode(kubeConfig.getStringAttribute("content")),
       registryPassword: "<TBD>",
     };
 
     new aws.s3Object.S3Object(
-      bucket: poolBucket,
+      bucket: poolBucketName,
       key: "aws/{region.name}/medium/{instance.id}",
       content: Json.stringify(hostJson),
       contentType: "application/json",

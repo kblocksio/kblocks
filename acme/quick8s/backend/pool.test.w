@@ -1,8 +1,12 @@
 bring expect;
+bring cloud;
 bring "./pool.w" as p;
 bring "./types.w" as t;
+bring "./bucket.w" as b;
 
-let pool = new p.Pool();
+let bucket = new b.CloudBucket();
+
+let pool = new p.Pool(bucket: bucket);
 
 test "starts empty" {
   let x = pool.tryAlloc(provider: t.Provider.aws, region: "us-east-1", size: t.Size.medium);
@@ -32,7 +36,7 @@ test "object is deleted after alloc" {
     registryPassword: "passpass-99"
   );
 
-  expect.equal(pool.bucket.list(), ["aws/us-east-1/small/i-small-001", "aws/us-east-1/medium/i-medium-001"]);
+  expect.equal(bucket.list(), ["aws/us-east-1/small/i-small-001", "aws/us-east-1/medium/i-medium-001"]);
 
   let x = pool.tryAlloc(provider: t.Provider.aws, region: "us-east-1", size: t.Size.small);
 
@@ -48,7 +52,7 @@ test "object is deleted after alloc" {
   });
 
   // the object should be deleted from the bucket
-  expect.equal(pool.bucket.list(), [
+  expect.equal(bucket.list(), [
     "aws/us-east-1/medium/i-medium-001"
   ]);
 

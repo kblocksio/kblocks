@@ -1,3 +1,6 @@
+bring util;
 bring "./cluster.w" as c;
 
-new c.Q8sCluster() as "q8s-cluster-2";
+let name = util.env("QUICK8S_INSTANCE_NAME");
+
+new c.Q8sCluster() as name;
