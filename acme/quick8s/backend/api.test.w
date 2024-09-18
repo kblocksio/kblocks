@@ -10,10 +10,7 @@ bring "./pool.w" as p;
 bring "./bucket.w" as b;
 bring "./dns" as d;
 
-let fixture = fs.readJson("{@dirname}/fixtures/host.json");
-let kubeconfigBase64 = fixture.get("kubeconfig").asStr();
-
-let expectedKubeConfig = inflight (name: str) => {
+let kubeConfigFor = inflight (name: str) => {
   return {
     "apiVersion": "v1",
     "clusters": [
@@ -60,7 +57,7 @@ class MockNames impl names.INameGenerator {
   }
 }
 
-let pool = new p.Pool(bucket: new b.CloudBucket());
+let pool = new p.Pool(bucket: new b.SimulatedPoolBucket());
 let dns = new d.DnsSimulation();
 
 let api = new a.Api(
@@ -71,35 +68,7 @@ let api = new a.Api(
   pool: pool,
 );
 
-let populatePool = inflight () => {
-  let var i = 0;
-
-  let addHost = inflight (provider: t.Provider, region: str, size: t.Size) => {
-    pool.add(
-      provider: provider,
-      region: region,
-      size: size,
-      sshPrivateKey: "<private-key-{i}>",
-      instanceId: "i-{i}",
-      kubeconfig: kubeconfigBase64,
-      registryPassword: "<password-{i}>",
-      publicIp: "1.2.3.{i}",
-    );
-
-    i += 1;
-  };
-
-  // 1 small, 2 medium, 1 large, 0 xlarge
-  addHost(t.Provider.aws, "us-east-1", t.Size.small);   // 0
-  addHost(t.Provider.gcp, "america", t.Size.small);     // 1
-  addHost(t.Provider.aws, "us-east-1", t.Size.medium);  // 2  
-  addHost(t.Provider.aws, "us-east-1", t.Size.medium);  // 3
-  addHost(t.Provider.aws, "us-east-1", t.Size.large);   // 4
-};
-
 test "create new cluster with defaults" {
-  populatePool();
-
   let response = http.post("{api.url}/clusters");
   expect.equal(response.status, 200);
 
@@ -114,15 +83,13 @@ test "create new cluster with defaults" {
     registryPassword: "<password-2>",
     publicIp: "1.2.3.2",
     hostname: "q8s-0.dummy.com",
-    kubeconfig: expectedKubeConfig("q8s-0"),
+    kubeconfig: kubeConfigFor("q8s-0"),
   });
 
   expect.equal(dns.tryResolve("q8s-0.dummy.com"), "1.2.3.2");
 }
 
 test "create new cluster with custom options" {
-  populatePool();
-
   let response = http.post("{api.url}/clusters", body: Json.stringify(t.ClusterOptions {
     provider: t.Provider.gcp,
     region: "america",
@@ -134,7 +101,7 @@ test "create new cluster with custom options" {
   expect.equal(body, {
     name: "q8s-0",
     hostname: "q8s-0.dummy.com",
-    kubeconfig: expectedKubeConfig("q8s-0"),
+    kubeconfig: kubeConfigFor("q8s-0"),
     provider: "gcp",
     region: "america",
     size: "small",
@@ -145,8 +112,6 @@ test "create new cluster with custom options" {
 }
 
 test "no host available" {
-  populatePool();
-
   let response = http.post("{api.url}/clusters", body: Json.stringify(t.ClusterOptions {
     size: t.Size.xlarge
   }));
@@ -159,8 +124,6 @@ test "no host available" {
 }
 
 test "list clusters" {
-  populatePool();
-
   http.post("{api.url}/clusters");
   http.post("{api.url}/clusters");
   http.post("{api.url}/clusters");
@@ -177,8 +140,6 @@ test "list clusters" {
 }
 
 test "delete cluster" {
-  populatePool();
-
   http.post("{api.url}/clusters");
 
   expect.equal(dns.tryResolve("q8s-0.dummy.com"), "1.2.3.2");
@@ -193,8 +154,6 @@ test "delete cluster" {
 }
 
 test "delete non existent cluster" {
-  populatePool();
-
   http.post("{api.url}/clusters");
 
   let r = http.delete("{api.url}/clusters/boom");
@@ -205,8 +164,6 @@ test "delete non existent cluster" {
 }
 
 test "get cluster" {
-  populatePool();
-
   http.post("{api.url}/clusters");
 
   let response = http.get("{api.url}/clusters/q8s-0");
@@ -214,7 +171,7 @@ test "get cluster" {
   expect.equal(c, {
     name: "q8s-0",
     hostname: "q8s-0.dummy.com",
-    kubeconfig: expectedKubeConfig("q8s-0"),
+    kubeconfig: kubeConfigFor("q8s-0"),
     provider: "aws",
     region: "us-east-1",
     size: "medium",
@@ -225,8 +182,6 @@ test "get cluster" {
 }
 
 test "get non existing cluster" {
-  populatePool();
-
   let response = http.get("{api.url}/clusters/q8s-0");
   expect.equal(response.status, 404);
   expect.equal(Json.parse(response.body), {
@@ -234,4 +189,3 @@ test "get non existing cluster" {
     error: "Cluster 'q8s-0' not found"
   });
 }
-

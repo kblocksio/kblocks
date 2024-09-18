@@ -4,7 +4,7 @@ bring "./pool.w" as p;
 bring "./types.w" as t;
 bring "./bucket.w" as b;
 
-let bucket = new b.CloudBucket();
+let bucket = new b.SimulatedPoolBucket(populate: false);
 
 let pool = new p.Pool(bucket: bucket);
 
