@@ -7,6 +7,7 @@ bring "./clusters.w" as c;
 bring "./pool.w" as p;
 bring "./dns" as d;
 bring "./kubeconfig.w" as kc;
+bring "./custom-domain.w" as cd;
 
 pub struct ApiProps {
   clusters: c.Clusters;
@@ -14,6 +15,7 @@ pub struct ApiProps {
   names: names.INameGenerator;
   user: str;
   dns: d.IDns;
+  customDomain: cd.CustomDomainConfig?;
 }
 
 pub class Api {
@@ -23,6 +25,17 @@ pub class Api {
   new(props: ApiProps) {
     let user = props.user;
     let api = new cloud.Api(cors: true);
+
+    if let customDomain = props.customDomain {
+      new cd.CustomDomain(
+        api: api,
+        cname: customDomain.cname,
+        zoneName: customDomain.zoneName,
+        certificateArn: customDomain.certificateArn,
+        dnsimpleAccountId: customDomain.dnsimpleAccountId,
+      );
+    }
+
     let pool = props.pool;
     this.dns = props.dns;
 

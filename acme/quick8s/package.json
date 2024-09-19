@@ -11,5 +11,9 @@
     "@winglibs/k8s": "^0.0.10",
     "@winglibs/tf": "^0.1.0",
     "cdktf": "^0.20.8"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.1",
+    "postject": "^1.0.0-alpha.6"
   }
 }

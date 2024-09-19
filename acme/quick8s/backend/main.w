@@ -37,4 +37,10 @@ new a.Api(
   names: new names.NameGenerator(),
   pool: new p.Pool(bucket: pool),
   dns: dns,
+  customDomain: {
+    cname: "api",
+    zoneName: "quick8s.sh",
+    certificateArn: "arn:aws:acm:us-east-1:248020555503:certificate/cfddf2f5-0245-49e6-8676-1e1fa3d1a1d4",
+    dnsimpleAccountId: "137210",
+  },
 );
