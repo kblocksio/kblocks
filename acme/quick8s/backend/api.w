@@ -68,7 +68,7 @@ pub class Api {
       if let host = pool.tryAlloc(attributes) {
         let name = names.next();
 
-        log("Adding DNS record: {name} => {host.publicIp}");
+        log("Adding host mapping: {name} => {host.publicIp}");
         let hostname = this.dns.addARecord(name, host.publicIp);
 
         // mangle the kubeconfig to match our new hostname
@@ -77,12 +77,10 @@ pub class Api {
           name, 
           hostname, 
           kubeconfig, 
+          host: host,
           provider: host.provider,
           region: host.region,
           size: host.size,
-          publicIp: host.publicIp, 
-          registryPassword: host.registryPassword, 
-          sshPrivateKey: host.sshPrivateKey 
         };
       
         clusters.put(user, cluster);
@@ -116,7 +114,7 @@ pub class Api {
     api.delete("/clusters/:name", inflight (req) => {
       if let name = req.vars.tryGet("name") {
         if let existing = clusters.tryGet(user, name) {
-          this.dns.removeARecord(existing.name, existing.publicIp);
+          this.dns.removeARecord(existing.name, existing.host.publicIp);
           let deleted = clusters.delete(user, name);
           return statusOk({ name, deleted });
         } else {

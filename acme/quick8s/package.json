@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "keywords": [],
   "dependencies": {
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.654.0",
     "@aws-sdk/client-route-53": "^3.651.1",
     "@cdktf/provider-aws": "^19.33.0",
     "@cdktf/provider-local": "^10.1.1",

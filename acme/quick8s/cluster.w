@@ -23,6 +23,9 @@ pub class Q8sCluster {
     this.installProviders();
 
     let poolBucketName = util.env("QUICK8S_POOL_BUCKET");
+    let subnetId = util.env("QUICK8S_SUBNET_ID");
+    let vpcId = util.env("QUICK8S_VPC_ID");
+
     
     let id = nodeof(this).id;
     let workdir = fs.mkdtemp();
@@ -33,6 +36,7 @@ pub class Q8sCluster {
 
     let securityGroup = new aws.securityGroup.SecurityGroup(
       description: "quick8s security group",
+      vpcId: vpcId,
 
       // allow all egress
       egress: [{
@@ -67,6 +71,7 @@ pub class Q8sCluster {
       instanceType: instanceType.name,
       keyName: keypair.keyName,
       vpcSecurityGroupIds: [securityGroup.id],
+      subnetId: subnetId,
       associatePublicIpAddress: true,
       monitoring: false,
       ebsOptimized: true,
@@ -90,6 +95,29 @@ pub class Q8sCluster {
         ignoreChanges: ["ami"],
       },
     );
+
+    // let targetGroup = new aws.lbTargetGroup.LbTargetGroup(
+    //   port: 7443,
+    //   protocol: "HTTPS",
+    //   vpcId: vpcId,
+
+    //   healthCheck: {
+    //     enabled: true,
+    //     path: "/",
+    //     healthyThreshold: 3,
+    //     unhealthyThreshold: 3,
+    //     timeout: 5,
+    //     interval: 30,
+    //     protocol: "HTTPS",
+    //     matcher: "403", // since we are not authenticated, we should get a 403
+    //   },
+    // );
+
+    // new aws.lbTargetGroupAttachment.LbTargetGroupAttachment(
+    //   targetGroupArn: targetGroup.arn,
+    //   targetId: instance.id,
+    //   port: 7443,
+    // );
 
     let connection = {
       type: "ssh",
@@ -152,7 +180,9 @@ pub class Q8sCluster {
     let hostJson = t.Host {
       instanceId: instance.id,
       publicIp: instance.publicIp,
+      // targetGroupArn: targetGroup.arn,
       sshPrivateKey: cdktf.Fn.base64encode(sshKey.privateKeyPem),
+      publicDns: instance.publicDns,
       region: region.name,
       provider: t.Provider.aws,
       size: instanceType.size,
@@ -174,13 +204,8 @@ pub class Q8sCluster {
   }
 
   findInstanceType(size: t.Size): t.InstanceType {
-    let types: Array<t.InstanceType> = [
-      { size: t.Size.small, name: "t4g.small", dailyCost: 0.2016, monthlyCost: 6.13, vcpu: 2, memory: 2, provider: t.Provider.aws   },
-      { size: t.Size.medium, name: "t4g.medium", dailyCost: 0.4032, monthlyCost: 12.26, vcpu: 2, memory: 4, provider: t.Provider.aws },
-      { size: t.Size.large, name: "t4g.xlarge", dailyCost: 1.6128, monthlyCost: 49.06, vcpu: 4, memory: 16, provider: t.Provider.aws },
-      { size: t.Size.xlarge, name: "t4g.2xlarge", dailyCost: 3.2256, monthlyCost: 98.11, vcpu: 8, memory: 32, provider: t.Provider.aws },
-    ];
-
+    let types = t.Defaults.instanceTypes();
+    
     // lookup the instance type based on the size
     for type in types {
       if (type.size == size) {

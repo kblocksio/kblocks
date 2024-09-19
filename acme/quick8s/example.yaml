@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: echo
-          image: dinker-pinker.quick8s.sh/echo:latest
+          image: hashicorp/http-echo
           ports:
             - containerPort: 5678
 ---
@@ -35,12 +35,12 @@ metadata:
   name: echo
 spec:
   rules:
-    - https:
+    - http:  # Changed from 'https' to 'http'
         paths:
-          - backend:
+          - path: /echo
+            pathType: Prefix
+            backend:
               service:
                 name: echo
                 port:
                   number: 5678
-            path: /echo
-            pathType: Prefix

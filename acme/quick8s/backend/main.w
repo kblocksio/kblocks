@@ -23,9 +23,10 @@ let dns = () => {
   if util.env("WING_TARGET") == "sim" {
     return new d.DnsSimulation();
   } else {
-    return new d.Route53(
-      hostedZoneId: "Z0610680182K8KUPK23FC",
-      domainName: "quick8s.sh"
+    return new d.Dnsimple(
+      token: new cloud.Secret(name: "DNSIMPLE_TOKEN"),
+      accountId: "137210",
+      domain: "quick8s.sh",
     );
   }
 }();

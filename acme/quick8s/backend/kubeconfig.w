@@ -17,8 +17,8 @@ pub class Util {
 
     let clusterCfg = kubeconfig.get("clusters").getAt(0);
     clusterCfg.get("cluster").set("server", "https://{props.hostname}:7443");
-    clusterCfg.get("cluster").set("insecure-skip-tls-verify", true);
     clusterCfg.get("cluster").delete("certificate-authority-data");
+    clusterCfg.get("cluster").set("insecure-skip-tls-verify", true);
     clusterCfg.set("name", name);
 
     kubeconfig.set("contexts", [

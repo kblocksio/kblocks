@@ -8,6 +8,6 @@ let addCapacity = (size: t.Size, count: num) => {
   }
 };
 
-addCapacity(t.Size.small, 4);
+addCapacity(t.Size.small, 5);
 addCapacity(t.Size.medium, 2);
 addCapacity(t.Size.large, 1);

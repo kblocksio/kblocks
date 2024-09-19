@@ -53,8 +53,10 @@ async function deleteCluster(name) {
     config.contexts = (config.contexts ?? []).filter(c => c.name !== name);
 
     if (config["current-context"] === name) {
-      config["current-context"] = config.contexts[0]?.name;
-      console.log(`Set kubectl context to "${config["current-context"]}"`);
+      const curr = config["current-context"] = config.contexts[0]?.name;
+      if (curr) {
+        console.log(`Set kubectl context to "${curr}"`);
+      }
     }
 
     await fs.writeFile(kubeconfigFile, yaml.stringify(config));

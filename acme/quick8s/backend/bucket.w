@@ -46,7 +46,9 @@ pub class SimulatedPoolBucket impl IBucket {
       this.b.addObject(key, Json.stringify(t.Host {
         provider: provider,
         region: region,
+        instanceType: t.Defaults.instanceTypes()[0],
         size: size,
+        publicDns: "ec2-1-2-3-{i}.compute-1.amazonaws.com",
         sshPrivateKey: "<private-key-{i}>",
         instanceId: instanceId,
         kubeconfig: kubeconfigBase64,
