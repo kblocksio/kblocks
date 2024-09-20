@@ -241,3 +241,13 @@ This script will call `kblocks build` and then install it via Helm:
 ## Known Issues
 
 - [ ] The "spec" struct must be called `XxxSpec` (we use this convention to find it).
+
+## License
+
+This software is proprietary and confidential. Unauthorized copying, distribution, or use of this software, via any medium, is strictly prohibited.
+
+All rights reserved. No part of this software may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the copyright holder, except in the case of brief quotations embodied in critical reviews and certain other noncommercial uses permitted by copyright law.
+
+For permission requests, please contact the copyright holder.
+
+© 2024 Wing Cloud, Inc. All rights reserved.

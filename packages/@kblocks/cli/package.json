@@ -4,7 +4,8 @@
   "bin": {
     "kblocks": "./bin/kblocks"
   },
-  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "version": "0.0.1",
   "main": "./src/cli.js",
   "dependencies": {
     "cdk8s": "^2.68.93",
