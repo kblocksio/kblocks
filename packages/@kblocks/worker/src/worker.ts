@@ -10,6 +10,7 @@ import { exec, getenv, tempdir, tryGetenv } from "./util";
 import { newSlackThread } from "./slack";
 import { chatCompletion } from "./ai";
 import { BindingContext } from "./types";
+import { startServer } from "./http";
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -67,22 +68,32 @@ async function main() {
     throw new Error("REDIS_URL is not set");
   }
 
+  if (!process.env.WORKER_INDEX) {
+    throw new Error("WORKER_INDEX is not set");
+  }
+
   const mountdir = "/kblock";
   
   // Redis client for Redlock
-  const redisClient = new Redis(process.env.REDIS_URL);
+  const redisClient = new Redis(process.env.REDIS_URL, {
+    retryStrategy: (times) => {
+      console.log(`Retrying Redis connection attempt ${times}`);
+      return times * 1000;
+    },
+    maxRetriesPerRequest: null,
+  });
 
   // Redlock instance
-  const redlock = new Redlock(
-    [redisClient],
-    {
-      driftFactor: 0.01,
-      retryCount: 10,
-      retryDelay: 200,
-      retryJitter: 200,
-    }
-  );
-  const contextQueue = new Queue("contextQueue", process.env.REDIS_URL);
+  // const redlock = new Redlock(
+  //   [redisClient],
+  //   {
+  //     driftFactor: 0.01,
+  //     retryCount: 10,
+  //     retryDelay: 200,
+  //     retryJitter: 200,
+  //   }
+  // );
+  // const contextQueue = new Queue("contextQueue", process.env.REDIS_URL);
 
   const sourcedir = await extractArchive(mountdir);
   await installDependencies(sourcedir);
@@ -95,51 +106,75 @@ async function main() {
     chatCompletion,
   };
 
-  contextQueue.process(async (job) => {
-    const event: BindingContext = job.data;
-    const lockKey = `lock:${event.object.metadata.namespace}-${event.object.metadata.name}`;
-  
-    let lock: Lock | undefined = undefined;
-    try {
-      lock = await redlock.acquire([lockKey], 30000);
-    } catch (error) {
-      console.log(`Lock for ${lockKey} is held, re-queuing event`);
-      await job.retry();
-      console.log(`Job ${job.id} requeued for ${lockKey}`);
+  const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
+
+  async function listenForMessage(lastId = "0") {
+    console.log(`Listening for messages on worker-${workerIndex} with id: `, lastId);
+    const results = await redisClient.xread("BLOCK", 0, "STREAMS", `worker-${workerIndex}`, lastId);
+    if (!results) {
+      setTimeout(listenForMessage, 1000, lastId);
       return;
     }
 
-    try {
-      const extendLock = async () => {
-        try {
-          console.log(`Extending lock for ${lockKey}`);
-          if (lock) {
-            lock = await lock.extend(10000);
-            setTimeout(extendLock, 5000);
-          }
-        } catch (error) {
-          console.error('Error extending lock:', error);
-        }
-      };
-
-      setTimeout(extendLock, 5000);
-
-      console.log(`Processing event for ${lockKey}`);
+    const [key, messages] = results[0];
+    console.log(`Received ${messages.length} messages from ${key}`);
+  
+    for (const message of messages) {
+      const event: BindingContext = JSON.parse(message[1][1]);
       await synth(sourcedir, host, kblock.engine, event);
-      console.log(`Finished processing event for ${lockKey}`);
-    } catch (error) {
-      console.error(`Error processing event for ${lockKey}: ${error}`);
-    } finally {
-      if (lock) {
-        try {
-          await lock.release();
-          lock = undefined;
-        } catch (error) {
-          console.error('Error releasing lock:', error);
-        }
-      }
+      await redisClient.xdel(`worker-${workerIndex}`, message[0]);
     }
-  });
+  
+    setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
+  }
+
+  startServer();
+  listenForMessage();
+  // contextQueue.process(async (job) => {
+  //   const event: BindingContext = job.data;
+  //   const lockKey = `lock:${event.object.metadata.namespace}-${event.object.metadata.name}`;
+  
+  //   let lock: Lock | undefined = undefined;
+  //   try {
+  //     lock = await redlock.acquire([lockKey], 30000);
+  //   } catch (error) {
+  //     console.log(`Lock for ${lockKey} is held, re-queuing event`);
+  //     await job.retry();
+  //     console.log(`Job ${job.id} requeued for ${lockKey}`);
+  //     return;
+  //   }
+
+  //   try {
+  //     const extendLock = async () => {
+  //       try {
+  //         console.log(`Extending lock for ${lockKey}`);
+  //         if (lock) {
+  //           lock = await lock.extend(10000);
+  //           setTimeout(extendLock, 5000);
+  //         }
+  //       } catch (error) {
+  //         console.error('Error extending lock:', error);
+  //       }
+  //     };
+
+  //     setTimeout(extendLock, 5000);
+
+  //     console.log(`Processing event for ${lockKey}`);
+  //     await synth(sourcedir, host, kblock.engine, event);
+  //     console.log(`Finished processing event for ${lockKey}`);
+  //   } catch (error) {
+  //     console.error(`Error processing event for ${lockKey}: ${error}`);
+  //   } finally {
+  //     if (lock) {
+  //       try {
+  //         await lock.release();
+  //         lock = undefined;
+  //       } catch (error) {
+  //         console.error('Error releasing lock:', error);
+  //       }
+  //     }
+  //   }
+  // });
 }
 
 main().catch(err => {

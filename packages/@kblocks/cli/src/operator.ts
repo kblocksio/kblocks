@@ -9,6 +9,7 @@ export interface OperatorProps {
   namespace: string;
   configMaps: Record<string, k8s.ConfigMap>;
   redisServiceName: string;
+  workers: number;
   envSecrets?: Record<string, string>;
   envConfigMaps?: Record<string, string>;
   env?: Record<string, string>;
@@ -139,5 +140,6 @@ export class Operator extends Construct {
     }
 
     container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
+    container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
   }
 }

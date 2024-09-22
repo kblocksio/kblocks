@@ -56,7 +56,7 @@ export class Worker extends Construct {
     const binding = new k8s.ClusterRoleBinding(this, "WorkerClusterRoleBinding", { role });
     binding.addSubjects(serviceAccount);
     
-    const controller = new k8s.Deployment(this, "WorkerDeployment", {
+    const controller = new k8s.StatefulSet(this, "WorkerStatefulSet", {
       metadata: {
         namespace: props.namespace,
         name: `kblocks-worker-${kind}`,
@@ -64,6 +64,13 @@ export class Worker extends Construct {
       serviceAccount: serviceAccount,
       replicas: props.replicas,
       automountServiceAccountToken: true,
+      service: new k8s.Service(this, "WorkerService", {
+        metadata: {
+          namespace: props.namespace,
+          name: `kblocks-worker-${kind}`,
+        },
+        ports: [{ port: 3000 }],
+      }),
     });
     
     const volumeMounts: {volume: k8s.Volume;path: string;}[] = [];
@@ -91,6 +98,7 @@ export class Worker extends Construct {
         ensureNonRoot: false,
       },
       volumeMounts,
+      portNumber: 3000,
     });
 
     for (const [key, value] of Object.entries(props.envSecrets ?? {})) {
@@ -108,5 +116,7 @@ export class Worker extends Construct {
     }
 
     container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
+    container.env.addVariable("WORKER_INDEX",
+      k8s.EnvValue.fromFieldRef(k8s.EnvFieldPaths.POD_LABEL, { key: "apps.kubernetes.io/pod-index" }));
   }
 }

@@ -35,11 +35,13 @@ export async function build(opts: Options) {
   });
 
   const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
+  const workers = block.operator.workers ?? 1;
 
   new Operator(chart, "Operator", {
     image: `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`,
     configMaps: configmap.configMaps,
     redisServiceName,
+    workers,
     ...block.operator,
     ...block.definition
   });
@@ -49,7 +51,7 @@ export async function build(opts: Options) {
     configMaps: configmap.configMaps,
     ...block.operator,
     ...block.definition,
-    replicas: block.operator.workers ?? 1,
+    replicas: workers,
     env: {
       // redis url should be the url of the redis instance in the operator
       REDIS_URL: `redis://${redisServiceName}.${block.operator.namespace}.svc.cluster.local:${6379}`,

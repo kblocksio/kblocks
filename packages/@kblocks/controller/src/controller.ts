@@ -1,7 +1,9 @@
 import fs from "fs";
 import Queue from "bull";
+import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createUI } from "./ui";
+import { createHash } from 'crypto';
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -11,9 +13,6 @@ if (!kblock.config) {
 if (!kblock.engine) {
   throw new Error("kblock.json must contain an 'engine' field");
 }
-
-const contextQueue = new Queue<BindingContext>("contextQueue", process.env.REDIS_URL || "redis://localhost:6379");
-createUI(contextQueue);
 
 async function main() {
   if (process.argv[2] === "--config") {
@@ -25,7 +24,14 @@ async function main() {
     throw new Error("BINDING_CONTEXT_PATH is not set");
   }
 
+  if (!process.env.WORKERS) {
+    throw new Error("WORKERS is not set");
+  }
+
+  const workers = parseInt(process.env.WORKERS, 10);
+
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
+  const redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
   for (const ctx of context) {
     if ("objects" in ctx) {
@@ -33,10 +39,10 @@ async function main() {
         // copy from parent so we can reason about it.
         ctx2.type = ctx.type;
         ctx2.watchEvent = ctx.watchEvent;
-        await sendContextToQueue(contextQueue, ctx2);
+        await sendContextToStream(redisClient, workers, ctx2);
       }
     } else if ("object" in ctx) {
-      await sendContextToQueue(contextQueue, ctx);
+      await sendContextToStream(redisClient, workers, ctx);
     }
   }
 }
@@ -46,12 +52,25 @@ main().catch(err => {
   process.exit(1);
 });
 
-// Function to send context to Redis queue
-async function sendContextToQueue(contextQueue: Queue.Queue<any>, context: BindingContext) {
+// Function to send context to Redis stream
+async function sendContextToStream(redisClient: Redis, workers: number, context: BindingContext) {
   try {
-    await contextQueue.add(context);
-    console.log('Context sent to Redis queue successfully');
+    // Generate a hash from the object's namespace and name
+    const hash = createHash('md5')
+      .update(`${context.object.metadata.namespace}/${context.object.metadata.name}`)
+      .digest('hex');
+    
+    // Convert the hash to a number and select a worker
+    const workerIndex = parseInt(hash, 16) % workers;
+    
+    // Use the workerIndex to create a unique stream name
+    const streamName = `worker-${workerIndex}`;
+
+    // Add the context to the Redis stream
+    await redisClient.xadd(streamName, '*', 'context', JSON.stringify(context));
+    
+    console.log(`Context sent to Redis stream ${streamName} successfully`);
   } catch (error) {
-    console.error('Error sending context to Redis queue:', error);
+    console.error('Error sending context to Redis stream:', error);
   }
 }
