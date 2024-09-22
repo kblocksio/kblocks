@@ -91,11 +91,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push controller
         uses: docker/build-push-action@v6
         with:
           context: packages/@kblocks/controller
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: wingcloudbot/kblocks-controller:latest,wingcloudbot/kblocks-controller:${{ needs.build.outputs.version }}
 
       - name: Login to NPM registry
