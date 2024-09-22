@@ -1,16 +1,20 @@
 {
-  "name": "@kblocks/controller",
+  "name": "@kblocks/worker",
   "type": "commonjs",
   "dependencies": {
-    "bull": "^4.16.3"
+    "bull": "^4.16.3",
+    "ioredis": "^5.4.1",
+    "openai": "^4.0.0",
+    "redlock": "^5.0.0-beta.2",
+    "tar": "^7.4.3",
+    "yaml": "^2.5.0"
   },
-  "main": "src/controller.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "vitest **/*.test.ts *.test.ts",
     "watch": "tsc --watch"
   },
   "devDependencies": {
-    "@types/node": "^22.5.5",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

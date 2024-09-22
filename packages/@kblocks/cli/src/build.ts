@@ -3,12 +3,11 @@ import fs from "fs/promises";
 import { App, Chart } from "cdk8s";
 import { Manifest, readManifest } from "./types";
 import { Operator } from "./operator";
+import { Worker } from "./worker";
 import { BlockMetadata } from "./metadata";
 import { CustomResourceDefinition } from "./crd";
 import { JsonSchemaProps } from "../imports/k8s";
 import { generateSchemaFromWingStruct } from "./wing";
-// import { buildImage } from "./image";
-// import { hashAll } from "./util";
 import { docs } from "./docs";
 import { ConfigMapFromDirectory, createTgzBase64 } from "./configmap";
 import packageJson from "../package.json";
@@ -35,13 +34,26 @@ export async function build(opts: Options) {
     namespace: block.operator.namespace,
   });
 
-  // const image = await buildImage(kblockDir, { push: true });
+  const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
 
   new Operator(chart, "Operator", {
     image: `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`,
     configMaps: configmap.configMaps,
+    redisServiceName,
     ...block.operator,
     ...block.definition
+  });
+
+  new Worker(chart, "Worker", {
+    image: `wingcloudbot/kblocks-worker:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`,
+    configMaps: configmap.configMaps,
+    ...block.operator,
+    ...block.definition,
+    replicas: block.operator.workers ?? 1,
+    env: {
+      // redis url should be the url of the redis instance in the operator
+      REDIS_URL: `redis://${redisServiceName}.${block.operator.namespace}.svc.cluster.local:${6379}`,
+    }
   });
 
   const schema = await resolveSchema(kblockDir, block);

@@ -1,33 +1,34 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
+import * as cdk8s from "cdk8s";
 
-export interface OperatorProps {
+export interface WorkerProps {
   image: string;
   group: string;
   kind: string
   plural: string;
   namespace: string;
+  replicas: number;
   configMaps: Record<string, k8s.ConfigMap>;
-  redisServiceName: string;
   envSecrets?: Record<string, string>;
   envConfigMaps?: Record<string, string>;
   env?: Record<string, string>;
   outputs?: string[];
 }
 
-export class Operator extends Construct {
-  constructor(scope: Construct, id: string, props: OperatorProps) {
+export class Worker extends Construct {
+  constructor(scope: Construct, id: string, props: WorkerProps) {
     super(scope, id);
 
     const kind = props.kind.toLocaleLowerCase();
 
-    const serviceAccount = new k8s.ServiceAccount(this, "ServiceAccount", {
+    const serviceAccount = new k8s.ServiceAccount(this, "WorkerServiceAccount", {
       metadata: {
         namespace: props.namespace,
       }
     });
     
-    const role = new k8s.ClusterRole(this, "ClusterRole", {
+    const role = new k8s.ClusterRole(this, "WorkerClusterRole", {
       rules: [
         {
           verbs: ["get", "watch", "list"],
@@ -52,19 +53,16 @@ export class Operator extends Construct {
       ],
     });
     
-    const binding = new k8s.ClusterRoleBinding(this, "ClusterRoleBinding", { role });
+    const binding = new k8s.ClusterRoleBinding(this, "WorkerClusterRoleBinding", { role });
     binding.addSubjects(serviceAccount);
     
-    const controller = new k8s.Deployment(this, "Deployment", {
+    const controller = new k8s.Deployment(this, "WorkerDeployment", {
       metadata: {
         namespace: props.namespace,
-        name: `kblocks-controller-${kind}`,
-        labels: {
-          "app.kubernetes.io/name": `kblocks-controller-${kind}`,
-        }
+        name: `kblocks-worker-${kind}`,
       },
       serviceAccount: serviceAccount,
-      replicas: 1,
+      replicas: props.replicas,
       automountServiceAccountToken: true,
     });
     
@@ -93,34 +91,6 @@ export class Operator extends Construct {
         ensureNonRoot: false,
       },
       volumeMounts,
-    });
-
-    // Add Redis sidecar container
-    const redisContainer = controller.addContainer({
-      name: "redis",
-      image: "redis:6.2-alpine",
-      imagePullPolicy: k8s.ImagePullPolicy.IF_NOT_PRESENT,
-      resources: {
-        cpu: {
-          request: k8s.Cpu.millis(100),
-          limit: k8s.Cpu.units(1),
-        },
-      },
-      securityContext: {
-        readOnlyRootFilesystem: false,
-        ensureNonRoot: false,
-      },
-      ports: [{ number: 6379 }],
-    });
-
-    // Add Redis service
-    new k8s.Service(this, 'RedisService', {
-      metadata: {
-        namespace: props.namespace,
-        name: props.redisServiceName,
-      },
-      ports: [{ port: 6379, targetPort: 6379 }],
-      selector: controller,
     });
 
     for (const [key, value] of Object.entries(props.envSecrets ?? {})) {

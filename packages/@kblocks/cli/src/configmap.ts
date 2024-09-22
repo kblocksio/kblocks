@@ -35,37 +35,6 @@ export class ConfigMapFromDirectory extends Construct {
   }
 }
 
-// export function createConfigMapFromDirectory(directory: string): Record<string, string> {
-//   const configMapData: Record<string, string> = {};
-
-//   function readDirectoryRecursively(currentPath: string, relativePath: string = '') {
-//     const files = fs.readdirSync(currentPath);
-
-//     for (const file of files) {
-//       if (file === "node_modules" || file === ".DS_Store") {
-//         continue;
-//       }
-
-//       const filePath = path.join(currentPath, file);
-//       const stats = fs.statSync(filePath);
-
-//       if (stats.isDirectory()) {
-//         readDirectoryRecursively(filePath, path.join(relativePath, file));
-//       } else {
-//         const content = fs.readFileSync(filePath, 'utf8');
-//         const configMapKey = path.join(relativePath, file);
-//         configMapData[configMapKey] = content;
-//       }
-//     }
-//   }
-
-//   readDirectoryRecursively(directory);
-
-
-
-//   return configMapData;
-// }
-
 export async function createTgzBase64(directory: string): Promise<string> {
   const excludedFolders = ["node_modules", ".git", "target", ".DS_Store"];
   
