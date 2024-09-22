@@ -93,6 +93,7 @@ export class Operator extends Construct {
         ensureNonRoot: false,
       },
       volumeMounts,
+      ports: [{ number: 3000 }],
     });
 
     // Add Redis sidecar container

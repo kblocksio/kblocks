@@ -2,7 +2,10 @@
   "name": "@kblocks/controller",
   "type": "commonjs",
   "dependencies": {
-    "bull": "^4.16.3"
+    "@bull-board/api": "^5.23.0",
+    "@bull-board/express": "^5.23.0",
+    "bull": "^4.16.3",
+    "express": "^4.21.0"
   },
   "main": "src/controller.js",
   "scripts": {
@@ -10,6 +13,7 @@
     "watch": "tsc --watch"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^22.5.5",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"

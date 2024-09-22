@@ -1,6 +1,7 @@
 import fs from "fs";
 import Queue from "bull";
 import { BindingContext } from "./types";
+import { createUI } from "./ui";
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -10,6 +11,9 @@ if (!kblock.config) {
 if (!kblock.engine) {
   throw new Error("kblock.json must contain an 'engine' field");
 }
+
+const contextQueue = new Queue<BindingContext>("contextQueue", process.env.REDIS_URL || "redis://localhost:6379");
+createUI(contextQueue);
 
 async function main() {
   if (process.argv[2] === "--config") {
@@ -22,8 +26,6 @@ async function main() {
   }
 
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
-  
-  const contextQueue = new Queue<BindingContext>("contextQueue", process.env.REDIS_URL || "redis://localhost:6379");
 
   for (const ctx of context) {
     if ("objects" in ctx) {
