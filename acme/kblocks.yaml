@@ -1,6 +1,0 @@
-operator:
-  envConfigMaps:
-    SLACK_CHANNEL: slack-config
-  envSecrets:
-    SLACK_API_TOKEN: slack-token
-    OPENAI_API_KEY: openai-token

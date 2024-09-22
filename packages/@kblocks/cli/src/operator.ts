@@ -6,7 +6,7 @@ export interface OperatorProps {
   group: string;
   kind: string
   plural: string;
-  namespace: string;
+  namespace?: string;
   configMaps: Record<string, k8s.ConfigMap>;
   envSecrets?: Record<string, string>;
   envConfigMaps?: Record<string, string>;

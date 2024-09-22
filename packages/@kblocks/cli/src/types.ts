@@ -33,8 +33,8 @@ export const Manifest = z.object({
     icon: z.string(),
   })),
 
-  operator: z.object({
-    namespace: z.string(),
+  operator: z.optional(z.object({
+    namespace: z.optional(z.string()),
     permissions: z.optional(z.array(z.object({
       apiGroups: z.array(z.string()),
       resources: z.array(z.string()),
@@ -43,7 +43,7 @@ export const Manifest = z.object({
     envSecrets: z.optional(z.record(z.string())),
     envConfigMaps: z.optional(z.record(z.string())),
     env: z.optional(z.record(z.string())),
-  }),
+  })),
 });
 
 export type Manifest = z.infer<typeof Manifest>;
@@ -64,6 +64,11 @@ export function readManifest(dir: string): Manifest {
   for (const include of block.include ?? []) {
     const x = yaml.parse(fs.readFileSync(path.join(dir, include), "utf8"));
     block = deepmerge(block, x);
+  }
+
+  // make sure a namespace is defined
+  if (!block.operator?.namespace) {
+    throw new Error("namespace is required in the operator section of the manifest");
   }
 
   return block;

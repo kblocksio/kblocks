@@ -1,7 +1,10 @@
 {
   "private": true,
+  "scripts": {
+    "watch": "cd packages/@kblocks/cli && npx tsc --watch",
+    "build": "./build.sh"
+  },
   "workspaces": [
-    "acme/*",
     "packages/**/*"
   ]
 }

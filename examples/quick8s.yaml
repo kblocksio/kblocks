@@ -1,4 +1,0 @@
-apiVersion: acme.com/v1
-kind: Q8sCluster
-metadata:
-  name: q8s-cluster-1

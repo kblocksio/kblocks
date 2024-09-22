@@ -1,6 +1,0 @@
-apiVersion: acme.com/v1
-kind: Topic
-metadata:
-  name: my-topic
-topicName: shaib-topic
-region: eu-west-1

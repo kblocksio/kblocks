@@ -4,7 +4,7 @@ import * as tar from "tar";
 import { readManifest } from "./types";
 
 export interface ConfigMapVolumeProps {
-  namespace: string;
+  namespace?: string;
   path: string;
   archive: string;
 }

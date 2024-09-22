@@ -5,7 +5,7 @@ import path from "path";
 
 export interface BlockMetadataProps {
   dir: string;
-  namespace: string;
+  namespace?: string;
   kind: string;
   readme: string;
   icon: string;

@@ -1,9 +1,0 @@
-apiVersion: v2
-name: argo
-description: ArgoCD for Acme teams
-type: application
-version: 0.1.0
-dependencies:
-  - name: argo-cd
-    repository: https://argoproj.github.io/argo-helm
-    version: 7.3.11
