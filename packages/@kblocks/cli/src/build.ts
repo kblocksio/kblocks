@@ -35,7 +35,7 @@ export async function build(opts: Options) {
   });
 
   const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
-  const workers = block.operator.workers ?? 1;
+  const workers = block.operator?.workers ?? 1;
 
   if (packageJson.version === "0.0.1" && !process.env.KBLOCKS_CONTROLLER_IMAGE) {
     throw new Error("Building from source, KBLOCKS_CONTROLLER_IMAGE is not set, please set it to the image you want to use (e.g. 'wingcloudbot/kblocks-controller:0.1.13')");
@@ -61,7 +61,7 @@ export async function build(opts: Options) {
     replicas: workers,
     env: {
       // redis url should be the url of the redis instance in the operator
-      REDIS_URL: `redis://${redisServiceName}.${block.operator.namespace}.svc.cluster.local:${6379}`,
+      REDIS_URL: `redis://${redisServiceName}.${block.operator?.namespace ?? "default"}.svc.cluster.local:${6379}`,
     }
   });
 

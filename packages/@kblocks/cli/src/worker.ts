@@ -7,7 +7,7 @@ export interface WorkerProps {
   group: string;
   kind: string
   plural: string;
-  namespace: string;
+  namespace?: string;
   replicas: number;
   configMaps: Record<string, k8s.ConfigMap>;
   envSecrets?: Record<string, string>;
