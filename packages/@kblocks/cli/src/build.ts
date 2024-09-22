@@ -31,14 +31,21 @@ export async function build(opts: Options) {
   const configmap = new ConfigMapFromDirectory(chart, "ConfigMapVolume", {
     path: kblockDir,
     archive: tgzBase64,
-    namespace: block.operator.namespace,
+    namespace: block.operator?.namespace,
   });
 
   const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
   const workers = block.operator.workers ?? 1;
 
+  if (packageJson.version === "0.0.1" && !process.env.KBLOCKS_CONTROLLER_IMAGE) {
+    throw new Error("Building from source, KBLOCKS_CONTROLLER_IMAGE is not set, please set it to the image you want to use (e.g. 'wingcloudbot/kblocks-controller:0.1.13')");
+  }
+
+  const image = process.env.KBLOCKS_CONTROLLER_IMAGE 
+    ?? `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
+
   new Operator(chart, "Operator", {
-    image: `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`,
+    image,
     configMaps: configmap.configMaps,
     redisServiceName,
     workers,
@@ -63,7 +70,7 @@ export async function build(opts: Options) {
   const meta = new BlockMetadata(chart, "Metadata", {
     dir: kblockDir,
     ...block.definition,
-    namespace: block.operator.namespace,
+    namespace: block.operator?.namespace,
   });
 
   new CustomResourceDefinition(chart, "CRD", {

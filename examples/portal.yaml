@@ -1,7 +1,0 @@
-apiVersion: acme.com/v1
-kind: Portal
-metadata:
-  name: portal-demo
-repo:
-  name: portal-demo
-  owner: monadaco

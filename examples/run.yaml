@@ -1,9 +1,0 @@
-apiVersion: acme.com/v1
-kind: Run
-metadata:
-  name: hello-world
-image: busybox
-command:
-  - /bin/sh
-  - -c
-  - echo "hello, !!world!"

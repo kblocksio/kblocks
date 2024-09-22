@@ -4,7 +4,8 @@
   "bin": {
     "kblocks": "./bin/kblocks"
   },
-  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "version": "0.0.1",
   "main": "./src/cli.js",
   "dependencies": {
     "cdk8s": "^2.68.93",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@types/yargs": "^17.0.33",
+    "@types/tar": "^6.1.13",
     "cdk8s-cli": "^2.198.186",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5",

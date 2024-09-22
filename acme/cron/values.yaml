@@ -1,5 +1,0 @@
-image: my-image
-schedule: "* * * * *"
-command:
-  - foo
-  - bar
