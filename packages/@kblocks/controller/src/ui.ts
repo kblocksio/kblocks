@@ -1,22 +1,8 @@
 import express from "express";
-import Queue from "bull";
-import { createBullBoard } from "@bull-board/api";
-import { BullAdapter } from "@bull-board/api/bullAdapter";
-import { ExpressAdapter } from "@bull-board/express";
 import Redis from "ioredis";
 
-export const createUI = (queue: Queue.Queue, workerCount: number, redisClient: Redis) => {
-  const serverAdapter = new ExpressAdapter();
-  serverAdapter.setBasePath("/admin/queues");
-  
-  const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
-    queues: [new BullAdapter(queue)],
-    serverAdapter: serverAdapter,
-  });
-  
+export const createUI = (workerCount: number, redisClient: Redis) => {
   const app = express();
-  
-  app.use("/admin/queues", serverAdapter.getRouter());
   
   app.get("/admin/streams", async (req, res) => {
     try {

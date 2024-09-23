@@ -2,6 +2,7 @@ import fs from "fs";
 import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
+import { createUI } from "./ui";
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -30,6 +31,8 @@ async function main() {
 
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
   const redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+
+  createUI(workers, redisClient);
 
   for (const ctx of context) {
     if ("objects" in ctx) {
