@@ -85,6 +85,7 @@ export class Operator extends Construct {
       imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
       resources: {
         cpu: {
+          request: k8s.Cpu.millis(1),
           limit: k8s.Cpu.units(1),
         },
       },
@@ -103,6 +104,7 @@ export class Operator extends Construct {
       imagePullPolicy: k8s.ImagePullPolicy.IF_NOT_PRESENT,
       resources: {
         cpu: {
+          request: k8s.Cpu.millis(1),
           limit: k8s.Cpu.units(1),
         },
       },
