@@ -81,18 +81,6 @@ async function main() {
     maxRetriesPerRequest: null,
   });
 
-  // Redlock instance
-  // const redlock = new Redlock(
-  //   [redisClient],
-  //   {
-  //     driftFactor: 0.01,
-  //     retryCount: 10,
-  //     retryDelay: 200,
-  //     retryJitter: 200,
-  //   }
-  // );
-  // const contextQueue = new Queue("contextQueue", process.env.REDIS_URL);
-
   const sourcedir = await extractArchive(mountdir);
   await installDependencies(sourcedir);
 
@@ -120,6 +108,7 @@ async function main() {
     for (const message of messages) {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
+        console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
         await synth(sourcedir, host, kblock.engine, event);
       } catch (error) {
         console.error(`Error processing event: ${error}. Adding to retry queue`);
