@@ -1,8 +1,6 @@
 import fs from "fs";
-import Queue from "bull";
 import Redis from "ioredis";
 import { BindingContext } from "./types";
-import { createUI } from "./ui";
 import { createHash } from 'crypto';
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
@@ -52,23 +50,15 @@ main().catch(err => {
   process.exit(1);
 });
 
-// Function to send context to Redis stream
 async function sendContextToStream(redisClient: Redis, workers: number, context: BindingContext) {
   try {
-    // Generate a hash from the object's namespace and name
     const hash = createHash('md5')
       .update(`${context.object.metadata.namespace}/${context.object.metadata.name}`)
       .digest('hex');
-    
-    // Convert the hash to a number and select a worker
     const workerIndex = parseInt(hash, 16) % workers;
-    
-    // Use the workerIndex to create a unique stream name
     const streamName = `worker-${workerIndex}`;
 
-    // Add the context to the Redis stream
     await redisClient.xadd(streamName, '*', 'context', JSON.stringify(context));
-    
     console.log(`Context sent to Redis stream ${streamName} successfully`);
   } catch (error) {
     console.error('Error sending context to Redis stream:', error);

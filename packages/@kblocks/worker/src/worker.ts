@@ -1,8 +1,6 @@
 import fs from "fs";
 import path from "path";
 import * as tar from "tar";
-import Queue from "bull";
-import Redlock, { Lock } from "redlock";
 import Redis from "ioredis";
 import { synth } from "./synth";
 import { RuntimeHost } from "./host";
@@ -120,61 +118,22 @@ async function main() {
     console.log(`Received ${messages.length} messages from ${key}`);
   
     for (const message of messages) {
-      const event: BindingContext = JSON.parse(message[1][1]);
-      await synth(sourcedir, host, kblock.engine, event);
-      await redisClient.xdel(`worker-${workerIndex}`, message[0]);
+      try {
+        const event: BindingContext = JSON.parse(message[1][1]);
+        await synth(sourcedir, host, kblock.engine, event);
+      } catch (error) {
+        console.error(`Error processing event: ${error}. Adding to retry queue`);
+        await redisClient.xadd(`worker-${workerIndex}`, "*", "context", message[1][1]);
+      } finally {
+        await redisClient.xdel(`worker-${workerIndex}`, message[0]);
+      }
     }
-  
+
     setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
   }
 
   startServer();
   listenForMessage();
-  // contextQueue.process(async (job) => {
-  //   const event: BindingContext = job.data;
-  //   const lockKey = `lock:${event.object.metadata.namespace}-${event.object.metadata.name}`;
-  
-  //   let lock: Lock | undefined = undefined;
-  //   try {
-  //     lock = await redlock.acquire([lockKey], 30000);
-  //   } catch (error) {
-  //     console.log(`Lock for ${lockKey} is held, re-queuing event`);
-  //     await job.retry();
-  //     console.log(`Job ${job.id} requeued for ${lockKey}`);
-  //     return;
-  //   }
-
-  //   try {
-  //     const extendLock = async () => {
-  //       try {
-  //         console.log(`Extending lock for ${lockKey}`);
-  //         if (lock) {
-  //           lock = await lock.extend(10000);
-  //           setTimeout(extendLock, 5000);
-  //         }
-  //       } catch (error) {
-  //         console.error('Error extending lock:', error);
-  //       }
-  //     };
-
-  //     setTimeout(extendLock, 5000);
-
-  //     console.log(`Processing event for ${lockKey}`);
-  //     await synth(sourcedir, host, kblock.engine, event);
-  //     console.log(`Finished processing event for ${lockKey}`);
-  //   } catch (error) {
-  //     console.error(`Error processing event for ${lockKey}: ${error}`);
-  //   } finally {
-  //     if (lock) {
-  //       try {
-  //         await lock.release();
-  //         lock = undefined;
-  //       } catch (error) {
-  //         console.error('Error releasing lock:', error);
-  //       }
-  //     }
-  //   }
-  // });
 }
 
 main().catch(err => {
