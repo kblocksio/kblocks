@@ -53,8 +53,15 @@ export async function build(opts: Options) {
     ...block.definition
   });
 
+  if (packageJson.version === "0.0.1" && !process.env.KBLOCKS_WORKER_IMAGE) {
+    throw new Error("Building from source, KBLOCKS_WORKER_IMAGE is not set, please set it to the image you want to use (e.g. 'wingcloudbot/kblocks-worker:0.1.13')");
+  }
+
+  const workerImage = process.env.KBLOCKS_WORKER_IMAGE 
+    ?? `wingcloudbot/kblocks-worker:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
+
   new Worker(chart, "Worker", {
-    image: `wingcloudbot/kblocks-worker:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`,
+    image: workerImage,
     configMaps: configmap.configMaps,
     ...block.operator,
     ...block.definition,
