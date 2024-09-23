@@ -111,8 +111,7 @@ async function main() {
         console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
         await synth(sourcedir, host, kblock.engine, event);
       } catch (error) {
-        console.error(`Error processing event: ${error}. Adding to retry queue`);
-        await redisClient.xadd(`worker-${workerIndex}`, "*", "context", message[1][1]);
+        console.error(`Error processing event: ${error}.`);
       } finally {
         await redisClient.xdel(`worker-${workerIndex}`, message[0]);
       }
