@@ -43,6 +43,7 @@ export const Manifest = z.object({
     envSecrets: z.optional(z.record(z.string())),
     envConfigMaps: z.optional(z.record(z.string())),
     env: z.optional(z.record(z.string())),
+    workers: z.optional(z.number().default(1)),
   })),
 });
 

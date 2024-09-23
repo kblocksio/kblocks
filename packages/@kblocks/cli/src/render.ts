@@ -1,6 +1,5 @@
 import path from "path";
-import { buildImage } from "./image";
-
+import packageJson from "../package.json";
 export interface Options {
   readonly manifest: string;
   readonly path: string;
@@ -9,7 +8,7 @@ export interface Options {
 export async function render(opts: Options) {
   const dir = path.resolve(opts.path);
 
-  const tag = await buildImage(dir)
+  const tag = `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
   console.log(tag);
   // const manifest = readManifest(dir);
   // const docs = yaml.parseAllDocuments(await fs.readFile(opts.manifest, "utf-8"));

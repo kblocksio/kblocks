@@ -1,0 +1,8 @@
+Error: Error: POST https://api.github.com/user/repos: 422 Repository creation failed. [{Resource:Repository Field:name Code:custom Message:name already exists on this account}]
+
+  with github_repository.test-issue-service-repo-c8d5c5b4_Repository_9137D519,
+  on main.tf.json line 44, in resource.github_repository.test-issue-service-repo-c8d5c5b4_Repository_9137D519:
+  44:       }
+    at ChildProcess.<anonymous> (/app/util.js:37:23)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:294:12)

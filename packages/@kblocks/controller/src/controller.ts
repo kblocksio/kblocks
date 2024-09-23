@@ -1,11 +1,7 @@
 import fs from "fs";
-import path from "path";
-import * as tar from "tar";
-import { synth } from "./synth";
-import { RuntimeHost } from "./host";
-import { exec, getenv, tempdir, tryGetenv } from "./util";
-import { newSlackThread } from "./slack";
-import { chatCompletion } from "./ai";
+import Redis from "ioredis";
+import { BindingContext } from "./types";
+import { createHash } from 'crypto';
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -14,43 +10,6 @@ if (!kblock.config) {
 
 if (!kblock.engine) {
   throw new Error("kblock.json must contain an 'engine' field");
-}
-
-async function extractArchive(dir: string) {
-  const encodedTgz = fs.readFileSync(path.join(dir, "archive.tgz"), "utf8");
-  const decodedTgz = Buffer.from(encodedTgz, "base64");
-  const targetDir = tempdir();
-  const tempFile = path.join(targetDir, "archive.tgz");
-  
-  fs.writeFileSync(tempFile, decodedTgz);
-
-  await tar.x({
-    cwd: targetDir,
-    file: tempFile,
-  });
-
-  fs.unlinkSync(tempFile);
-
-  return targetDir;
-}
-
-async function installDependencies(dir: string) {
-  if (fs.existsSync(path.join(dir, "package.json"))) {
-    if (fs.existsSync(path.join(dir, "node_modules"))) {
-      return;
-    }
-  
-    await exec("npm", ["install", "--production"], { cwd: dir });
-  }
-
-  if (fs.existsSync(path.join(dir, "Chart.yaml"))) {
-    if (fs.existsSync(path.join(dir, "__helm"))) {
-      return;
-    }
-
-    await exec("helm", ["dependency", "update"], { cwd: dir });
-    fs.writeFileSync(path.join(dir, "__helm"), "{}");
-  }
 }
 
 async function main() {
@@ -63,19 +22,14 @@ async function main() {
     throw new Error("BINDING_CONTEXT_PATH is not set");
   }
 
-  const mountdir = "/kblock";
+  if (!process.env.WORKERS) {
+    throw new Error("WORKERS is not set");
+  }
+
+  const workers = parseInt(process.env.WORKERS, 10);
+
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
-
-  const sourcedir = await extractArchive(mountdir);
-  await installDependencies(sourcedir);
-
-  const host: RuntimeHost = {
-    getenv,
-    tryGetenv,
-    exec,
-    newSlackThread,
-    chatCompletion,
-  };
+  const redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
   for (const ctx of context) {
     if ("objects" in ctx) {
@@ -83,10 +37,10 @@ async function main() {
         // copy from parent so we can reason about it.
         ctx2.type = ctx.type;
         ctx2.watchEvent = ctx.watchEvent;
-        await synth(sourcedir, host, kblock.engine, ctx2);
+        await sendContextToStream(redisClient, workers, ctx2);
       }
     } else if ("object" in ctx) {
-      await synth(sourcedir, host, kblock.engine, ctx);
+      await sendContextToStream(redisClient, workers, ctx);
     }
   }
 }
@@ -95,3 +49,18 @@ main().catch(err => {
   console.error(err.stack);
   process.exit(1);
 });
+
+async function sendContextToStream(redisClient: Redis, workers: number, context: BindingContext) {
+  try {
+    const hash = createHash('md5')
+      .update(`${context.object.metadata.namespace}/${context.object.metadata.name}`)
+      .digest('hex');
+    const workerIndex = parseInt(hash, 16) % workers;
+    const streamName = `worker-${workerIndex}`;
+
+    await redisClient.xadd(streamName, '*', 'context', JSON.stringify(context));
+    console.log(`Context sent to Redis stream ${streamName} successfully`);
+  } catch (error) {
+    console.error('Error sending context to Redis stream:', error);
+  }
+}

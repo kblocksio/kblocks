@@ -1,0 +1,51 @@
+[
+  {
+    "binding": "kubernetes",
+    "object": {
+      "apiVersion": "acme.com/v1",
+      "env": {
+        "ECHO_TEXT": "hello, kubernetes!"
+      },
+      "image": "hashicorp/http-echo",
+      "kind": "Workload",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"acme.com/v1\",\"env\":{\"ECHO_TEXT\":\"hello, kubernetes!\"},\"image\":\"hashicorp/http-echo\",\"kind\":\"Workload\",\"metadata\":{\"annotations\":{},\"name\":\"my-workload\"},\"port\":5678,\"replicas\":1}\n"
+        },
+        "creationTimestamp": "2024-07-21T23:15:48Z",
+        "generation": 1,
+        "managedFields": [
+          {
+            "apiVersion": "acme.com/v1",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {
+              "f:env": {
+                ".": {},
+                "f:ECHO_TEXT": {}
+              },
+              "f:image": {},
+              "f:metadata": {
+                "f:annotations": {
+                  ".": {},
+                  "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                }
+              },
+              "f:port": {},
+              "f:replicas": {}
+            },
+            "manager": "kubectl-client-side-apply",
+            "operation": "Update",
+            "time": "2024-07-21T23:15:48Z"
+          }
+        ],
+        "name": "my-workload",
+        "resourceVersion": "19235",
+        "uid": "82b88608-10fd-4260-bba6-b087ece78318"
+      },
+      "port": 5678,
+      "replicas": 1
+    },
+    "type": "Event",
+    "watchEvent": "Deleted"
+  }
+]

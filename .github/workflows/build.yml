@@ -105,6 +105,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: wingcloudbot/kblocks-controller:latest,wingcloudbot/kblocks-controller:${{ needs.build.outputs.version }}
 
+      - name: Build and push worker
+        uses: docker/build-push-action@v6
+        with:
+          context: packages/@kblocks/worker
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: wingcloudbot/kblocks-worker:latest,wingcloudbot/kblocks-worker:${{ needs.build.outputs.version }}
+
       - name: Login to NPM registry
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_PUBLISH_TOKEN }}
 
