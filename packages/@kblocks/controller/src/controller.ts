@@ -2,7 +2,6 @@ import fs from "fs";
 import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
-import { createUI } from "./ui";
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -27,13 +26,15 @@ async function main() {
     throw new Error("WORKERS is not set");
   }
 
-  const workers = parseInt(process.env.WORKERS, 10);
+  // if (!process.env.REDIS_URL) {
+  //   throw new Error("REDIS_URL is not set");
+  // }
 
+  const workers = parseInt(process.env.WORKERS, 10);
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
   const redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-  createUI(workers, redisClient);
-
+  console.log("Sending context to stream", context);
   for (const ctx of context) {
     if ("objects" in ctx) {
       for (const ctx2 of ctx.objects) {
@@ -46,6 +47,8 @@ async function main() {
       await sendContextToStream(redisClient, workers, ctx);
     }
   }
+
+  redisClient.quit();
 }
 
 main().catch(err => {
