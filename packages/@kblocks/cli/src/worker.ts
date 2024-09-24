@@ -1,6 +1,7 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
 import * as cdk8s from "cdk8s";
+import { createHashFromConfigMap } from "./configmap";
 
 export interface WorkerProps {
   image: string;
@@ -77,6 +78,8 @@ export class Worker extends Construct {
     for (const [key, value] of Object.entries(props.configMaps)) {
       const volume = k8s.Volume.fromConfigMap(this, `ConfigMapVolume-${key}`, value);
       controller.addVolume(volume);
+      controller.metadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
+      controller.podMetadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
 
       volumeMounts.push({
         volume,

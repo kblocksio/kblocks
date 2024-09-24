@@ -1,6 +1,9 @@
 import { Construct } from "constructs";
 import { ConfigMap } from "cdk8s-plus-30";
 import * as tar from "tar";
+import crypto from "crypto";
+import { readdirSync } from "fs";
+import { relative, join } from "path";
 import { readManifest } from "./types";
 
 export interface ConfigMapVolumeProps {
@@ -38,13 +41,41 @@ export class ConfigMapFromDirectory extends Construct {
 export async function createTgzBase64(directory: string): Promise<string> {
   const excludedFolders = ["node_modules", ".git", "target", ".DS_Store"];
   
+  const getAllFiles = (dir: string): string[] => {
+    const files = readdirSync(dir, { withFileTypes: true });
+    let paths: string[] = [];
+    
+    for (const file of files) {
+      if (excludedFolders.includes(file.name)) continue;
+      
+      const fullPath = join(dir, file.name);
+      if (file.isDirectory()) {
+        paths = paths.concat(getAllFiles(fullPath));
+      } else {
+        paths.push(fullPath);
+      }
+    }
+    
+    return paths.sort(); // Sort the paths for deterministic order
+  };
+  
+  const filesToArchive = getAllFiles(directory);
+
   const tarStream = tar.create(
     { 
-      gzip: true, 
+      gzip: true,
+      sync: false,
+      noMtime: true,
       cwd: directory,
-      filter: (path) => !excludedFolders.some(folder => path.includes(folder))
+      portable: true,
+      filter: (_, stat) => {
+        stat.mtime = undefined;
+        stat.atime = undefined;
+        stat.ctime = undefined;
+        return true;
+      }
     }, 
-    ['.']
+    filesToArchive.map(file => relative(directory, file))
   );
   
   const chunks: Buffer[] = [];
@@ -71,4 +102,17 @@ export function readBlockJson(directory: string) {
       ]
     }
   });
+}
+
+export function createHashFromConfigMap(configMap: ConfigMap) {
+  const data = configMap.data;
+  const binaryData = configMap.binaryData;
+
+  const combinedData = { ...data, ...binaryData };
+
+  const sortedKeys = Object.keys(combinedData).sort();
+  const sortedValues = sortedKeys.map(key => combinedData[key]);
+
+  const sortedData = sortedValues.join("\n");
+  return crypto.createHash("sha256").update(sortedData).digest("hex").substring(0, 62);
 }
