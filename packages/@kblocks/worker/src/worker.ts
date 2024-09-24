@@ -70,6 +70,8 @@ async function main() {
     throw new Error("WORKER_INDEX is not set");
   }
 
+  startServer();
+
   const mountdir = "/kblock";
   
   // Redis client for Redlock
@@ -120,7 +122,6 @@ async function main() {
     setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
   }
 
-  startServer();
   listenForMessage();
 }
 
