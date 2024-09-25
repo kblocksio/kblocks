@@ -24,7 +24,8 @@ export const Manifest = z.object({
     z.literal("helm"), 
     z.literal("wing"), 
     z.literal("wing/tf-aws"), 
-    z.literal("wing/k8s")
+    z.literal("wing/k8s"),
+    z.literal("noop"),
   ]),
 
   definition: z.intersection(CustomResourceDefinition, z.object({

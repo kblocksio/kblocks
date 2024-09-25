@@ -71,6 +71,9 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
       case "tofu":
         outputs = await applyTofu(workdir, host, ctx, values);
         break;
+      case "noop":
+        outputs = {};
+        break;
       default:
         throw new Error(`unsupported engine: ${engine}`);
     }

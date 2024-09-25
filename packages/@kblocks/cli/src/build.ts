@@ -114,7 +114,7 @@ async function resolveSchema(sourcedir: string, props: Manifest): Promise<JsonSc
   }
 
   // for helm and tofu, we can read the schema from the values.schema.json file
-  if (props.engine === "helm" || props.engine === "tofu") {
+  if (props.engine === "helm" || props.engine === "tofu" || props.engine === "noop") {
     const schemaFile = `${sourcedir}/values.schema.json`;
 
     if (!(await fs.access(schemaFile, fs.constants.R_OK).then(() => true).catch(() => false))) {
