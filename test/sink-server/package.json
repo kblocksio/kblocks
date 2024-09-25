@@ -1,15 +1,10 @@
 {
-  "name": "@kblocks/worker",
+  "name": "@kblocks/test-sink-server",
   "type": "commonjs",
   "dependencies": {
     "@types/ws": "^8.5.12",
     "express": "^4.21.0",
-    "ioredis": "^5.4.1",
-    "openai": "^4.0.0",
-    "reconnecting-websocket": "^4.4.0",
-    "tar": "^7.4.3",
-    "ws": "^8.18.0",
-    "yaml": "^2.5.0"
+    "ws": "^8.18.0"
   },
   "main": "src/index.js",
   "scripts": {

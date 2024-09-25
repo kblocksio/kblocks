@@ -101,7 +101,7 @@ export class Operator extends Construct {
     });
 
     // Add Redis sidecar container
-    const redisContainer = controller.addContainer({
+    controller.addContainer({
       name: "redis",
       image: "redis:6.2-alpine",
       imagePullPolicy: k8s.ImagePullPolicy.IF_NOT_PRESENT,

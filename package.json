@@ -1,7 +1,10 @@
 {
+  "name": "kblocks",
   "private": true,
+
   "scripts": {
     "watch": "cd packages/@kblocks/cli && npx tsc --watch",
+    "dev": "skaffold run --tail",
     "build": "./build.sh"
   },
   "workspaces": [

@@ -46,6 +46,11 @@ async function installDependencies(dir: string) {
     await exec("npm", ["install", "--production"], { cwd: dir });
   }
 
+  // make sure @winglibs/k8s is installed if this is a wing/k8s block.
+  if (kblock.engine === "wing" || kblock.engine === "wing/k8s") {
+    await exec("npm", ["install", "@winglibs/k8s"], { cwd: dir });
+  }
+
   if (fs.existsSync(path.join(dir, "Chart.yaml"))) {
     if (fs.existsSync(path.join(dir, "__helm"))) {
       return;
@@ -70,13 +75,11 @@ async function main() {
     throw new Error("WORKER_INDEX is not set");
   }
 
-  startServer();
-
   const mountdir = "/kblock";
   
   // Redis client for Redlock
   const redisClient = new Redis(process.env.REDIS_URL, {
-    retryStrategy: (times) => {
+    retryStrategy: (times: number) => {
       console.log(`Retrying Redis connection attempt ${times}`);
       return times * 1000;
     },
@@ -86,15 +89,24 @@ async function main() {
   const sourcedir = await extractArchive(mountdir);
   await installDependencies(sourcedir);
 
+  const sink = await startServer();
+
   const host: RuntimeHost = {
     getenv,
     tryGetenv,
     exec,
     newSlackThread,
     chatCompletion,
+    events: sink,
   };
 
   const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
+
+  sink.emit({
+    type: "HELLO",
+    message: "Hello kblocks sink, how are you today?",
+    workerIndex,
+  });
 
   async function listenForMessage(lastId = "0") {
     console.log(`Listening for messages on worker-${workerIndex} with id: `, lastId);

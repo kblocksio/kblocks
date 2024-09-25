@@ -11,7 +11,7 @@ import type { SpawnOptions } from "child_process";
 export async function applyWing(workdir: string, host: RuntimeHost, engine: string, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const [_, target] = engine.split("/");
 
-  if (!target) {
+  if (!target || target === "k8s") {
     return await applyWingKubernetes(workdir, host, values, ctx);
   } else if (target.startsWith("tf-")) {
     return await applyWingTerraform(workdir, host, values, ctx, target);

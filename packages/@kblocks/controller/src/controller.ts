@@ -32,9 +32,9 @@ async function main() {
 
   const workers = parseInt(process.env.WORKERS, 10);
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
-  const redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+  const redisClient = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
 
-  console.log("Sending context to stream", context);
+  console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {
     if ("objects" in ctx) {
       for (const ctx2 of ctx.objects) {

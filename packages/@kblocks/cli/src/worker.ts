@@ -92,7 +92,7 @@ export class Worker extends Construct {
       imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
       resources: {
         cpu: {
-          request: k8s.Cpu.millis(100),
+          request: k8s.Cpu.millis(1),
           limit: k8s.Cpu.units(1),
         },
       },

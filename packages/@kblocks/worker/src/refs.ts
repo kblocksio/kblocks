@@ -1,5 +1,5 @@
 import { RuntimeHost, publishEvent } from "./host";
-import type { ApiObject } from "./types";
+import type { ApiObject, ObjectRef } from "./types";
 
 // regular expression that matches `${ref://apigroup/name/field}`, for example: `${ref://queues.acme.com/my-queue/queueUrl}`
 const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
@@ -14,12 +14,12 @@ interface ResolveContext {
   field: string;
 }
 
-export async function resolveReferences(cwd: string, host: RuntimeHost, obj: ApiObject) {
+export async function resolveReferences(cwd: string, host: RuntimeHost, objRef: ObjectRef, obj: ApiObject) {
 
   return await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }: ResolveContext) => {
     const kubectl = (...args: string[]) => host.exec("kubectl", args, { cwd });
 
-    await publishEvent(host, obj, {
+    await publishEvent(host, objRef, {
       type: "Normal",
       reason: "Resolving",
       message: ref,
@@ -39,7 +39,7 @@ export async function resolveReferences(cwd: string, host: RuntimeHost, obj: Api
       "-o", `jsonpath={.status.${field}}`
     );
 
-    await publishEvent(host, obj, {
+    await publishEvent(host, objRef, {
       type: "Normal",
       reason: "Resolved",
       message: `${ref}=${value}`,

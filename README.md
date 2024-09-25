@@ -29,35 +29,24 @@ npm i
 
 ## Setup
 
-1. Development Cluster
+You'll nee a Kubernetes cluster, you can get one from [quickube](https://quickube.sh):
 
-See [Cluster Setup](./docs/cluster.md) for instructions on how to setup your development cluster
-either locally or remotely.
+```sh
+qkube new --size small
+```
 
 2. Slack Notifications
 
 You will need to create a Slack channel called `#kblocks-dev-$USER` and invite `@MonadaCo Platform`
 to it in order to receive notifications from your local cluster.
 
-3. Build & Install the Acme Operators
+3. Build & Deploy to the Cluster
 
-This script will build a helm chart with your operators and install them into your Kubernetes
-cluster. Note that images are going to be pushed to `kind-registry:5001`.
+> We have a [skaffold](https://skaffold.dev/) setup.
 
 ```sh
-./install.sh
+npm run dev
 ```
-
-> The `./build.sh` script will only build, push the images and produce the Helm chart that contains
-> all the controllers under `dist/`.
-
-## Usage
-
-The `kblocks.list` file includes a list of directories to build. You can comment out lines there
-with "#" to skip.
-
-There's a shared `kblocks.yaml` file under [`acme/kblocks.yaml`](./acme/kblocks.yaml). It is
-`include`d by the specific blocks.
 
 ## Resource documentation
 
@@ -97,8 +86,6 @@ operator:
 The schema of the object will be read from the file `values.json.schema` which is the standard way
 for helm to validate values schema with [helm lint](https://helm.sh/docs/helm/helm_lint/) which will
 be executed before `upgrade`.
-
-
 
 ## Wing Kubernetes Resources
 
@@ -209,16 +196,11 @@ If the controller encounters this token when reconciling a resource, it will fir
 referenced resource to be ready and then it will read the value from it's state and replace it in
 the manifest being reconciled.
 
-## Build and Deployment
+## Event Reporting
 
-There's a simple CLI under `kblocks/bin/kblocks` which can be used to produce your kblocks helm package.
+If you specify a WebSocket address in `EVENTS_WS_URL`, workers will send there everything that's going on.
 
-This script will call `kblocks build` and then install it via Helm:
-
-```sh
-./install.sh
-```
-
+Check out the protocol under: [`events.ts`](./packages/@kblocks/worker/src/events.ts).
 
 ## Roadmap
 

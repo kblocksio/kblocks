@@ -1,9 +1,10 @@
 import { chatCompletion } from "./ai";
 import { newSlackThread } from "./slack";
-import { ApiObject, Event } from "./types";
+import { Event, ObjectRef } from "./types";
 import { exec, getenv, tryGetenv, tempdir } from "./util";
 import fs from "fs";
 import path from "path";
+import { Events } from "./http";
 
 export interface RuntimeHost {
   newSlackThread: typeof newSlackThread,
@@ -11,22 +12,29 @@ export interface RuntimeHost {
   tryGetenv: typeof tryGetenv,
   exec: typeof exec,
   chatCompletion: typeof chatCompletion;
+  events: Events;
 }
 
 export function kblockOutputs(host: RuntimeHost) {
   return (host.tryGetenv("KBLOCK_OUTPUTS") ?? "").split(",").filter(x => x);
 }
 
-export async function patchObjectStatus(host: RuntimeHost, obj: ApiObject, patch: any) {
+export async function patchObjectState(host: RuntimeHost, objRef: ObjectRef, patch: any) {
   try {
-    const namespace = obj.metadata.namespace ?? "default";
-    const group = obj.apiVersion.split("/")[0];
-    const type = `${obj.kind.toLowerCase()}.${group}`;
+    const group = objRef.apiVersion.split("/")[0];
+    const type = `${objRef.kind.toLowerCase()}.${group}`;
+
+    host.events.emit({
+      type: "PATCH",
+      objRef,
+      patch: { status: patch },
+    });
+
     await host.exec("kubectl", [
       "patch",
       type,
-      obj.metadata.name,
-      "-n", namespace,
+      objRef.name,
+      "-n", objRef.namespace,
       "--type", "merge",
       "--subresource", "status",
       "--patch", JSON.stringify({ status: patch }),
@@ -35,28 +43,29 @@ export async function patchObjectStatus(host: RuntimeHost, obj: ApiObject, patch
     // just ignore errors
   }
 }
-export async function publishEvent(host: RuntimeHost, obj: ApiObject, event: Event) {
+export async function publishEvent(host: RuntimeHost, objRef: ObjectRef, event: Event) {
   const workdir = tempdir();
   try {
-    const namespace = obj.metadata.namespace ?? "default";
-
     // create a unique event name
     const name = "kblock-event-" + Math.random().toString(36).substring(7);
     const eventJson = path.join(workdir, "event.json");
+
+  
+    host.events.emit({
+      type: "LIFECYCLE",
+      objRef,
+      event,
+      timestamp: new Date().toISOString(),
+    });
+  
     fs.writeFileSync(eventJson, JSON.stringify({
       apiVersion: "v1",
       kind: "Event",
-      metadata: { name, namespace },
-      involvedObject: {
-        kind: obj.kind,
-        namespace,
-        name: obj.metadata.name,
-        uid: obj.metadata.uid,
-        apiVersion: obj.apiVersion,
-      },
+      metadata: { name, namespace: objRef.namespace },
+      involvedObject: objRef,
       firstTimestamp: new Date(),
       reportingComponent: "kblocks/operator",
-      reportingInstance: `${obj.apiVersion}/${obj.kind}`,
+      reportingInstance: `${objRef.apiVersion}/${objRef.kind}`,
       ...event,
     }));
 
@@ -67,7 +76,7 @@ export async function publishEvent(host: RuntimeHost, obj: ApiObject, event: Eve
 
   } catch (err: any) {
     console.warn("WARNING: unable to publish event:", err.stack);
-    console.warn(obj);
+    console.warn(objRef);
     console.warn(event);
   } finally {
     fs.rmSync(workdir, { recursive: true, force: true });

@@ -6,8 +6,9 @@ import { applyWing } from "./wing";
 import { resolveReferences } from "./refs";
 import { explainError } from "./ai";
 import { applyTofu } from "./tofu";
-import { patchObjectStatus, publishEvent, RuntimeHost } from "./host";
-import { BindingContext } from "./types";
+import { patchObjectState, publishEvent, RuntimeHost } from "./host";
+import { BindingContext, ObjectRef } from "./types";
+import { ObjectEvent, WorkerEvent } from "./events";
 
 export async function synth(sourcedir: string, host: RuntimeHost, engine: string, ctx: BindingContext) {
   // skip updates to the "status" subresource
@@ -19,6 +20,14 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     }
   }
 
+  const objRef: ObjectRef = {
+    kind: ctx.object.kind,
+    namespace: ctx.object.metadata.namespace ?? "default",
+    name: ctx.object.metadata.name,
+    uid: ctx.object.metadata.uid,
+    apiVersion: ctx.object.apiVersion,
+  };
+
   // create a temporary directory to work in, which we will clean up at the end
   const workdir = tempdir();
   await fs.cp(sourcedir, workdir, { recursive: true });
@@ -26,7 +35,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
   console.log("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
-  const updateReadyCondition = async (ready: boolean, message: string) => patchObjectStatus(host, ctx.object, {
+  const updateReadyCondition = async (ready: boolean, message: string) => patchObjectState(host, objRef, {
     conditions: [{
       type: "Ready",
       status: ready ? "True" : "False",
@@ -36,12 +45,35 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     }]
   });
 
+  let reason: ObjectEvent["reason"];
+  switch (ctx.watchEvent) {
+    case "Deleted":
+      reason = "DELETE";
+      break;
+    case "Modified":
+      reason = "UPDATE";
+      break;
+    case "Added":
+      reason = "CREATE";
+      break;
+    default:
+      reason = "SYNC";
+      break;
+  }
+
+  host.events.emit({
+    type: "OBJECT",
+    object: reason === "DELETE" ? {} : ctx.object,
+    objRef,
+    reason,
+  });
+
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
-  const slackStatus = (icon: string, reason: string) => `${icon} _${ctx.object.kind}_ *${ctx.object.metadata.namespace ?? "default"}/${ctx.object.metadata.name}*: ${reason}`;
+  const slackStatus = (icon: string, reason: string) => `${icon} _${objRef.kind}_ *${objRef.namespace}/${objRef.name}*: ${reason}`;
   const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
 
   try {
-    await publishEvent(host, ctx.object, {
+    await publishEvent(host, objRef, {
       type: "Normal",
       reason: "UpdateStarted",
       message: "Starting to update resource",
@@ -49,7 +81,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
 
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, "Resolving references");
-    ctx.object = await resolveReferences(workdir, host, ctx.object);
+    ctx.object = await resolveReferences(workdir, host, objRef, ctx.object);
     
     console.log(JSON.stringify(ctx, undefined, 2));
 
@@ -79,14 +111,14 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     }
 
     if (Object.keys(outputs).length > 0) {
-      await patchObjectStatus(host, ctx.object, outputs);
+      await patchObjectState(host, objRef, outputs);
     }
 
     if (isDeletion) {
       await slack.update(slackStatus("⚪", "Deleted"));
     } else {
       await updateReadyCondition(true, "Success");
-      await publishEvent(host, ctx.object, {
+      await publishEvent(host, objRef, {
         type: "Normal",
         reason: "UpdateSucceeded",
         message: "Resource updated successfully",
@@ -101,7 +133,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     }
   } catch (err: any) {
     console.error(err.stack);
-    await publishEvent(host, ctx.object, {
+    await publishEvent(host, objRef, {
       type: "Warning",
       reason: "Error",
       message: err.stack,
@@ -110,6 +142,14 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     await slack.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
     await slack.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
     const explanation = await explainError(host, ctx, err.message);
+
+    host.events.emit({
+      type: "ERROR",
+      message: err.message,
+      stack: err.stack,
+      explanation,
+    });
+
     if (explanation?.blocks) {
       explanation?.blocks.push({
         type: "section",

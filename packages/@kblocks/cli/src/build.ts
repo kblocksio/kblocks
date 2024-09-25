@@ -69,6 +69,7 @@ export async function build(opts: Options) {
     env: {
       // redis url should be the url of the redis instance in the operator
       REDIS_URL: `redis://${redisServiceName}.${block.operator?.namespace ?? "default"}.svc.cluster.local:${6379}`,
+      ...block.operator?.env,
     }
   });
 

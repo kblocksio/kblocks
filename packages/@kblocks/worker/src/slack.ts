@@ -1,3 +1,5 @@
+import { RuntimeHost } from "./host";
+
 type Context  = {
   ts?: string;
   channel?: string;
