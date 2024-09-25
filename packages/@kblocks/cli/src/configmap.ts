@@ -68,6 +68,7 @@ export async function createTgzBase64(directory: string): Promise<string> {
       noMtime: true,
       cwd: directory,
       portable: true,
+      follow: true,
       filter: (_, stat) => {
         stat.mtime = undefined;
         stat.atime = undefined;
