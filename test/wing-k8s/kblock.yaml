@@ -11,4 +11,7 @@ definition:
 operator:
   namespace: kblocks-test
   env:
-    KBLOCKS_EVENTS_URL: "http://{{ .Release.Name }}-sink.kblocks-test.svc.cluster.local:80/events"
+    #KBLOCKS_EVENTS_URL: "http://{{ .Release.Name }}-sink.kblocks-test.svc.cluster.local:80/events"
+    KBLOCKS_EVENTS_URL: https://api.kblocks.io/api/events
+    KBLOCKS_CONTROL_URL: wss://api.kblocks.io/api/control
+    KBLOCKS_SYSTEM_ID: demo

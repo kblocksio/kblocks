@@ -2,17 +2,23 @@ import fs from "fs";
 import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
-
-const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
-if (!kblock.config) {
-  throw new Error("kblock.json must contain a 'config' field");
-}
-
-if (!kblock.engine) {
-  throw new Error("kblock.json must contain an 'engine' field");
-}
+import { startControl } from "./control";
 
 async function main() {
+  const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
+  if (!kblock.config) {
+    throw new Error("kblock.json must contain a 'config' field");
+  }
+  
+  if (!kblock.engine) {
+    throw new Error("kblock.json must contain an 'engine' field");
+  }
+
+  const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
+  if (!KBLOCKS_SYSTEM_ID) {
+    throw new Error("KBLOCKS_SYSTEM_ID is not set");
+  }
+
   if (process.argv[2] === "--config") {
     process.stdout.write(JSON.stringify(kblock.config, null, 2));
     return process.exit(0);
@@ -26,13 +32,17 @@ async function main() {
     throw new Error("WORKERS is not set");
   }
 
-  // if (!process.env.REDIS_URL) {
-  //   throw new Error("REDIS_URL is not set");
-  // }
-
   const workers = parseInt(process.env.WORKERS, 10);
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
   const redisClient = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
+
+  for (const kubernetes of kblock.config.kubernetes) {
+    startControl({
+      apiVersion: kubernetes.apiVersion,
+      kind: kubernetes.kind,
+      systemId: KBLOCKS_SYSTEM_ID
+    });
+  }
 
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {

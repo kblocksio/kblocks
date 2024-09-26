@@ -4,8 +4,11 @@
   "dependencies": {
     "@bull-board/api": "^5.23.0",
     "@bull-board/express": "^5.23.0",
+    "@types/ws": "^8.5.12",
     "express": "^4.21.0",
-    "ioredis": "^5.4.1"
+    "ioredis": "^5.4.1",
+    "reconnecting-websocket": "^4.4.0",
+    "ws": "^8.18.0"
   },
   "main": "src/controller.js",
   "scripts": {

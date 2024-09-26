@@ -22,8 +22,10 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
     }
   }
 
-  // TODO: this should be different for each project
-  const sysId = "sys-001";
+  const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
+  if (!KBLOCKS_SYSTEM_ID) {
+    throw new Error("KBLOCKS_SYSTEM_ID is not set");
+  }
 
   const objRef: InvolvedObject = {
     apiVersion: ctx.object.apiVersion,
@@ -34,7 +36,7 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
   };
 
   const objType = `${objRef.apiVersion}/${objRef.kind.toLocaleLowerCase()}`;
-  const objUri = `kblocks://${objType}/${sysId}/${objRef.namespace}/${objRef.name}`;
+  const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
 
   const logger = createLogger(events, objUri, objType);
 
