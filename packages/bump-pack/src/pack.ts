@@ -43,7 +43,7 @@ export async function pack(options: PackOptions) {
     await fs.ensureDir(tmpDir);
     await fs.copy(packageDir, tmpDir, {
       // we'll take care to follow certain symlinks later
-      dereference: false,
+      dereference: true,
       overwrite: true,
     });
 

@@ -1,4 +1,4 @@
-import { LogLevel } from "./events";
+import { LogLevel } from "./types";
 import crypto from "crypto";
 import { Events } from "./http";
 

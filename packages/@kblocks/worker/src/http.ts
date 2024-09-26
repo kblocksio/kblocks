@@ -2,7 +2,7 @@ import express from "express";
 import WebSocket from "ws";
 import ReconnectingWebSocket from "reconnecting-websocket";
 
-import { WorkerEvent } from "./events";
+import { WorkerEvent } from "./types";
 
 const EVENTS_WS_URL = process.env.EVENTS_WS_URL;
 

@@ -3,8 +3,6 @@ export type BindingContext = {
   object: ApiObject;
 };
 
-
-
 export type ApiObject =  {
   apiVersion: string;
   kind: string;

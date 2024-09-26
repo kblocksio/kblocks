@@ -9,6 +9,7 @@
   },
   "main": "src/controller.js",
   "scripts": {
+    "build": "tsc --noEmit",
     "test": "vitest **/*.test.ts *.test.ts",
     "watch": "tsc --watch"
   },
