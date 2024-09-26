@@ -26,13 +26,20 @@ export const startServer = async (): Promise<Events> => {
 
   return {
     emit: event => {
-      fetch(KBLOCKS_EVENTS_URL, {
+      const req = {
         method: "POST",
         body: JSON.stringify(event),
-      }).then(res => {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      fetch(KBLOCKS_EVENTS_URL, req).then(res => {
         if (!res.ok) {
           console.warn("Failed to send event to backend", res);
         }
+      }).catch(err => {
+        console.warn("Failed to send event to backend", err);
       });
     },
   };
