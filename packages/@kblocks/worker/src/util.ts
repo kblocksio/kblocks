@@ -2,13 +2,15 @@ import * as child_process from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import util from "util";
+import { createLogger } from "./logging";
 
-export function exec(command: string, args: string[], options: child_process.SpawnOptions = {}): Promise<string> {
+export function exec(logger: ReturnType<typeof createLogger> | undefined, command: string, args: string[], options: child_process.SpawnOptions = {}): Promise<string> {
   args = args || [];
   options = options || {};
 
   return new Promise((resolve, reject) => {
-    console.log("$", command, args.join(" "));
+    const log = logger?.info(util.format("$", command, args.join(" ")));
 
     const proc = child_process.spawn(command, args, { 
       stdio: ["inherit", "pipe", "pipe"], 
@@ -25,12 +27,18 @@ export function exec(command: string, args: string[], options: child_process.Spa
     const stderr: Uint8Array[] = [];
   
     proc.stdout?.on("data", data => {
-      process.stdout.write(data);
+      log?.info(data.toString());
+      if (!log) {
+        process.stdout.write(data);
+      }
       stdout.push(data);
     });
 
     proc.stderr?.on("data", data => {
-      process.stderr.write(data);
+      log?.error(data.toString());
+      if (!log) {
+        process.stderr.write(data);
+      }
       stderr.push(data);
     });
   

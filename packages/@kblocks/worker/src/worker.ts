@@ -3,12 +3,10 @@ import path from "path";
 import * as tar from "tar";
 import Redis from "ioredis";
 import { synth } from "./synth";
-import { RuntimeHost } from "./host";
-import { exec, getenv, tempdir, tryGetenv } from "./util";
-import { newSlackThread } from "./slack";
-import { chatCompletion } from "./ai";
+import { exec, tempdir } from "./util";
 import { BindingContext } from "./types";
 import { startServer } from "./http";
+
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -38,17 +36,18 @@ async function extractArchive(dir: string) {
 }
 
 async function installDependencies(dir: string) {
+
   if (fs.existsSync(path.join(dir, "package.json"))) {
     if (fs.existsSync(path.join(dir, "node_modules"))) {
       return;
     }
   
-    await exec("npm", ["install", "--production"], { cwd: dir });
+    await exec(undefined, "npm", ["install", "--production"], { cwd: dir });
   }
 
   // make sure @winglibs/k8s is installed if this is a wing/k8s block.
   if (kblock.engine === "wing" || kblock.engine === "wing/k8s") {
-    await exec("npm", ["install", "@winglibs/k8s"], { cwd: dir });
+    await exec(undefined, "npm", ["install", "@winglibs/k8s"], { cwd: dir });
   }
 
   if (fs.existsSync(path.join(dir, "Chart.yaml"))) {
@@ -56,7 +55,7 @@ async function installDependencies(dir: string) {
       return;
     }
 
-    await exec("helm", ["dependency", "update"], { cwd: dir });
+    await exec(undefined, "helm", ["dependency", "update"], { cwd: dir });
     fs.writeFileSync(path.join(dir, "__helm"), "{}");
   }
 }
@@ -86,27 +85,12 @@ async function main() {
     maxRetriesPerRequest: null,
   });
 
+  const events = await startServer();
+
   const sourcedir = await extractArchive(mountdir);
   await installDependencies(sourcedir);
 
-  const sink = await startServer();
-
-  const host: RuntimeHost = {
-    getenv,
-    tryGetenv,
-    exec,
-    newSlackThread,
-    chatCompletion,
-    events: sink,
-  };
-
   const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
-
-  sink.emit({
-    type: "HELLO",
-    message: "Hello kblocks sink, how are you today?",
-    workerIndex,
-  });
 
   async function listenForMessage(lastId = "0") {
     console.log(`Listening for messages on worker-${workerIndex} with id: `, lastId);
@@ -123,7 +107,7 @@ async function main() {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
-        await synth(sourcedir, host, kblock.engine, event);
+        await synth(sourcedir, kblock.engine, event, events);
       } catch (error) {
         console.error(`Error processing event: ${error}.`);
       } finally {

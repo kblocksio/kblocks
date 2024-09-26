@@ -22,11 +22,8 @@ export const startServer = async (): Promise<Events> => {
   });
 
   if (!EVENTS_WS_URL) {
-    return {
-      emit: event => {
-        console.log("EVENTS_WS_URL not configured, skipping:", JSON.stringify(event));
-      },
-    };
+    console.warn("WARNING: EVENTS_WS_URL not configured, events will not be sent to the backend");
+    return { emit: () => {} }; // noop
   }
 
   // connect to the backend throught the websocket
@@ -36,22 +33,14 @@ export const startServer = async (): Promise<Events> => {
     maxRetries: Infinity,
   });
 
-  ws.addEventListener("open", () => {
-    console.log("Connected to the sink backend");
-  });
-
-  ws.addEventListener("error", error => {
-    console.error("Error connecting to the sink backend", error);
-  });
-
   return {
     emit: event => {
-      if (ws.readyState !== WebSocket.OPEN) { 
-        console.log("Socket not connected, skipping event", event);
+      if (ws.readyState !== WebSocket.OPEN) {
+        // socket not connected, skip
         return;
       }
 
       ws.send(JSON.stringify(event));
-    }
+    },
   };
 };

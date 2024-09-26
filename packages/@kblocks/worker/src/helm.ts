@@ -1,9 +1,9 @@
-import { RuntimeHost } from "./host";
+import { RuntimeContext } from "./host";
 import type { BindingContext } from "./types";
 
 const postRenderPath = require.resolve("./helm-add-ownership");
 
-export async function applyHelm(dir: string, host: RuntimeHost, ctx: BindingContext, values: string): Promise<Record<string, any>> {
+export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const obj = ctx.object;
 
   const namespace = obj.metadata.namespace ?? "default";

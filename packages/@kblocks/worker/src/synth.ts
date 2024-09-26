@@ -1,16 +1,19 @@
 import fs from "fs/promises";
 import path from "path";
 import { applyHelm } from "./helm";
-import { tempdir } from "./util";
+import { exec, getenv, tempdir, tryGetenv } from "./util";
 import { applyWing } from "./wing";
 import { resolveReferences } from "./refs";
-import { explainError } from "./ai";
+import { chatCompletion, explainError } from "./ai";
 import { applyTofu } from "./tofu";
-import { patchObjectState, publishEvent, RuntimeHost } from "./host";
-import { BindingContext, ObjectRef } from "./types";
-import { ObjectEvent, WorkerEvent } from "./events";
+import { patchObjectState, publishEvent, RuntimeContext } from "./host";
+import { BindingContext, InvolvedObject } from "./types";
+import { ObjectEvent } from "./events";
+import { createLogger } from "./logging";
+import { newSlackThread } from "./slack";
+import { Events } from "./http";
 
-export async function synth(sourcedir: string, host: RuntimeHost, engine: string, ctx: BindingContext) {
+export async function synth(sourcedir: string, engine: string, ctx: BindingContext, events: Events) {
   // skip updates to the "status" subresource
   if (ctx.watchEvent === "Modified") {
     const managedFields = ctx.object.metadata?.managedFields ?? [];
@@ -20,12 +23,33 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     }
   }
 
-  const objRef: ObjectRef = {
+  // TODO: this should be different for each project
+  const sysId = "sys-001";
+
+  const objRef: InvolvedObject = {
+    apiVersion: ctx.object.apiVersion,
     kind: ctx.object.kind,
     namespace: ctx.object.metadata.namespace ?? "default",
     name: ctx.object.metadata.name,
     uid: ctx.object.metadata.uid,
-    apiVersion: ctx.object.apiVersion,
+  };
+
+  const objType = `${objRef.apiVersion}/${objRef.kind.toLocaleLowerCase()}`;
+  const objUri = `kblocks://${objType}/${sysId}/${objRef.namespace}/${objRef.name}`;
+
+  const logger = createLogger(events, objUri, objType);
+
+  const host: RuntimeContext = {
+    getenv,
+    tryGetenv,
+    newSlackThread,
+    chatCompletion,
+    events,
+    objUri,
+    objType,
+    objRef,
+    logger,
+    exec: (command, args, options) => exec(logger, command, args, options),
   };
 
   // create a temporary directory to work in, which we will clean up at the end
@@ -35,7 +59,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
   console.log("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
-  const updateReadyCondition = async (ready: boolean, message: string) => patchObjectState(host, objRef, {
+  const updateReadyCondition = async (ready: boolean, message: string) => patchObjectState(host, {
     conditions: [{
       type: "Ready",
       status: ready ? "True" : "False",
@@ -63,8 +87,9 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
 
   host.events.emit({
     type: "OBJECT",
+    objUri,
+    objType,
     object: reason === "DELETE" ? {} : ctx.object,
-    objRef,
     reason,
   });
 
@@ -73,7 +98,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
   const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
 
   try {
-    await publishEvent(host, objRef, {
+    await publishEvent(host, {
       type: "Normal",
       reason: "UpdateStarted",
       message: "Starting to update resource",
@@ -81,9 +106,8 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
 
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, "Resolving references");
-    ctx.object = await resolveReferences(workdir, host, objRef, ctx.object);
-    
-    console.log(JSON.stringify(ctx, undefined, 2));
+    ctx.object = await resolveReferences(workdir, host, ctx.object);
+    console.log(JSON.stringify(ctx)); // one line per object
 
     await updateReadyCondition(false, "In progress");
 
@@ -111,14 +135,14 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     }
 
     if (Object.keys(outputs).length > 0) {
-      await patchObjectState(host, objRef, outputs);
+      await patchObjectState(host, outputs);
     }
 
     if (isDeletion) {
       await slack.update(slackStatus("⚪", "Deleted"));
     } else {
       await updateReadyCondition(true, "Success");
-      await publishEvent(host, objRef, {
+      await publishEvent(host, {
         type: "Normal",
         reason: "UpdateSucceeded",
         message: "Resource updated successfully",
@@ -133,7 +157,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     }
   } catch (err: any) {
     console.error(err.stack);
-    await publishEvent(host, objRef, {
+    await publishEvent(host, {
       type: "Warning",
       reason: "Error",
       message: err.stack,
@@ -144,6 +168,8 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
     const explanation = await explainError(host, ctx, err.message);
 
     host.events.emit({
+      objUri,
+      objType,
       type: "ERROR",
       message: err.message,
       stack: err.stack,
@@ -155,7 +181,7 @@ export async function synth(sourcedir: string, host: RuntimeHost, engine: string
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "✨ _AI-generated_",
+          text: "✨ _Powered by AI_",
         },
       });
       await slack.postBlocks(explanation.blocks);

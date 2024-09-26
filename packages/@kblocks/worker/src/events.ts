@@ -1,44 +1,48 @@
-import { ApiObject, Event, ObjectRef } from "./types";
+import { ApiObject, Event } from "./types";
 
-export interface ObjectEvent {
+export interface EventBase {
+  objUri: string;
+  objType: string;
+}
+
+export interface ObjectEvent extends EventBase {
   type: "OBJECT";
   object: ApiObject | {};
-  objRef: ObjectRef;
   reason: "CREATE" | "UPDATE" | "DELETE" | "SYNC";
 }
 
-export interface PatchEvent {
+export interface PatchEvent extends EventBase {
   type: "PATCH";
-  objRef: ObjectRef;
   patch: any;
 }
 
-export interface LifecycleEvent {
+export interface LifecycleEvent extends EventBase {
   type: "LIFECYCLE";
-  objRef: ObjectRef;
   event: Event;
   timestamp: string;
 }
 
-
-export interface NotificationEvent {
-  type: "NOTIFICATION";
-  message: string;
+export enum LogLevel {
+  DEBUG,
+  INFO,
+  WARNING,
+  ERROR
 }
 
-export interface LogEvent {
+export interface LogEvent extends EventBase {
   type: "LOG";
+  level: LogLevel;
+  timestamp: string;
   message: string;
+
+  /**
+   * The ID of the log group this message belongs to.
+   */
+  logId?: string;
+  parentLogId?: string;
 }
 
-export interface HelloEvent {
-  type: "HELLO";
-  message: string;
-  workerIndex: number;
-  configuration?: Record<string, string>;
-}
-
-export interface ErrorEvent {
+export interface ErrorEvent extends EventBase {
   type: "ERROR";
   message: string;
   stack?: string;
@@ -48,9 +52,6 @@ export interface ErrorEvent {
 export type WorkerEvent = 
   ObjectEvent 
   | PatchEvent
-  | NotificationEvent 
   | LogEvent
-  | NotificationEvent  
-  | HelloEvent
   | LifecycleEvent
   | ErrorEvent;

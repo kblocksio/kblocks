@@ -4,11 +4,10 @@ import { applyTerraform } from "./tf";
 import { addOwnerReferences } from "./ownership";
 import { join } from "path";
 import type { BindingContext } from "./types";
-import { kblockOutputs, RuntimeHost } from "./host";
-import { exec as realExec } from "./util"
+import { kblockOutputs, RuntimeContext } from "./host";
 import type { SpawnOptions } from "child_process";
 
-export async function applyWing(workdir: string, host: RuntimeHost, engine: string, ctx: BindingContext, values: string): Promise<Record<string, any>> {
+export async function applyWing(workdir: string, host: RuntimeContext, engine: string, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const [_, target] = engine.split("/");
 
   if (!target || target === "k8s") {
@@ -20,9 +19,9 @@ export async function applyWing(workdir: string, host: RuntimeHost, engine: stri
   }
 }
 
-async function applyWingTerraform(workdir: string, host: RuntimeHost, values: string, ctx: BindingContext, target: string): Promise<Record<string, any>> {
+async function applyWingTerraform(workdir: string, host: RuntimeContext, values: string, ctx: BindingContext, target: string): Promise<Record<string, any>> {
   const entrypoint = createEntrypoint(workdir, host, ctx, values, false);
-  await wingcli(["compile", "-t", target, entrypoint], { cwd: workdir });
+  await wingcli(host, ["compile", "-t", target, entrypoint], { cwd: workdir });
   
   const targetdir = join(workdir, "target/main.tfaws");
   const tfjson = join(targetdir, "main.tf.json");
@@ -42,7 +41,7 @@ async function applyWingTerraform(workdir: string, host: RuntimeHost, values: st
   return await applyTerraform(host, targetdir, ctx);
 }
 
-async function applyWingKubernetes(workdir: string, host: RuntimeHost, values: string, ctx: BindingContext): Promise<Record<string, any>> {
+async function applyWingKubernetes(workdir: string, host: RuntimeContext, values: string, ctx: BindingContext): Promise<Record<string, any>> {
   const entrypoint = createEntrypoint(workdir, host, ctx, values, true);
   const obj = ctx.object;
   const objidLabel = "kblock-id";
@@ -62,7 +61,7 @@ async function applyWingKubernetes(workdir: string, host: RuntimeHost, values: s
     WING_K8S_NAMESPACE: namespace,
   };
 
-  await wingcli(["compile", "-t", "@winglibs/k8s", entrypoint], { env, cwd: workdir });
+  await wingcli(host, ["compile", "-t", "@winglibs/k8s", entrypoint], { env, cwd: workdir });
 
   // add owner references to the generated manifest
   const manifest = addOwnerReferences(ctx.object, path.join(workdir, "target/main.k8s"), path.join(workdir, "manifest.yaml"));
@@ -93,7 +92,7 @@ async function applyWingKubernetes(workdir: string, host: RuntimeHost, values: s
   return outputs;
 }
 
-function createEntrypoint(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string, withOutputs: boolean) {
+function createEntrypoint(workdir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string, withOutputs: boolean) {
   const entrypoint = path.join(workdir, "main.w");
   const obj = ctx.object;
 
@@ -123,6 +122,6 @@ function createEntrypoint(workdir: string, host: RuntimeHost, ctx: BindingContex
   return entrypoint;
 }
 
-async function wingcli(args: string[], options: SpawnOptions = {}) {
-  return await realExec("wing", args, options);
+async function wingcli(host: RuntimeContext, args: string[], options: SpawnOptions = {}) {
+  return await host.exec("wing", args, options);
 }

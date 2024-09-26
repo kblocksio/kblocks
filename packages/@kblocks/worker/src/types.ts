@@ -28,7 +28,7 @@ export type ApiObject =  {
   [key: string]: any;
 };
 
-export type ObjectRef = {
+export type InvolvedObject = {
   apiVersion: string;
   kind: string;
   namespace: string;

@@ -1,7 +1,7 @@
-import { kblockOutputs, RuntimeHost } from "./host";
+import { kblockOutputs, RuntimeContext } from "./host";
 import type { BindingContext } from "./types";
 
-export async function applyTerraform(host: RuntimeHost, workdir: string, ctx: BindingContext): Promise<Record<string, any>> {
+export async function applyTerraform(host: RuntimeContext, workdir: string, ctx: BindingContext): Promise<Record<string, any>> {
   await host.exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: workdir });
 
   if (ctx.watchEvent === "Deleted") {

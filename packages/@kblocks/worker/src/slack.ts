@@ -1,4 +1,4 @@
-import { RuntimeHost } from "./host";
+import { RuntimeContext } from "./host";
 
 type Context  = {
   ts?: string;
@@ -13,11 +13,12 @@ export type Blocks = Array<{
   },
 }>;
 
+const SLACK_API_TOKEN = process.env.SLACK_API_TOKEN;
+console.error('Warning: SLACK_API_TOKEN environment variable is not set, not sending message to Slack');
+
 async function sendSlackMessage(channel: string, blocks: Blocks, thread_ts?: string): Promise<Context> {
   try {
-    const slackToken = process.env.SLACK_API_TOKEN;
-    if (!slackToken) {
-      console.error('Warning: SLACK_API_TOKEN environment variable is not set - not sending message to Slack');
+    if (!SLACK_API_TOKEN) {
       return {
         channel: undefined,
         ts: undefined,
@@ -38,7 +39,7 @@ async function sendSlackMessage(channel: string, blocks: Blocks, thread_ts?: str
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${slackToken}`,
+        'Authorization': `Bearer ${SLACK_API_TOKEN}`,
       },
       body: JSON.stringify(payload),
     });
@@ -64,9 +65,7 @@ async function sendSlackMessage(channel: string, blocks: Blocks, thread_ts?: str
 
 async function editSlackMessage(ctx: Context, blocks: any) {
   try {
-    const slackToken = process.env.SLACK_API_TOKEN;
-    if (!slackToken) {
-      console.error('Warning: SLACK_API_TOKEN environment variable is not set - not sending message to Slack');
+    if (!SLACK_API_TOKEN) {
       return;
     }
   
@@ -82,7 +81,7 @@ async function editSlackMessage(ctx: Context, blocks: any) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${slackToken}`,
+        'Authorization': `Bearer ${SLACK_API_TOKEN}`,
       },
       body: JSON.stringify(payload),
     });

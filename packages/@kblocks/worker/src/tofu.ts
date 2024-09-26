@@ -3,9 +3,9 @@ import fs from "fs";
 import { getenv, tryGetenv } from "./util";
 import { join } from "path";
 import type { BindingContext } from "./types";
-import { RuntimeHost } from "./host";
+import { RuntimeContext } from "./host";
 
-export async function applyTofu(workdir: string, host: RuntimeHost, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
+export async function applyTofu(workdir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
   const key = `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`;
 
   const dynamodb = tryGetenv("TF_BACKEND_DYNAMODB");

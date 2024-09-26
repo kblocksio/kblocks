@@ -1,7 +1,7 @@
 import openai from "openai";
 import type { BindingContext } from "./types";
 import type { Blocks } from "./slack";
-import { RuntimeHost } from "./host";
+import { RuntimeContext } from "./host";
 
 const prompt = "Provide the root cause of this error with concise instructions on how to fix. Output format should be JSON of Slack blocks with 'mrkdwn' sections. Do not wrap this in triple backticks, just output raw well-formatted JSON.";
 
@@ -23,7 +23,7 @@ export async function chatCompletion(input: openai.ChatCompletionCreateParamsNon
  * @param {string} error 
  * @returns A slack "blocks" JSON object that explains the error and provides instructions on how to fix it.
  */
-export async function explainError(host: RuntimeHost, context: BindingContext, error: string): Promise<{ blocks: Blocks } | undefined> {
+export async function explainError(host: RuntimeContext, context: BindingContext, error: string): Promise<{ blocks: Blocks } | undefined> {
 
   console.error("Analyzing error with AI...");
 
