@@ -29,7 +29,7 @@ npm i
 
 ## Setup
 
-You'll nee a Kubernetes cluster, you can get one from [quickube](https://quickube.sh):
+1. You'll nee a Kubernetes cluster, you can get one from [quickube](https://quickube.sh):
 
 ```sh
 qkube new --size small
@@ -47,6 +47,19 @@ to it in order to receive notifications from your local cluster.
 ```sh
 npm run dev
 ```
+
+4. Add test resources
+
+Use `kubectl`:
+
+```sh
+kubectl apply -f test/examples/
+```
+
+5. Monitor logs
+
+`npm run dev` will tail logs and you should be able to see how these resources are deployed.
+
 
 ## Resource documentation
 

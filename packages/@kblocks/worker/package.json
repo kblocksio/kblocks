@@ -8,7 +8,6 @@
     "openai": "^4.0.0",
     "reconnecting-websocket": "^4.4.0",
     "tar": "^7.4.3",
-    "ws": "^8.18.0",
     "yaml": "^2.5.0"
   },
   "main": "src/index.js",
