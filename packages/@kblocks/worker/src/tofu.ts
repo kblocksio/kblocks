@@ -9,7 +9,7 @@ export async function applyTofu(workdir: string, host: RuntimeContext, ctx: Bind
   const key = `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`;
 
   const dynamodb = tryGetenv("TF_BACKEND_DYNAMODB");
-  const tableLine = dynamodb ? `dynamodb_table = "${dynamodb}` : "";
+  const tableLine = dynamodb ? `dynamodb_table = "${dynamodb}"` : "";
 
   fs.writeFileSync(join(workdir, "backend.tf"), `
 terraform {
