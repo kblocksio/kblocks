@@ -84,13 +84,15 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
       break;
   }
 
-  host.events.emit({
-    type: "OBJECT",
-    objUri,
-    objType,
-    object: reason === "DELETE" ? {} : ctx.object,
-    reason,
-  });
+  if (reason !== "DELETE") {
+    host.events.emit({
+      type: "OBJECT",
+      objUri,
+      objType,
+      object: ctx.object,
+      reason,
+    });
+  }
 
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
   const slackStatus = (icon: string, reason: string) => `${icon} _${objRef.kind}_ *${objRef.namespace}/${objRef.name}*: ${reason}`;
@@ -139,6 +141,15 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
 
     if (isDeletion) {
       await slack.update(slackStatus("⚪", "Deleted"));
+      
+      // only emit when we are done because this will cause the object to be emptied.
+      host.events.emit({
+        type: "OBJECT",
+        objUri,
+        objType,
+        object: {},
+        reason,
+      });
     } else {
       await updateReadyCondition(true, "Success");
       await publishEvent(host, {
