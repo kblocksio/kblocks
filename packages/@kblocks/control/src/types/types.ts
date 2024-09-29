@@ -1,3 +1,5 @@
+import { Manifest } from "./manifest.js";
+
 export type BindingContext = {
   watchEvent: "Deleted" | "Modified" | "Added";
   object: ApiObject;
@@ -45,4 +47,10 @@ export enum StatusReason {
   InProgress = "InProgress",
   Completed = "Completed",
   Error = "Error",
+}
+
+export type KConfig = {
+  manifest: Manifest;
+  engine: string;
+  config: Record<string, any>;
 }
