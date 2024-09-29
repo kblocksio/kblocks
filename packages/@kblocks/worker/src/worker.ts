@@ -2,16 +2,16 @@ import fs from "fs";
 import path from "path";
 import * as tar from "tar";
 import Redis from "ioredis";
-import { synth } from "./synth";
-import { exec, tempdir } from "./util";
-import { BindingContext } from "./types";
-import { startServer } from "./http";
+import { synth } from "./synth.js";
+import { exec, tempdir } from "./util.js";
+import { BindingContext } from "./types/index.js";
+import { startServer } from "./http.js";
 import { cloneRepo, listenForChanges } from "./git.js";
 import { createLogger } from "./logging.js";
-import { Manifest } from "./types/index.js";
+import { Manifest, KConfig } from "./types/index.js";
 
 const mountdir = "/kblock";
-const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
+const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
   throw new Error("kblock.json must contain a 'config' field");
 }
@@ -20,11 +20,11 @@ if (!kblock.engine) {
   throw new Error("kblock.json must contain an 'engine' field");
 }
 
-async function getSource(kblock: any, logger: ReturnType<typeof createLogger>) {
+async function getSource(kblock: KConfig, logger: ReturnType<typeof createLogger>) {
   const archivedir = await extractArchive(mountdir, logger);
 
-  if (kblock.source) {
-    const sourcedir = await cloneRepo(kblock, logger);
+  if (kblock.manifest.source) {
+    const sourcedir = await cloneRepo(kblock.manifest.source, logger);
     
     // Copy contents of archivedir to sourcedir
     const files = await fs.promises.readdir(archivedir);
@@ -110,7 +110,7 @@ async function main() {
 
   const events = await startServer();
 
-  const objType = kblock.definition.kind.toLocaleLowerCase();
+  const objType = kblock.manifest.definition.kind.toLocaleLowerCase();
   const objUri = `system://${objType}`;
   const logger = createLogger(events, objUri, objType);
 
@@ -147,23 +147,19 @@ async function main() {
     setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
   }
 
-  listenForChanges(kblock, async (commit) => {
+  const commit = await listenForChanges(kblock, async (commit) => {
     if (!process.env.RELEASE_NAME) {
       throw new Error("RELEASE_NAME is not set");
     }
 
     console.log(`Changes detected: ${commit}. Rebuilding...`);
-    const newdir = tempdir();
-    await fs.promises.cp(sourcedir, newdir, { recursive: true });
+    const newdir = await extractArchive(mountdir, logger);
 
     const outputdir = tempdir();
-    const newBlock = { ...kblock };
-    delete newBlock.config;
-
-    fs.writeFileSync(path.join(newdir, "kblock.yaml"), JSON.stringify(newBlock, null, 2));
     await exec(logger, "kblocks", ["build", "--output", outputdir], { cwd: newdir });
     await exec(logger, "helm", ["upgrade", "--install", process.env.RELEASE_NAME, outputdir], { cwd: outputdir });
   });
+  console.log("Initial commit", commit);
 
   listenForMessage();
 }

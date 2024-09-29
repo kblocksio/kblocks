@@ -2,6 +2,7 @@ import path from "path";
 import { Octokit } from "@octokit/rest";
 import { exec, tempdir } from "./util.js";
 import { createLogger } from "./logging.js";
+import { KConfig } from "./types/types.js";
 
 const DEFAULT_BRANCH = "main";
 const token = process.env.GITHUB_TOKEN;
@@ -15,10 +16,13 @@ const createOctokit = async (): Promise<Octokit> => {
   return new Octokit({ auth: token });
 }
 
-export async function getLatestCommit(kblock: any) {
+export async function getLatestCommit(source: KConfig["manifest"]["source"]) {
+  if (!source) {
+    throw new Error("No source given");
+  }
+
   const octokit = await createOctokit();
 
-  const source = kblock.source;
   const [owner, repo] = source.url.split('/').slice(-2);
   const branch = source.branch ?? DEFAULT_BRANCH;
 
@@ -36,15 +40,15 @@ export async function getLatestCommit(kblock: any) {
   }
 }
 
-export async function listenForChanges(kblock: any, onChanges: (commit: string) => void) {
-  if (!kblock.source) {
+export async function listenForChanges(kblock: KConfig, onChanges: (commit: string) => void) {
+  if (!kblock.manifest.source) {
     console.log("No source found, skipping source listening");
-    return;
+    return "no-source";
   }
 
-  const commit = await getLatestCommit(kblock);
+  const commit = await getLatestCommit(kblock.manifest.source);
   setTimeout(async () => {
-    const newCommit = await getLatestCommit(kblock);
+    const newCommit = await getLatestCommit(kblock.manifest.source);
     console.log("Comparing commits", commit, newCommit);
     if (newCommit === commit) {
       listenForChanges(kblock, onChanges);
@@ -52,10 +56,14 @@ export async function listenForChanges(kblock: any, onChanges: (commit: string) 
       onChanges(newCommit);
     }
   }, 30000);
+  return commit;
 }
 
-export async function cloneRepo(kblock: any, logger: ReturnType<typeof createLogger>) {
-  const source = kblock.source;
+export async function cloneRepo(source: KConfig["manifest"]["source"], logger: ReturnType<typeof createLogger>) {
+  if (!source) {
+    throw new Error("No source given");
+  }
+
   const url = source.url;
   const branch = source.branch ?? DEFAULT_BRANCH;
   const directory = source.directory ?? "";

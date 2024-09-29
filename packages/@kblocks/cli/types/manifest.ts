@@ -24,6 +24,12 @@ export const Manifest = z.object({
     z.literal("noop"),
   ]),
 
+  source: z.optional(z.object({
+    url: z.string(),
+    branch: z.string(),
+    directory: z.string(),
+  })),
+
   definition: z.intersection(CustomResourceDefinition, z.object({
     schema: z.optional(z.any()),
     readme: z.string(),
