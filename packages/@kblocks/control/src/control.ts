@@ -1,8 +1,9 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from "ws";
 import * as k8s from "@kubernetes/client-node";
-import { type ErrorEvent } from "./types";
+import { Manifest, type ErrorEvent } from "./types";
 import { emitEvent } from "./events";
+import { flush } from "./flush";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -63,8 +64,11 @@ async function createKubernetesResource({ group, version, plural, body, systemId
   }
 }
 
-export function connect(controlUrl: string, { group, version, plural, systemId }: { group: string, version: string, plural: string, systemId: string }) {
+export function connect(controlUrl: string, systemId: string, manifest: Manifest) {
   const params = new URLSearchParams({ system_id: systemId }).toString();
+  const group = manifest.definition.group;
+  const version = manifest.definition.version;
+  const plural = manifest.definition.plural;
   const url = `${controlUrl}/${group}/${version}/${plural}?${params}`;
   console.log("Connecting to control channel:", url);
 
@@ -78,6 +82,9 @@ export function connect(controlUrl: string, { group, version, plural, systemId }
 
   ws.addEventListener("open", () => {
     console.log("Control connection opened");
+
+    // flush the current state of the system to the control plane
+    flush(systemId, manifest);
   });
 
   ws.addEventListener("message", (event) => {

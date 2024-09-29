@@ -20,9 +20,9 @@ export function emitEvent(event: WorkerEvent) {
 
   fetch(KBLOCKS_EVENTS_URL, req).then(res => {
     if (!res.ok) {
-      console.warn("Failed to send event to backend", res);
+      console.warn(`${KBLOCKS_EVENTS_URL}: ${res.status} body: ${res.statusText}`);
     }
   }).catch(err => {
-    console.warn("Failed to send event to backend", err);
+    console.warn(`${KBLOCKS_EVENTS_URL}: ${err?.message}`);
   });
 }
