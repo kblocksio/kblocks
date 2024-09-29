@@ -1,5 +1,5 @@
 {
-  "name": "@kblocks/controller",
+  "name": "@kblocks/operator",
   "type": "commonjs",
   "dependencies": {
     "@bull-board/api": "^5.23.0",
@@ -10,7 +10,7 @@
     "reconnecting-websocket": "^4.4.0",
     "ws": "^8.18.0"
   },
-  "main": "src/controller.js",
+  "main": "src/operator.js",
   "scripts": {
     "build": "tsc --noEmit",
     "test": "vitest **/*.test.ts *.test.ts",

@@ -1,19 +1,15 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
-import { createHashFromConfigMap } from "./configmap";
+import { setupPodEnvironment, PodEnvironment } from "./configmap";
 
-export interface OperatorProps {
+export interface OperatorProps extends PodEnvironment {
   image: string;
   group: string;
   kind: string
   plural: string;
   namespace?: string;
-  configMaps: Record<string, k8s.ConfigMap>;
   redisServiceName: string;
   workers: number;
-  envSecrets?: Record<string, string>;
-  envConfigMaps?: Record<string, string>;
-  env?: Record<string, string>;
   outputs?: string[];
 }
 
@@ -57,33 +53,22 @@ export class Operator extends Construct {
     const binding = new k8s.ClusterRoleBinding(this, "ClusterRoleBinding", { role });
     binding.addSubjects(serviceAccount);
     
-    const controller = new k8s.Deployment(this, "Deployment", {
+    const operatorDeployment = new k8s.Deployment(this, "Deployment", {
       metadata: {
         namespace: props.namespace,
-        name: `kblocks-controller-${kind}`,
+        name: `kblocks-${kind}-operator`,
         labels: {
-          "app.kubernetes.io/name": `kblocks-controller-${kind}`,
+          "app.kubernetes.io/name": `kblocks-${kind}-operator`,
         }
       },
       serviceAccount: serviceAccount,
       replicas: 1,
       automountServiceAccountToken: true,
     });
-    
-    const volumeMounts: {volume: k8s.Volume;path: string;}[] = [];
-    for (const [key, value] of Object.entries(props.configMaps)) {
-      const volume = k8s.Volume.fromConfigMap(this, `ConfigMapVolume-${key}`, value);
-      controller.addVolume(volume);
-      controller.metadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
-      controller.podMetadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
 
-      volumeMounts.push({
-        volume,
-        path: `/${key}`,
-      });
-    }
-
-    const container = controller.addContainer({
+   
+    const container = operatorDeployment.addContainer({
+      name: "operator",
       image: props.image,
       imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
       resources: {
@@ -96,12 +81,16 @@ export class Operator extends Construct {
         readOnlyRootFilesystem: false,
         ensureNonRoot: false,
       },
-      volumeMounts,
       ports: [{ number: 3000 }],
     });
 
+    setupPodEnvironment(operatorDeployment, container, props);
+
+    container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
+    container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
+
     // Add Redis sidecar container
-    controller.addContainer({
+    operatorDeployment.addContainer({
       name: "redis",
       image: "redis:6.2-alpine",
       imagePullPolicy: k8s.ImagePullPolicy.IF_NOT_PRESENT,
@@ -125,24 +114,7 @@ export class Operator extends Construct {
         name: props.redisServiceName,
       },
       ports: [{ port: 6379, targetPort: 6379 }],
-      selector: controller,
+      selector: operatorDeployment,
     });
-
-    for (const [key, value] of Object.entries(props.envSecrets ?? {})) {
-      const secret = k8s.Secret.fromSecretName(this, `credentials-${key}-${value}`, value);
-      container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key }));
-    }
-
-    for (const [key, value] of Object.entries(props.envConfigMaps ?? {})) {
-      const cm = k8s.ConfigMap.fromConfigMapName(this, `configmaps-${key}-${value}`, value);
-      container.env.addVariable(key, k8s.EnvValue.fromConfigMap(cm, key));
-    }
-
-    for (const [key, value] of Object.entries(props.env ?? {})) {
-      container.env.addVariable(key, k8s.EnvValue.fromValue(value));
-    }
-
-    container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
-    container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
   }
 }

@@ -6,7 +6,7 @@ import { synth } from "./synth";
 import { exec, tempdir } from "./util";
 import { BindingContext } from "./types";
 import { startServer } from "./http";
-
+import { Manifest } from "./types";
 
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
@@ -36,7 +36,6 @@ async function extractArchive(dir: string) {
 }
 
 async function installDependencies(dir: string) {
-
   if (fs.existsSync(path.join(dir, "package.json"))) {
     if (fs.existsSync(path.join(dir, "node_modules"))) {
       return;
@@ -103,11 +102,13 @@ async function main() {
     const [key, messages] = results[0];
     console.log(`Received ${messages.length} messages from ${key}`);
   
+    const manifest = kblock.manifest as Manifest;
+
     for (const message of messages) {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
-        await synth(sourcedir, kblock.engine, event, events);
+        await synth(sourcedir, kblock.engine, manifest.definition.plural, event, events);
       } catch (error) {
         console.error(`Error processing event: ${error}.`);
       } finally {

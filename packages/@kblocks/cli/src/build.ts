@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs/promises";
 import { App, Chart } from "cdk8s";
-import { Manifest, readManifest } from "./types";
+import { readManifest } from "./types";
 import { Operator } from "./operator";
 import { Worker } from "./worker";
 import { BlockMetadata } from "./metadata";
@@ -11,6 +11,8 @@ import { generateSchemaFromWingStruct } from "./wing";
 import { docs } from "./docs";
 import { ConfigMapFromDirectory, createTgzBase64 } from "./configmap";
 import packageJson from "../package.json";
+import { Control } from "./control";
+import { Manifest } from "../types";
 
 interface Options {
   path: string;
@@ -37,12 +39,12 @@ export async function build(opts: Options) {
   const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
   const workers = block.operator?.workers ?? 1;
 
-  if (packageJson.version === "0.0.1" && !process.env.KBLOCKS_CONTROLLER_IMAGE) {
-    throw new Error("Building from source, KBLOCKS_CONTROLLER_IMAGE is not set, please set it to the image you want to use (e.g. 'wingcloudbot/kblocks-controller:0.1.13')");
+  if (packageJson.version === "0.0.1" && !process.env.KBLOCKS_OPERATOR_IMAGE) {
+    throw new Error("Building from source, KBLOCKS_OPERATOR_IMAGE is not set, please set it to the image you want to use (e.g. 'wingcloudbot/kblocks-operator:0.1.13')");
   }
 
-  const image = process.env.KBLOCKS_CONTROLLER_IMAGE 
-    ?? `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
+  const image = process.env.KBLOCKS_OPERATOR_IMAGE 
+    ?? `wingcloudbot/kblocks-operator:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
 
   new Operator(chart, "Operator", {
     image,
@@ -71,6 +73,16 @@ export async function build(opts: Options) {
       REDIS_URL: `redis://${redisServiceName}.${block.operator?.namespace ?? "default"}.svc.cluster.local:${6379}`,
       ...block.operator?.env,
     }
+  });
+
+  const controlImage = process.env.KBLOCKS_CONTROL_IMAGE
+    ?? `wingcloudbot/kblocks-control:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
+
+  new Control(chart, "Control", {
+    image: controlImage,
+    configMaps: configmap.configMaps,
+    ...block.operator,
+    ...block.definition,
   });
 
   const schema = await resolveSchema(kblockDir, block);

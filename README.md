@@ -76,7 +76,7 @@ of the README and the icon.
 You can expose any [helm](https://helm.sh/) chart as a kblock. See [acme/cron](./acme/cron/) as an
 example.
 
-When a kblock is updated, the controller will call `helm upgrade` a populate the `{{ Values }}`
+When a kblock is updated, the worker will call `helm upgrade` a populate the `{{ Values }}`
 object from the Kubernetes object desired state.
 
 For example, [acme/cron/kblock.yaml](./acme/cron/kblock.yaml) specifies a helm resource:
@@ -195,7 +195,7 @@ definition:
     - queueUrl
 ```
 
-Since this is a Terraform engine, the controller will expect a [Terraform
+Since this is a Terraform engine, the worker will expect a [Terraform
 output](https://developer.hashicorp.com/terraform/language/values/outputs) by the name of `queueUrl`
 and will populate the resource's `state` with this value once it's available.
 
@@ -205,7 +205,7 @@ An output can be referenced from another kblock through the syntax:
 ref://queues.acme.com/my-queue/queueUrl
 ```
 
-If the controller encounters this token when reconciling a resource, it will first wait for the
+If the worker encounters this token when reconciling a resource, it will first wait for the
 referenced resource to be ready and then it will read the value from it's state and replace it in
 the manifest being reconciled.
 

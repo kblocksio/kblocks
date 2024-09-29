@@ -3,7 +3,7 @@ import yaml from "yaml";
 import fs from "fs/promises";
 import { readAll } from "./util";
 import path from "path";
-import { Manifest } from "./types";
+import { Manifest } from "../types";
 
 interface DocsOptions {
   readonly path: string;
@@ -129,7 +129,7 @@ async function generateReadme(dir: string, options: Options): Promise<string> {
       "",
       "This resource then becomes a native Kubernetes object that can be managed using the standard Kubernetes API, such as kubectl, kustomize or helm charts or any other type of Kubernetes manifest.",
       options.method,
-      `Once the resource is applied to the cluster, the Kblocks controller will reconcile the state of the cluster with the desired state by converting the object into ${options.values}`,
+      `Once the resource is applied to the cluster, the Kblocks worker will reconcile the state of the cluster with the desired state by converting the object into ${options.values}`,
       "The resources created will be associated with the parent custom resource and tracked by it.",
       "The output should be standard readme markdown file based on the 'template' defined in the system instructions."
     ],

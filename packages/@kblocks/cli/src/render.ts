@@ -8,45 +8,6 @@ export interface Options {
 export async function render(opts: Options) {
   const dir = path.resolve(opts.path);
 
-  const tag = `wingcloudbot/kblocks-controller:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
+  const tag = `wingcloudbot/kblocks-operator:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
   console.log(tag);
-  // const manifest = readManifest(dir);
-  // const docs = yaml.parseAllDocuments(await fs.readFile(opts.manifest, "utf-8"));
-
-  // const host: RuntimeHost = {
-  //   getenv: (name) => process.env[name]!,
-  //   tryGetenv: (name) => process.env[name],
-  //   exec: async (cmd, args, opts) => {
-  //     console.log(`[skip] $ ${cmd} ${args.join(" ")} ${opts ? JSON.stringify(opts) : ""}`);
-  //     return "";
-  //   },
-  //   chatCompletion: async (input) => {
-  //     return undefined;
-  //   },
-  //   async newSlackThread(channel, initialMessage) {
-  //     console.log(`${channel} ${initialMessage}`);
-  //     return {
-  //       update: async () => {},
-  //       post: async () => {},
-  //       postBlocks: async () => {},
-  //     }
-  //   },
-  // };
-
-  // for (const d of docs) {
-  //   const obj: ApiObject = d.toJSON();
-  //   if (obj.kind !== manifest.definition.kind) {
-  //     console.warn(`Skipping document with kind '${obj.kind}', expected '${manifest.definition.kind}'`);
-  //     continue;
-  //   }
-
-  //   obj.metadata.uid = "fake-uid";
-
-  //   const ctx: BindingContext = {
-  //     watchEvent: "Modified",
-  //     object: obj
-  //   };
-  
-  //   await controllerSynth(dir, host, manifest.engine, ctx)
-  // }
 }

@@ -50,6 +50,7 @@ export class CustomResourceDefinition extends Construct {
               lastTransitionTime: { type: "string", format: "date-time" },
               lastProbeTime: { type: "string", format: "date-time" },
               message: { type: "string" },
+              reason: { type: "string" },
             },
             required: ["type", "status", "lastTransitionTime"],
           },
