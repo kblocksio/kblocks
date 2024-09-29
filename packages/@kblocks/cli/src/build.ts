@@ -116,6 +116,8 @@ type: application
 }
 
 async function resolveSchema(sourcedir: string, props: Manifest): Promise<JsonSchemaProps> {
+  const schemaFile = `${sourcedir}/values.schema.json`;
+
   // in an explicit schema is set, use it.
   if (props.definition.schema) {
     return props.definition.schema;
@@ -123,26 +125,39 @@ async function resolveSchema(sourcedir: string, props: Manifest): Promise<JsonSc
 
   // for wing, we can generate a schema from the struct
   if (props.engine.startsWith("wing") || props.engine === "wing") {
-    return generateSchemaFromWingStruct(sourcedir, `${props.definition.kind}Spec`);
+    if (!(await isJsonSchemaFileExists(schemaFile))) {
+      return generateSchemaFromWingStruct(sourcedir, `${props.definition.kind}Spec`);
+    } else {
+      return resolveJsonSchemaFile(schemaFile);
+    }
   }
 
   // for helm and tofu, we can read the schema from the values.schema.json file
   if (props.engine === "helm" || props.engine === "tofu" || props.engine === "noop") {
-    const schemaFile = `${sourcedir}/values.schema.json`;
-
-    if (!(await fs.access(schemaFile, fs.constants.R_OK).then(() => true).catch(() => false))) {
-      console.warn(`warning: no 'values.schema.json' under ${sourcedir}, assuming empty schema`);
-      return {
-        type: "object",
-        properties: {},
-      };
-    }
-
-    const x = JSON.parse(await fs.readFile(schemaFile, "utf8"));
-    delete x.$schema;
-    return x;
+    return resolveJsonSchemaFile(schemaFile);
   }
 
   throw new Error(`unsupported engine: ${props.engine}`);
 }
 
+async function isJsonSchemaFileExists(schemaFile: string) {
+  if (!(await fs.access(schemaFile, fs.constants.R_OK).then(() => true).catch(() => false))) {
+    return false;
+  }
+
+  return true;
+}
+
+async function resolveJsonSchemaFile(schemaFile: string) {
+  if (!(await isJsonSchemaFileExists(schemaFile))) {
+    console.warn(`warning: no 'values.schema.json' found in ${schemaFile}, assuming empty schema`);
+    return {
+      type: "object",
+      properties: {},
+    };
+  }
+
+  const x = JSON.parse(await fs.readFile(schemaFile, "utf8"));
+  delete x.$schema;
+  return x;
+}

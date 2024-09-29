@@ -89,6 +89,7 @@ export class Worker extends Construct {
 
     setupPodEnvironment(workerDeployment, container, props);
 
+    container.env.addVariable("RELEASE_NAME", k8s.EnvValue.fromValue("{{ .Release.Name }}"));
     container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
     container.env.addVariable("WORKER_INDEX",
       k8s.EnvValue.fromFieldRef(k8s.EnvFieldPaths.POD_LABEL, { key: "apps.kubernetes.io/pod-index" }));

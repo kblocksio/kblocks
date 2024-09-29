@@ -1,9 +1,9 @@
-import { applyTerraform } from "./tf";
 import fs from "fs";
-import { getenv, tryGetenv } from "./util";
 import { join } from "path";
-import type { BindingContext } from "./types";
-import { RuntimeContext } from "./host";
+import { applyTerraform } from "./tf.js";
+import { getenv, tryGetenv } from "./util.js";
+import type { BindingContext } from "./types/index.js";
+import { RuntimeContext } from "./host.js";
 
 export async function applyTofu(workdir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
   const key = `${getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`;

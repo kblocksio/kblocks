@@ -1,7 +1,11 @@
-import { RuntimeContext } from "./host";
-import type { BindingContext } from "./types";
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import { RuntimeContext } from "./host.js";
+import type { BindingContext } from "./types/index.js";
 
-const postRenderPath = require.resolve("./helm-add-ownership");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const postRenderPath = resolve(__dirname, "./helm-add-ownership");
 
 export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const obj = ctx.object;

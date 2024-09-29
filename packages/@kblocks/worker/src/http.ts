@@ -1,6 +1,5 @@
 import express from "express";
-
-import { WorkerEvent } from "./types";
+import { WorkerEvent } from "./types/index.js";
 
 const KBLOCKS_EVENTS_URL = process.env.KBLOCKS_EVENTS_URL;
 

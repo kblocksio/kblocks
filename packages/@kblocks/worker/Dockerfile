@@ -1,11 +1,15 @@
 FROM node:20-alpine
+
+ARG CLI_VERSION
+ENV CLI_VERSION=${CLI_VERSION}
+
 ENV LOG_TYPE=color
 
 # install opentofu
 RUN echo '@community https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
 RUN apk add --no-cache opentofu@community
 
-RUN apk add --no-cache helm curl npm nodejs
+RUN apk add --no-cache helm curl npm nodejs git
 
 RUN ARCH=$(uname -m); \
     case $ARCH in \

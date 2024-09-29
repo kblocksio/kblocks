@@ -1,3 +1,3 @@
-export { synth } from "./synth";
-export * from "./types";
-export { RuntimeContext as RuntimeHost } from "./host"
+export { synth } from "./synth.js";
+export * from "./types/index.js";
+export { RuntimeContext as RuntimeHost } from "./host.js";

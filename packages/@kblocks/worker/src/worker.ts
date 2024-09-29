@@ -2,13 +2,16 @@ import fs from "fs";
 import path from "path";
 import * as tar from "tar";
 import Redis from "ioredis";
-import { synth } from "./synth";
-import { exec, tempdir } from "./util";
-import { BindingContext } from "./types";
-import { startServer } from "./http";
-import { Manifest } from "./types";
+import { synth } from "./synth.js";
+import { exec, tempdir } from "./util.js";
+import { BindingContext } from "./types/index.js";
+import { startServer } from "./http.js";
+import { cloneRepo, listenForChanges } from "./git.js";
+import { createLogger } from "./logging.js";
+import { Manifest, KConfig } from "./types/index.js";
 
-const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
+const mountdir = "/kblock";
+const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
 if (!kblock.config) {
   throw new Error("kblock.json must contain a 'config' field");
 }
@@ -17,7 +20,28 @@ if (!kblock.engine) {
   throw new Error("kblock.json must contain an 'engine' field");
 }
 
-async function extractArchive(dir: string) {
+async function getSource(kblock: KConfig, logger: ReturnType<typeof createLogger>) {
+  const archivedir = await extractArchive(mountdir, logger);
+
+  if (kblock.manifest.source) {
+    const sourcedir = await cloneRepo(kblock.manifest.source, logger);
+    
+    // Copy contents of archivedir to sourcedir
+    const files = await fs.promises.readdir(archivedir);
+    for (const file of files) {
+      const srcPath = path.join(archivedir, file);
+      const destPath = path.join(sourcedir, file);
+      await fs.promises.cp(srcPath, destPath, { recursive: true });
+    }
+
+    return sourcedir;
+  }
+
+  return archivedir;
+}
+
+async function extractArchive(dir: string, logger: ReturnType<typeof createLogger>) {
+  logger.info(`Extracting archive from ${dir}`);
   const encodedTgz = fs.readFileSync(path.join(dir, "archive.tgz"), "utf8");
   const decodedTgz = Buffer.from(encodedTgz, "base64");
   const targetDir = tempdir();
@@ -35,18 +59,20 @@ async function extractArchive(dir: string) {
   return targetDir;
 }
 
-async function installDependencies(dir: string) {
+async function installDependencies(dir: string, logger: ReturnType<typeof createLogger>) {
+  await exec(logger, "npm", ["install", "-g", `@kblocks/cli@${process.env.CLI_VERSION}`], { cwd: dir });
+  
   if (fs.existsSync(path.join(dir, "package.json"))) {
     if (fs.existsSync(path.join(dir, "node_modules"))) {
       return;
     }
   
-    await exec(undefined, "npm", ["install", "--production"], { cwd: dir });
+    await exec(logger, "npm", ["install", "--production"], { cwd: dir });
   }
 
   // make sure @winglibs/k8s is installed if this is a wing/k8s block.
   if (kblock.engine === "wing" || kblock.engine === "wing/k8s") {
-    await exec(undefined, "npm", ["install", "@winglibs/k8s"], { cwd: dir });
+    await exec(logger, "npm", ["install", "@winglibs/k8s"], { cwd: dir });
   }
 
   if (fs.existsSync(path.join(dir, "Chart.yaml"))) {
@@ -54,7 +80,7 @@ async function installDependencies(dir: string) {
       return;
     }
 
-    await exec(undefined, "helm", ["dependency", "update"], { cwd: dir });
+    await exec(logger, "helm", ["dependency", "update"], { cwd: dir });
     fs.writeFileSync(path.join(dir, "__helm"), "{}");
   }
 }
@@ -72,8 +98,6 @@ async function main() {
   if (!process.env.WORKER_INDEX) {
     throw new Error("WORKER_INDEX is not set");
   }
-
-  const mountdir = "/kblock";
   
   // Redis client for Redlock
   const redisClient = new Redis(process.env.REDIS_URL, {
@@ -86,8 +110,12 @@ async function main() {
 
   const events = await startServer();
 
-  const sourcedir = await extractArchive(mountdir);
-  await installDependencies(sourcedir);
+  const objType = kblock.manifest.definition.kind.toLocaleLowerCase();
+  const objUri = `system://${objType}`;
+  const logger = createLogger(events, objUri, objType);
+
+  const sourcedir = await getSource(kblock, logger);
+  await installDependencies(sourcedir, logger);
 
   const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
 
@@ -118,6 +146,20 @@ async function main() {
 
     setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
   }
+
+  const commit = await listenForChanges(kblock, async (commit) => {
+    if (!process.env.RELEASE_NAME) {
+      throw new Error("RELEASE_NAME is not set");
+    }
+
+    console.log(`Changes detected: ${commit}. Rebuilding...`);
+    const newdir = await extractArchive(mountdir, logger);
+
+    const outputdir = tempdir();
+    await exec(logger, "kblocks", ["build", "--output", outputdir], { cwd: newdir });
+    await exec(logger, "helm", ["upgrade", "--install", process.env.RELEASE_NAME, outputdir], { cwd: outputdir });
+  });
+  console.log("Initial commit", commit);
 
   listenForMessage();
 }

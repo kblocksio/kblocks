@@ -1,6 +1,6 @@
-import { resolveReferencesInternal } from "./refs";
 import { test, expect } from "vitest";
-import type { ApiObject } from "./types";
+import { resolveReferencesInternal } from "./refs.js";
+import type { ApiObject } from "./types/index.js";
 
 test("test1", async () => {
   const actual = await testResolveReference({

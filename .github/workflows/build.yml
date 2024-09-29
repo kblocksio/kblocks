@@ -116,6 +116,8 @@ jobs:
           tags: wingcloudbot/kblocks-worker:latest,wingcloudbot/kblocks-worker:${{ needs.build.outputs.version }}
           cache-from: type=registry,ref=wingcloudbot/kblocks-worker:latest
           cache-to: type=inline
+          build-args: |
+            CLI_VERSION=${{ needs.build.outputs.version }}
 
 
       - name: Build and push control
