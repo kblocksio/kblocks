@@ -1,0 +1,101 @@
+import { emitEvent } from "./events";
+import { ApiObject, Manifest } from "./types";
+import * as k8s from "@kubernetes/client-node";
+
+const KBLOCKS_ANNOTATION_METADATA_NAME = "kblocks.io/metadata-name";
+const KBLOCKS_ANNOTATION_METADATA_NAMESPACE = "kblocks.io/metadata-namespace";
+
+const kc = new k8s.KubeConfig();
+kc.loadFromDefault();
+
+const k8sExtClient = kc.makeApiClient(k8s.ApiextensionsV1Api);
+const k8sCoreClient = kc.makeApiClient(k8s.CoreV1Api);
+const k8sCustomClient = kc.makeApiClient(k8s.CustomObjectsApi);
+
+export async function flushAllResources(systemId: string, manifest: Manifest) {
+  const resources = await listAllResources(manifest);
+
+  for (const resource of resources) {
+    flushResource(systemId, manifest, resource);
+  }
+}
+
+export async function flushType(systemId: string, manifest: Manifest) {
+  const name = `${manifest.definition.plural}.${manifest.definition.group}`;
+
+  console.log("flushing resource type", name);
+  console.log("manifest:", JSON.stringify(manifest));
+
+  const { body: crd } = await k8sExtClient.readCustomResourceDefinition(name);
+
+  const metadataConfigMapName = crd.metadata?.annotations?.[KBLOCKS_ANNOTATION_METADATA_NAME];
+  const metadataConfigMapNamespace = crd.metadata?.annotations?.[KBLOCKS_ANNOTATION_METADATA_NAMESPACE];
+
+  let readme;
+  if (metadataConfigMapName && metadataConfigMapNamespace) {
+    const configMap = await k8sCoreClient.readNamespacedConfigMap(metadataConfigMapName, metadataConfigMapNamespace);
+    readme = configMap.body.data?.readme;
+  }
+
+  const openApiSchema = crd.spec.versions[0]?.schema?.openAPIV3Schema;
+
+  // we emulate a CRD here that represents the block (in the future it will actually be a CRD)
+  await flushResource(systemId, manifest, {
+    apiVersion: "kblocks.io/v1",
+    kind: "Block",
+    metadata: {
+      name,
+    },
+    spec: {
+      group: manifest.definition.group,
+      version: manifest.definition.version,
+      kind: manifest.definition.kind,
+      plural: manifest.definition.plural,
+      description: manifest.definition.description,
+      readme,
+      icon: manifest.definition.icon,
+      color: manifest.definition.color,
+      openApiSchema,
+    }
+  });
+}
+
+async function flushResource(systemId: string, manifest: Manifest, resource: ApiObject) {
+  const objType = `${manifest.definition.group}/${manifest.definition.version}/${manifest.definition.plural}`;
+  const objUri = `kblocks://${objType}/${systemId}/${resource.metadata.namespace ?? "default"}/${resource.metadata.name}`;
+
+  console.log(`flushing resource: ${objUri}`);
+
+  emitEvent({
+    type: "OBJECT",
+    reason: "SYNC",
+    objUri,
+    objType,
+    object: resource
+  });
+}
+
+async function listAllResources(manifest: Manifest) {
+  const { body: namespaceList } = await k8sCoreClient.listNamespace();
+  const result = [];
+
+  for (const namespace of namespaceList.items) {
+    const name = namespace.metadata?.name;
+    if (!name) {
+      continue;
+    }
+
+    const { body: resourceList } = await k8sCustomClient.listNamespacedCustomObject(
+      manifest.definition.group,
+      manifest.definition.version,
+      name,
+      manifest.definition.plural
+    );
+
+    for (const resource of (resourceList as any).items) {
+      result.push(resource);
+    }
+  }
+
+  return result;
+}

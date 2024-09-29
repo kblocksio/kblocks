@@ -3,6 +3,7 @@
   "type": "module",
   "dependencies": {
     "@octokit/rest": "^21.0.2",
+    "@kubernetes/client-node": "^0.22.0",
     "@types/ws": "^8.5.12",
     "express": "^4.21.0",
     "ioredis": "^5.4.1",

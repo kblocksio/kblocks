@@ -32,8 +32,10 @@ export const Manifest = z.object({
 
   definition: z.intersection(CustomResourceDefinition, z.object({
     schema: z.optional(z.any()),
-    readme: z.string(),
-    icon: z.string(),
+    readme: z.optional(z.string()),
+    description: z.optional(z.string()),
+    icon: z.optional(z.string()),
+    color: z.optional(z.string()),
   })),
 
   operator: z.optional(z.object({

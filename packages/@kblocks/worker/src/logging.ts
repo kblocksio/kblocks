@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { LogLevel } from "./types/index.js";
-import { Events } from "./http.js";
+import { emitEvent } from "./events.js";
 
 const toLogFunction = {
   [LogLevel.DEBUG]: console.debug,
@@ -9,14 +9,14 @@ const toLogFunction = {
   [LogLevel.ERROR]: console.error,
 };
 
-export function createLogger(events: Events, objUri: string, objType: string) {
+export function createLogger(objUri: string, objType: string) {
   function log(message: string, level: LogLevel = LogLevel.INFO, parentLogId?: string) {
     const consoleFunction = toLogFunction[level];
     consoleFunction(">>", message);
 
     const logId = generateGroupId();
 
-    events.emit({
+    emitEvent({
       type: "LOG",
       objUri,
       objType,

@@ -1,5 +1,6 @@
 import { connect } from "./control";
 import fs from "fs";
+import { flushType, flushAllResources } from "./flush";
 
 async function main() {
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
@@ -24,8 +25,6 @@ async function main() {
 
   const manifest = kblock.manifest;
 
-
-
   connect(KBLOCKS_CONTROL_URL, {
     group: manifest.definition.group,
     version: manifest.definition.version,
@@ -33,6 +32,12 @@ async function main() {
     systemId: KBLOCKS_SYSTEM_ID
   });
 
+  console.log("flushing resources and resource types...");
+  await Promise.all([
+    flushType(KBLOCKS_SYSTEM_ID, manifest),
+    flushAllResources(KBLOCKS_SYSTEM_ID, manifest)
+  ]);
+  console.log("ready!");
 }
 
 main().catch((error) => {

@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+
 import { applyHelm } from "./helm.js";
 import { exec, getenv, tempdir, tryGetenv } from "./util.js";
 import { applyWing } from "./wing.js";
@@ -10,9 +11,9 @@ import { patchObjectState, publishEvent, RuntimeContext } from "./host.js";
 import { BindingContext, InvolvedObject, ObjectEvent, StatusReason } from "./types/index.js";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
-import { Events } from "./http.js";
+import { emitEvent } from "./events.js";
 
-export async function synth(sourcedir: string, engine: string, plural: string, ctx: BindingContext, events: Events) {
+export async function synth(sourcedir: string, engine: string, plural: string, ctx: BindingContext) {
   // skip updates to the "status" subresource
   if (ctx.watchEvent === "Modified") {
     const managedFields = ctx.object.metadata?.managedFields ?? [];
@@ -38,14 +39,14 @@ export async function synth(sourcedir: string, engine: string, plural: string, c
   const objType = `${objRef.apiVersion}/${plural}`;
   const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
 
-  const logger = createLogger(events, objUri, objType);
+  const logger = createLogger(objUri, objType);
 
   const host: RuntimeContext = {
     getenv,
     tryGetenv,
     newSlackThread,
     chatCompletion,
-    events,
+    emitEvent,
     objUri,
     objType,
     objRef,
@@ -88,7 +89,7 @@ export async function synth(sourcedir: string, engine: string, plural: string, c
   }
 
   if (reason !== "DELETE") {
-    host.events.emit({
+    host.emitEvent({
       type: "OBJECT",
       objUri,
       objType,
@@ -146,7 +147,7 @@ export async function synth(sourcedir: string, engine: string, plural: string, c
       await slack.update(slackStatus("⚪", "Deleted"));
       
       // only emit when we are done because this will cause the object to be emptied.
-      host.events.emit({
+      host.emitEvent({
         type: "OBJECT",
         objUri,
         objType,
@@ -180,7 +181,7 @@ export async function synth(sourcedir: string, engine: string, plural: string, c
     await slack.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
     const explanation = await explainError(host, ctx, err.message);
 
-    host.events.emit({
+    host.emitEvent({
       objUri,
       objType,
       type: "ERROR",
