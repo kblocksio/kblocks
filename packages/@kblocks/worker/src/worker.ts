@@ -112,7 +112,7 @@ async function main() {
 
   const objType = kblock.manifest.definition.kind.toLocaleLowerCase();
   const objUri = `system://${objType}`;
-  const logger = createLogger(events, objUri, objType);
+  const logger = createLogger(objUri, objType);
 
   const sourcedir = await getSource(kblock, logger);
   await installDependencies(sourcedir, logger);

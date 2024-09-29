@@ -1,5 +1,5 @@
 import { emitEvent } from "./events";
-import { Manifest } from "./types";
+import { ApiObject, Manifest } from "./types";
 import * as k8s from "@kubernetes/client-node";
 
 const KBLOCKS_ANNOTATION_METADATA_NAME = "kblocks.io/metadata-name";
@@ -39,38 +39,28 @@ export async function flushType(systemId: string, manifest: Manifest) {
 
   const openApiSchema = crd.spec.versions[0]?.schema?.openAPIV3Schema;
 
-  const namespace = "_";
-  const objType = `kblocks.io/v1/blocks`;
-  const objUri = `kblocks://kblocks.io/v1/blocks/${systemId}/${namespace}/${name}`;
-
-  emitEvent({
-    type: "OBJECT",
-    reason: "SYNC",
-    objUri,
-    objType,
-    object: {
-      apiVersion: "kblocks.io/v1",
-      kind: "Block",
-      metadata: {
-        name,
-        namespace,
-      },
-      spec: {
-        group: manifest.definition.group,
-        version: manifest.definition.version,
-        kind: manifest.definition.kind,
-        plural: manifest.definition.plural,
-        description: manifest.definition.description,
-        readme,
-        icon: manifest.definition.icon,
-        color: manifest.definition.color,
-        openApiSchema,
-      }
+  // we emulate a CRD here that represents the block (in the future it will actually be a CRD)
+  await flushResource(systemId, manifest, {
+    apiVersion: "kblocks.io/v1",
+    kind: "Block",
+    metadata: {
+      name,
+    },
+    spec: {
+      group: manifest.definition.group,
+      version: manifest.definition.version,
+      kind: manifest.definition.kind,
+      plural: manifest.definition.plural,
+      description: manifest.definition.description,
+      readme,
+      icon: manifest.definition.icon,
+      color: manifest.definition.color,
+      openApiSchema,
     }
   });
 }
 
-async function flushResource(systemId: string, manifest: Manifest, resource: any) {
+async function flushResource(systemId: string, manifest: Manifest, resource: ApiObject) {
   const objType = `${manifest.definition.group}/${manifest.definition.version}/${manifest.definition.plural}`;
   const objUri = `kblocks://${objType}/${systemId}/${resource.metadata.namespace ?? "default"}/${resource.metadata.name}`;
 
