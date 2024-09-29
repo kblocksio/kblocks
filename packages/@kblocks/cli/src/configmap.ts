@@ -5,6 +5,14 @@ import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
 import { readManifest } from "./types";
+import * as k8s from "cdk8s-plus-30";
+
+export interface PodEnvironment {
+  envSecrets?: Record<string, string>;
+  envConfigMaps?: Record<string, string>;
+  env?: Record<string, string>;
+  configMaps: Record<string, k8s.ConfigMap>;
+}
 
 export interface ConfigMapVolumeProps {
   namespace?: string;
@@ -35,6 +43,33 @@ export class ConfigMapFromDirectory extends Construct {
         "kblock.json": readBlockJson(props.path),
       },
     });
+  }
+}
+
+export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Container, podEnv: PodEnvironment) {
+  for (const [key, value] of Object.entries(podEnv.configMaps)) {
+    const volume = k8s.Volume.fromConfigMap(pod, `ConfigMapVolume-${key}`, value);
+    pod.addVolume(volume);
+    pod.metadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
+    pod.podMetadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
+    container.mounts.push({
+      volume,
+      path: `/${key}`,
+    });
+  }
+
+  for (const [key, value] of Object.entries(podEnv.envSecrets ?? {})) {
+    const secret = k8s.Secret.fromSecretName(pod, `credentials-${key}-${value}`, value);
+    container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key }));
+  }
+
+  for (const [key, value] of Object.entries(podEnv.envConfigMaps ?? {})) {
+    const cm = k8s.ConfigMap.fromConfigMapName(pod, `configmaps-${key}-${value}`, value);
+    container.env.addVariable(key, k8s.EnvValue.fromConfigMap(cm, key));
+  }
+
+  for (const [key, value] of Object.entries(podEnv.env ?? {})) {
+    container.env.addVariable(key, k8s.EnvValue.fromValue(value));
   }
 }
 
@@ -91,7 +126,8 @@ export async function createTgzBase64(directory: string): Promise<string> {
 export function readBlockJson(directory: string) {
   const block = readManifest(directory);
   return JSON.stringify({
-    ...block,
+    manifest: block,
+    engine: block.engine,
     config: {
       configVersion: "v1",
       kubernetes: [

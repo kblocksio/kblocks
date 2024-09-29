@@ -48,3 +48,4 @@ export async function hashAll(dirs: string[], exclude?: string[]) {
   
   return hash.digest("hex");
 }
+

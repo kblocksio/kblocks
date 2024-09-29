@@ -1,18 +1,14 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
-import * as cdk8s from "cdk8s";
-import { createHashFromConfigMap } from "./configmap";
+import { PodEnvironment, setupPodEnvironment } from "./configmap";
 
-export interface WorkerProps {
+export interface WorkerProps extends PodEnvironment {
   image: string;
   group: string;
   kind: string
   plural: string;
   namespace?: string;
   replicas: number;
-  configMaps: Record<string, k8s.ConfigMap>;
-  envSecrets?: Record<string, string>;
-  envConfigMaps?: Record<string, string>;
   env?: Record<string, string>;
   outputs?: string[];
 }
@@ -57,10 +53,10 @@ export class Worker extends Construct {
     const binding = new k8s.ClusterRoleBinding(this, "WorkerClusterRoleBinding", { role });
     binding.addSubjects(serviceAccount);
     
-    const controller = new k8s.StatefulSet(this, "WorkerStatefulSet", {
+    const workerDeployment = new k8s.StatefulSet(this, "WorkerStatefulSet", {
       metadata: {
         namespace: props.namespace,
-        name: `kblocks-worker-${kind}`,
+        name: `kblocks-${kind}-worker`,
       },
       serviceAccount: serviceAccount,
       replicas: props.replicas,
@@ -68,26 +64,14 @@ export class Worker extends Construct {
       service: new k8s.Service(this, "WorkerService", {
         metadata: {
           namespace: props.namespace,
-          name: `kblocks-worker-${kind}`,
+          name: `kblocks-${kind}-worker`,
         },
         ports: [{ port: 3000 }],
       }),
     });
     
-    const volumeMounts: {volume: k8s.Volume;path: string;}[] = [];
-    for (const [key, value] of Object.entries(props.configMaps)) {
-      const volume = k8s.Volume.fromConfigMap(this, `ConfigMapVolume-${key}`, value);
-      controller.addVolume(volume);
-      controller.metadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
-      controller.podMetadata.addLabel(`configmap-hash-${key}`, createHashFromConfigMap(value));
-
-      volumeMounts.push({
-        volume,
-        path: `/${key}`,
-      });
-    }
-
-    const container = controller.addContainer({
+    const container = workerDeployment.addContainer({
+      name: "worker",
       image: props.image,
       imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
       resources: {
@@ -100,27 +84,15 @@ export class Worker extends Construct {
         readOnlyRootFilesystem: false,
         ensureNonRoot: false,
       },
-      volumeMounts,
       portNumber: 3000,
     });
 
-    for (const [key, value] of Object.entries(props.envSecrets ?? {})) {
-      const secret = k8s.Secret.fromSecretName(this, `credentials-${key}-${value}`, value);
-      container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key }));
-    }
-
-    for (const [key, value] of Object.entries(props.envConfigMaps ?? {})) {
-      const cm = k8s.ConfigMap.fromConfigMapName(this, `configmaps-${key}-${value}`, value);
-      container.env.addVariable(key, k8s.EnvValue.fromConfigMap(cm, key));
-    }
-
-    for (const [key, value] of Object.entries(props.env ?? {})) {
-      container.env.addVariable(key, k8s.EnvValue.fromValue(value));
-    }
+    setupPodEnvironment(workerDeployment, container, props);
 
     container.env.addVariable("RELEASE_NAME", k8s.EnvValue.fromValue("{{ .Release.Name }}"));
     container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
     container.env.addVariable("WORKER_INDEX",
       k8s.EnvValue.fromFieldRef(k8s.EnvFieldPaths.POD_LABEL, { key: "apps.kubernetes.io/pod-index" }));
   }
+
 }

@@ -4,7 +4,7 @@
   "scripts": {
     "watch": "cd packages/@kblocks/cli && npx tsc --watch",
     "dev": "skaffold run --tail",
-    "build": "./build.sh"
+    "build": "npm run --if-present -ws build"
   },
   "workspaces": [
     "packages/**/*",

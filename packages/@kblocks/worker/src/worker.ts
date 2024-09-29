@@ -2,12 +2,13 @@ import fs from "fs";
 import path from "path";
 import * as tar from "tar";
 import Redis from "ioredis";
-import { synth } from "./synth.js";
-import { exec, tempdir } from "./util.js";
-import { BindingContext } from "./types/index.js";
-import { startServer } from "./http.js";
+import { synth } from "./synth";
+import { exec, tempdir } from "./util";
+import { BindingContext } from "./types";
+import { startServer } from "./http";
 import { cloneRepo, listenForChanges } from "./git.js";
 import { createLogger } from "./logging.js";
+import { Manifest } from "./types/index.js";
 
 const mountdir = "/kblock";
 const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
@@ -60,7 +61,7 @@ async function extractArchive(dir: string, logger: ReturnType<typeof createLogge
 
 async function installDependencies(dir: string, logger: ReturnType<typeof createLogger>) {
   await exec(logger, "npm", ["install", "-g", `@kblocks/cli@${process.env.CLI_VERSION}`], { cwd: dir });
-
+  
   if (fs.existsSync(path.join(dir, "package.json"))) {
     if (fs.existsSync(path.join(dir, "node_modules"))) {
       return;
@@ -129,11 +130,13 @@ async function main() {
     const [key, messages] = results[0];
     console.log(`Received ${messages.length} messages from ${key}`);
   
+    const manifest = kblock.manifest as Manifest;
+
     for (const message of messages) {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
-        await synth(sourcedir, kblock.engine, event, events);
+        await synth(sourcedir, kblock.engine, manifest.definition.plural, event, events);
       } catch (error) {
         console.error(`Error processing event: ${error}.`);
       } finally {

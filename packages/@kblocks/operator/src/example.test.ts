@@ -1,4 +1,4 @@
-// an example test for the controller
+// an example test for the operator
 
 import { expect, test } from "vitest";
 

@@ -97,14 +97,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push controller
+      - name: Build and push operator
         uses: docker/build-push-action@v6
         with:
-          context: packages/@kblocks/controller
+          context: packages/@kblocks/operator
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: wingcloudbot/kblocks-controller:latest,wingcloudbot/kblocks-controller:${{ needs.build.outputs.version }}
-          cache-from: type=registry,ref=wingcloudbot/kblocks-controller:latest
+          tags: wingcloudbot/kblocks-operator:latest,wingcloudbot/kblocks-operator:${{ needs.build.outputs.version }}
+          cache-from: type=registry,ref=wingcloudbot/kblocks-operator:latest
           cache-to: type=inline
 
       - name: Build and push worker
@@ -118,6 +118,17 @@ jobs:
           cache-to: type=inline
           build-args: |
             CLI_VERSION=${{ needs.build.outputs.version }}
+
+
+      - name: Build and push control
+        uses: docker/build-push-action@v6
+        with:
+          context: packages/@kblocks/control
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: wingcloudbot/kblocks-control:latest,wingcloudbot/kblocks-control:${{ needs.build.outputs.version }}
+          cache-from: type=registry,ref=wingcloudbot/kblocks-control:latest
+          cache-to: type=inline
 
       - name: Login to NPM registry
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_PUBLISH_TOKEN }}

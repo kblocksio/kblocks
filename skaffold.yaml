@@ -2,12 +2,16 @@ apiVersion: skaffold/v4beta11
 kind: Config
 build:
   artifacts:
-  - image: wingcloudbot/kblocks-controller
-    context: ./packages/@kblocks/controller
+  - image: wingcloudbot/kblocks-operator
+    context: ./packages/@kblocks/operator
     sync:
       infer: ["src/**/*.ts"]
   - image: wingcloudbot/kblocks-worker
     context: ./packages/@kblocks/worker
+    sync:
+      infer: ["src/**/*.ts"]
+  - image: wingcloudbot/kblocks-control
+    context: ./packages/@kblocks/control
     sync:
       infer: ["src/**/*.ts"]
   - image: wingcloudbot/kblocks-sink
@@ -26,7 +30,8 @@ deploy:
               - -c
               - |
                 export KBLOCKS_WORKER_IMAGE="{{ .Values.workerImage }}"
-                export KBLOCKS_CONTROLLER_IMAGE="{{ .Values.controllerImage }}"
+                export KBLOCKS_OPERATOR_IMAGE="{{ .Values.operatorImage }}"
+                export KBLOCKS_CONTROL_IMAGE="{{ .Values.controlImage }}"
                 ./build.sh
     releases:
       - name: kblocks-test
@@ -35,5 +40,6 @@ deploy:
         createNamespace: true
         setValueTemplates:
           workerImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_worker}}"
-          controllerImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_controller}}"
+          operatorImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_operator}}"
+          controlImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_control}}"
           sinkImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_sink}}"

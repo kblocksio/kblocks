@@ -7,12 +7,12 @@ import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
 import { patchObjectState, publishEvent, RuntimeContext } from "./host.js";
-import { BindingContext, InvolvedObject, ObjectEvent } from "./types/index.js";
+import { BindingContext, InvolvedObject, ObjectEvent, StatusReason } from "./types/index.js";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { Events } from "./http.js";
 
-export async function synth(sourcedir: string, engine: string, ctx: BindingContext, events: Events) {
+export async function synth(sourcedir: string, engine: string, plural: string, ctx: BindingContext, events: Events) {
   // skip updates to the "status" subresource
   if (ctx.watchEvent === "Modified") {
     const managedFields = ctx.object.metadata?.managedFields ?? [];
@@ -35,7 +35,7 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
     uid: ctx.object.metadata.uid,
   };
 
-  const objType = `${objRef.apiVersion}/${objRef.kind.toLocaleLowerCase()}`;
+  const objType = `${objRef.apiVersion}/${plural}`;
   const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
 
   const logger = createLogger(events, objUri, objType);
@@ -60,13 +60,14 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
   console.log("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
-  const updateReadyCondition = async (ready: boolean, message: string) => patchObjectState(host, {
+  const updateReadyCondition = async (ready: boolean, reason: StatusReason) => patchObjectState(host, {
     conditions: [{
       type: "Ready",
       status: ready ? "True" : "False",
       lastTransitionTime: new Date().toISOString(),
       lastProbeTime,
-      message,
+      message: reason,
+      reason,
     }]
   });
 
@@ -108,11 +109,11 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
     });
 
     // resolve references by waiting for the referenced objects to be ready
-    await updateReadyCondition(false, "Resolving references");
+    await updateReadyCondition(false, StatusReason.ResolvingReferences);
     ctx.object = await resolveReferences(workdir, host, ctx.object);
     console.log(JSON.stringify(ctx)); // one line per object
 
-    await updateReadyCondition(false, "In progress");
+    await updateReadyCondition(false, StatusReason.InProgress);
 
     const values = path.join(workdir, "values.json");
     await fs.writeFile(values, JSON.stringify(ctx.object));
@@ -153,7 +154,7 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
         reason,
       });
     } else {
-      await updateReadyCondition(true, "Success");
+      await updateReadyCondition(true, StatusReason.Completed);
       await publishEvent(host, {
         type: "Normal",
         reason: "UpdateSucceeded",
@@ -199,7 +200,7 @@ export async function synth(sourcedir: string, engine: string, ctx: BindingConte
       await slack.postBlocks(explanation.blocks);
     }
 
-    await updateReadyCondition(false, "Error");
+    await updateReadyCondition(false, StatusReason.Error);
   } finally {
     if (process.env.DEBUG) {
       console.warn("DEBUG: skipped cleanup of", workdir);
