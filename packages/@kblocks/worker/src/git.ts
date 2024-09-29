@@ -55,7 +55,7 @@ export async function listenForChanges(kblock: KConfig, onChanges: (commit: stri
     } else {
       onChanges(newCommit);
     }
-  }, 30000);
+  }, 180000);
   return commit;
 }
 

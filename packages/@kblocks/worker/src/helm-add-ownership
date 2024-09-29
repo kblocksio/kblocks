@@ -2,14 +2,14 @@
 // This is a helm post-renderer script that adds ownership to the rendered YAML
 // The OWNER_REF environment variable includes the parent object
 
-const fs = require('fs');
-const { renderYaml } = require("./render.cjs");
+import { readFileSync } from "fs";
+import { renderYaml } from "./render.cjs";
 
 // read everything from STDIN
-const stdin = fs.readFileSync(0, 'utf-8');
+const stdin = readFileSync(0, "utf-8");
 
 if (!process.env.OWNER_REF) {
-  throw new Error('OWNER_REF env var is required');
+  throw new Error("OWNER_REF env var is required");
 }
 
 const parent = JSON.parse(process.env.OWNER_REF);
