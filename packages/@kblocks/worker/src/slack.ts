@@ -14,7 +14,9 @@ export type Blocks = Array<{
 }>;
 
 const SLACK_API_TOKEN = process.env.SLACK_API_TOKEN;
-console.error('Warning: SLACK_API_TOKEN environment variable is not set, not sending message to Slack');
+if (!SLACK_API_TOKEN) {
+  console.error('Warning: SLACK_API_TOKEN environment variable is not set, not sending message to Slack');
+}
 
 async function sendSlackMessage(channel: string, blocks: Blocks, thread_ts?: string): Promise<Context> {
   try {

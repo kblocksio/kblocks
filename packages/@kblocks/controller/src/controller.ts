@@ -2,7 +2,6 @@ import fs from "fs";
 import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
-import { startControl } from "./control";
 
 async function main() {
   const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
@@ -35,14 +34,6 @@ async function main() {
   const workers = parseInt(process.env.WORKERS, 10);
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
   const redisClient = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
-
-  for (const kubernetes of kblock.config.kubernetes) {
-    startControl({
-      apiVersion: kubernetes.apiVersion,
-      kind: kubernetes.kind,
-      systemId: KBLOCKS_SYSTEM_ID
-    });
-  }
 
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {
