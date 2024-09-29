@@ -8,10 +8,9 @@ import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
 import { patchObjectState, publishEvent, RuntimeContext } from "./host.js";
-import { BindingContext, InvolvedObject, ObjectEvent, StatusReason } from "./types/index.js";
+import { BindingContext, InvolvedObject, ObjectEvent, StatusReason, emitEvent } from "./types/index.js";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
-import { emitEvent } from "./events.js";
 
 export async function synth(sourcedir: string, engine: string, plural: string, ctx: BindingContext) {
   // skip updates to the "status" subresource

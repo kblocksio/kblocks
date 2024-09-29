@@ -1,8 +1,7 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from "ws";
 import * as k8s from "@kubernetes/client-node";
-import { Manifest, type ErrorEvent } from "./types";
-import { emitEvent } from "./events";
+import { Manifest, type ErrorEvent, emitEvent } from "./types";
 import { flush } from "./flush";
 
 const kc = new k8s.KubeConfig();

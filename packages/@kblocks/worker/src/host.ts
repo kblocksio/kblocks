@@ -3,9 +3,8 @@ import path from "path";
 import child_process from "child_process";
 import { chatCompletion } from "./ai.js";
 import { newSlackThread } from "./slack.js";
-import { Event, InvolvedObject } from "./types/index.js";
+import { Event, InvolvedObject, emitEvent } from "./types/index.js";
 import { getenv, tryGetenv, tempdir } from "./util.js";
-import { emitEvent } from "./events.js";
 import { type createLogger } from "./logging.js";
 
 export interface RuntimeContext {

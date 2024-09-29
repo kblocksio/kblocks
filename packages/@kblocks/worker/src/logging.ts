@@ -1,6 +1,5 @@
 import crypto from "crypto";
-import { LogLevel } from "./types/index.js";
-import { emitEvent } from "./events.js";
+import { LogLevel, emitEvent } from "./types/index.js";
 
 const toLogFunction = {
   [LogLevel.DEBUG]: console.debug,
