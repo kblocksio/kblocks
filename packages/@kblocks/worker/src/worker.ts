@@ -108,7 +108,7 @@ async function main() {
     maxRetriesPerRequest: null,
   });
 
-  const events = await startServer();
+  startServer(); // TODO: do we need this to keep the pod alive?
 
   const objType = kblock.manifest.definition.kind.toLocaleLowerCase();
   const objUri = `system://${objType}`;
@@ -136,7 +136,7 @@ async function main() {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
-        await synth(sourcedir, kblock.engine, manifest.definition.plural, event, events);
+        await synth(sourcedir, kblock.engine, manifest.definition.plural, event);
       } catch (error) {
         console.error(`Error processing event: ${error}.`);
       } finally {

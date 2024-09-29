@@ -87,19 +87,30 @@ export async function build(opts: Options) {
 
   const schema = await resolveSchema(kblockDir, block);
 
+  const metaNamespace = block.operator?.namespace ?? "default";
   const meta = new BlockMetadata(chart, "Metadata", {
+    resourceName: block.definition.kind,
     dir: kblockDir,
     ...block.definition,
-    namespace: block.operator?.namespace,
+    namespace: metaNamespace,
   });
+
+  const annotations: Record<string, string> = {
+    "kblocks.io/metadata-name": meta.name,
+    "kblocks.io/metadata-namespace": metaNamespace,
+  };
+
+  if (block.definition.icon) {
+    annotations["kblocks.io/icon"] = block.definition.icon;
+  }
+
+  if (block.definition.color) {
+    annotations["kblocks.io/color"] = block.definition.color;
+  }
 
   new CustomResourceDefinition(chart, "CRD", {
     ...block.definition,
-    annotations: {
-      "kblocks.io/icon": block.definition.icon,
-      "kblocks.io/metadata": meta.name,
-      "kblocks.io/docs": meta.name,
-    },
+    annotations,
     schema,
   });
 

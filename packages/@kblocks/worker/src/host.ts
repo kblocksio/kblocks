@@ -5,9 +5,8 @@ import { chatCompletion } from "./ai.js";
 import { newSlackThread } from "./slack.js";
 import { Event, InvolvedObject } from "./types/index.js";
 import { getenv, tryGetenv, tempdir } from "./util.js";
-import { Events } from "./http.js";
+import { emitEvent } from "./events.js";
 import { type createLogger } from "./logging.js";
-
 
 export interface RuntimeContext {
   newSlackThread: typeof newSlackThread,
@@ -15,7 +14,7 @@ export interface RuntimeContext {
   tryGetenv: typeof tryGetenv,
   exec: (command: string, args: string[], options?: child_process.SpawnOptions) => Promise<string>,
   chatCompletion: typeof chatCompletion;
-  events: Events;
+  emitEvent: typeof emitEvent;
   objUri: string;
   objRef: InvolvedObject;
   objType: string;
@@ -31,7 +30,7 @@ export async function patchObjectState(host: RuntimeContext, patch: any) {
     const group = host.objRef.apiVersion.split("/")[0];
     const type = `${host.objRef.kind.toLowerCase()}.${group}`;
 
-    host.events.emit({
+    host.emitEvent({
       type: "PATCH",
       objUri: host.objUri,
       objType: host.objType,
@@ -58,7 +57,7 @@ export async function publishEvent(host: RuntimeContext, event: Event) {
     const name = "kblock-event-" + Math.random().toString(36).substring(7);
     const eventJson = path.join(workdir, "event.json");
 
-    host.events.emit({
+    host.emitEvent({
       type: "LIFECYCLE",
       objUri: host.objUri,
       objType: host.objType,

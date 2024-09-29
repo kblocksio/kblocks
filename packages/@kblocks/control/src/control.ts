@@ -2,6 +2,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from "ws";
 import * as k8s from "@kubernetes/client-node";
 import { type ErrorEvent } from "./types";
+import { emitEvent } from "./events";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -52,7 +53,7 @@ async function createKubernetesResource({ group, version, plural, body, systemId
     const message = (error.body as any)?.message ?? "unknown error";
     const objUri = `kblocks://${group}/${version}/${plural}/${systemId}/${namespace}/${name}`;
     console.error("Error creating Kubernetes resource:", JSON.stringify(body));
-    await sendEvent({
+    emitEvent({
       type: "ERROR",
       objType: `${group}/${version}/${plural}`,
       objUri,
@@ -98,29 +99,5 @@ export function connect(controlUrl: string, { group, version, plural, systemId }
   ws.addEventListener("close", (event) => {
     console.log("Control connection closed", event);
   });
-}
-
-
-async function sendEvent(event: any) {
-  const KBLOCKS_EVENTS_URL = process.env.KBLOCKS_EVENTS_URL;
-  if (!KBLOCKS_EVENTS_URL) {
-    console.warn("WARNING: KBLOCKS_EVENTS_URL not configured, events will not be sent to the backend");
-    return;
-  }
-
-  const req = {
-    method: "POST",
-    body: JSON.stringify(event),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-
-  try {
-    await fetch(KBLOCKS_EVENTS_URL, req);
-  } catch (error) {
-    console.error("Error sending event to backend:", event);
-  }
 }
 
