@@ -1,16 +1,16 @@
 import fs from "fs/promises";
 import path from "path";
-import { applyHelm } from "./helm";
-import { exec, getenv, tempdir, tryGetenv } from "./util";
-import { applyWing } from "./wing";
-import { resolveReferences } from "./refs";
-import { chatCompletion, explainError } from "./ai";
-import { applyTofu } from "./tofu";
-import { patchObjectState, publishEvent, RuntimeContext } from "./host";
-import { BindingContext, InvolvedObject, ObjectEvent } from "./types";
-import { createLogger } from "./logging";
-import { newSlackThread } from "./slack";
-import { Events } from "./http";
+import { applyHelm } from "./helm.js";
+import { exec, getenv, tempdir, tryGetenv } from "./util.js";
+import { applyWing } from "./wing.js";
+import { resolveReferences } from "./refs.js";
+import { chatCompletion, explainError } from "./ai.js";
+import { applyTofu } from "./tofu.js";
+import { patchObjectState, publishEvent, RuntimeContext } from "./host.js";
+import { BindingContext, InvolvedObject, ObjectEvent } from "./types/index.js";
+import { createLogger } from "./logging.js";
+import { newSlackThread } from "./slack.js";
+import { Events } from "./http.js";
 
 export async function synth(sourcedir: string, engine: string, ctx: BindingContext, events: Events) {
   // skip updates to the "status" subresource

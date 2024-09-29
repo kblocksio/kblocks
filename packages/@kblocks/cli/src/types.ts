@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import path from "path";
 import yaml from "yaml";
 import fs from "fs";
@@ -28,6 +29,12 @@ export const Manifest = z.object({
     z.literal("noop"),
   ]),
 
+  source: z.optional(z.object({
+    url: z.string(),
+    branch: z.optional(z.string()),
+    directory: z.optional(z.string()),
+  })),
+
   definition: z.intersection(CustomResourceDefinition, z.object({
     schema: z.optional(z.any()),
     readme: z.string(),
@@ -48,8 +55,9 @@ export const Manifest = z.object({
   })),
 });
 
-export type Manifest = z.infer<typeof Manifest>;
+export const ManifestSchema = zodToJsonSchema(Manifest, "manifest");
 
+export type Manifest = z.infer<typeof Manifest>;
 
 export function readManifest(dir: string): Manifest {
   const yamlfile = path.join(dir, "kblock.yaml");

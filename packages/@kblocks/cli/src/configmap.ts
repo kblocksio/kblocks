@@ -91,7 +91,7 @@ export async function createTgzBase64(directory: string): Promise<string> {
 export function readBlockJson(directory: string) {
   const block = readManifest(directory);
   return JSON.stringify({
-    engine: block.engine,
+    ...block,
     config: {
       configVersion: "v1",
       kubernetes: [

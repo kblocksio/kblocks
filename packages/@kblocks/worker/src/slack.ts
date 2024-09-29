@@ -1,4 +1,4 @@
-import { RuntimeContext } from "./host";
+import { RuntimeContext } from "./host.js";
 
 type Context  = {
   ts?: string;
@@ -129,7 +129,7 @@ export const newSlackThread = async (channel: string, initialMessage: string) =>
   }
 };
 
-exports.newSlackThread = newSlackThread;
+// exports.newSlackThread = newSlackThread;
 
 // (async () => {
 

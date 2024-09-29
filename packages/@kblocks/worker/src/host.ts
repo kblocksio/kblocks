@@ -1,12 +1,12 @@
-import { chatCompletion } from "./ai";
-import { newSlackThread } from "./slack";
-import { Event, InvolvedObject } from "./types";
-import { getenv, tryGetenv, tempdir } from "./util";
 import fs from "fs";
 import path from "path";
-import { Events } from "./http";
-import { type createLogger } from "./logging";
 import child_process from "child_process";
+import { chatCompletion } from "./ai.js";
+import { newSlackThread } from "./slack.js";
+import { Event, InvolvedObject } from "./types/index.js";
+import { getenv, tryGetenv, tempdir } from "./util.js";
+import { Events } from "./http.js";
+import { type createLogger } from "./logging.js";
 
 
 export interface RuntimeContext {

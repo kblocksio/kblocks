@@ -1,4 +1,4 @@
-import { ApiObject, Event } from "./types";
+import { ApiObject, Event } from "./types.js";
 
 export interface EventBase {
   objUri: string;

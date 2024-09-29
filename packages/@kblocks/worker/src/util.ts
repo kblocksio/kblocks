@@ -3,7 +3,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import util from "util";
-import { createLogger } from "./logging";
+import { createLogger } from "./logging.js";
 
 export function exec(logger: ReturnType<typeof createLogger> | undefined, command: string, args: string[], options: child_process.SpawnOptions = {}): Promise<string> {
   args = args || [];

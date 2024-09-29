@@ -1,40 +1,41 @@
-import type { ApiObject } from "./types";
 import fs from "fs";
 import yaml from "yaml";
 import path from "path";
+import type { ApiObject } from "./types/index.js";
+// @ts-ignore
+import { renderYaml } from "./render.cjs";
+// function renderYaml(parent: ApiObject, all: string) {
+//   // adding "ownerReferences" to the generated manifest to ensure that the resources are deleted
+//   // when the owner is deleted.
+//   const parentNamespace = parent.metadata?.namespace ?? "default";
+//   const docs = yaml.parseAllDocuments(all);
 
-function renderYaml(parent: ApiObject, all: string) {
-  // adding "ownerReferences" to the generated manifest to ensure that the resources are deleted
-  // when the owner is deleted.
-  const parentNamespace = parent.metadata?.namespace ?? "default";
-  const docs = yaml.parseAllDocuments(all);
+//   for (const doc of docs) {
+//     const metadata = doc.get("metadata") as yaml.YAMLMap;
 
-  for (const doc of docs) {
-    const metadata = doc.get("metadata") as yaml.YAMLMap;
-
-    const namespace = metadata.get("namespace") ?? "default";
-    if (parentNamespace === namespace) {
-      const ownerRef = "ownerReferences";
+//     const namespace = metadata.get("namespace") ?? "default";
+//     if (parentNamespace === namespace) {
+//       const ownerRef = "ownerReferences";
       
-      if (!metadata.has(ownerRef)) {
-        metadata.set(ownerRef, new yaml.YAMLSeq());
-      }
+//       if (!metadata.has(ownerRef)) {
+//         metadata.set(ownerRef, new yaml.YAMLSeq());
+//       }
 
-      const refs = metadata.get(ownerRef) as yaml.YAMLSeq
+//       const refs = metadata.get(ownerRef) as yaml.YAMLSeq
 
-      refs.add({
-        apiVersion: parent.apiVersion,
-        kind: parent.kind,
-        name: parent.metadata.name,
-        uid: parent.metadata.uid,
-        controller: true,
-        blockOwnerDeletion: true,
-      });
-    }
-  }
+//       refs.add({
+//         apiVersion: parent.apiVersion,
+//         kind: parent.kind,
+//         name: parent.metadata.name,
+//         uid: parent.metadata.uid,
+//         controller: true,
+//         blockOwnerDeletion: true,
+//       });
+//     }
+//   }
 
-  return docs.map(doc => yaml.stringify(doc)).join("\n---\n");
-}
+//   return docs.map(doc => yaml.stringify(doc)).join("\n---\n");
+// }
 
 export function addOwnerReferences(parent: ApiObject, targetdir: string, outfile: string): string {
   let yamlFile;
@@ -55,8 +56,8 @@ export function addOwnerReferences(parent: ApiObject, targetdir: string, outfile
   return outfile;
 }
 
-exports.addOwnerReferences = addOwnerReferences;
-exports.renderYaml = renderYaml;
+// exports.addOwnerReferences = addOwnerReferences;
+// exports.renderYaml = renderYaml;
 
 // const parent = {
 //   apiVersion: "acme.com/v1",

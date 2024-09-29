@@ -1,7 +1,7 @@
 import openai from "openai";
-import type { BindingContext } from "./types";
-import type { Blocks } from "./slack";
-import { RuntimeContext } from "./host";
+import type { BindingContext } from "./types/index.js";
+import type { Blocks } from "./slack.js";
+import { RuntimeContext } from "./host.js";
 
 const prompt = "Provide the root cause of this error with concise instructions on how to fix. Output format should be JSON of Slack blocks with 'mrkdwn' sections. Do not wrap this in triple backticks, just output raw well-formatted JSON.";
 
