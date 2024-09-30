@@ -9,6 +9,7 @@ export interface Condition {
   type?: string;
   status?: string;
   lastTransitionTime?: string;
+  lastProbeTime?: string;
   reason?: string;
   message?: string;
 }
@@ -30,7 +31,7 @@ export type ApiObject =  {
   };
 
   // current state
-  status: {
+  status?: {
     conditions?: Condition[];
     [key: string]: any;
   };

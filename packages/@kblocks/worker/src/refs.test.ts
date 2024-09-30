@@ -32,7 +32,7 @@ test("test1", async () => {
         {
           "lastProbeTime": "2024-07-30T14:55:12.273Z",
           "lastTransitionTime": "2024-07-30T14:55:15.106Z",
-          "status": true,
+          "status": "True",
           "type": "Ready"
         }
       ]
