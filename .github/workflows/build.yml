@@ -65,6 +65,9 @@ jobs:
           KBLOCKS_OUTPUT_DIR: ../../../dist
           KBLOCKS_KBLOCK_DIR: .
           KBLOCKS_VERSION: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
+          KBLOCKS_OPERATOR_IMAGE: wingcloudbot/kblocks-operator:${{ fromJson(steps.changelog.outputs.data).newVersion }}
+          KBLOCKS_CONTROL_IMAGE: wingcloudbot/kblocks-control:${{ fromJson(steps.changelog.outputs.data).newVersion }}
+          KBLOCKS_WORKER_IMAGE: wingcloudbot/kblocks-worker:${{ fromJson(steps.changelog.outputs.data).newVersion }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
