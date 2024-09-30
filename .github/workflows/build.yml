@@ -129,7 +129,6 @@ jobs:
           cache-from: type=registry,ref=wingcloudbot/kblocks-worker:latest
           cache-to: type=inline
           build-args: |
-            CLI_VERSION=${{ needs.build.outputs.version }}
             KBLOCKS_OPERATOR_IMAGE=wingcloudbot/kblocks-operator:${{ needs.build.outputs.version }}
             KBLOCKS_CONTROL_IMAGE=wingcloudbot/kblocks-control:${{ needs.build.outputs.version }}
             KBLOCKS_WORKER_IMAGE=wingcloudbot/kblocks-worker:${{ needs.build.outputs.version }}

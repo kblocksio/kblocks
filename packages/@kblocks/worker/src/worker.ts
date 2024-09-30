@@ -70,8 +70,6 @@ async function extractArchive(dir: string, logger: ReturnType<typeof createLogge
 }
 
 async function installDependencies(dir: string, logger: ReturnType<typeof createLogger>) {
-  await exec(logger, "npm", ["install", "-g", `@kblocks/cli@${process.env.CLI_VERSION}`], { cwd: dir });
-  
   if (fs.existsSync(path.join(dir, "package.json"))) {
     if (fs.existsSync(path.join(dir, "node_modules"))) {
       return;
