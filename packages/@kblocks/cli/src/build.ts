@@ -24,7 +24,9 @@ export async function build(opts: Options) {
   await docs(opts);
 
   const kblockDir = path.resolve(opts.path);
-  const block = readManifest(kblockDir);  
+  const block = readManifest(kblockDir);
+
+  console.log("manifest:", block);
 
   const app = new App({ outdir: path.join(opts.output, "templates") });
   const chart = new Chart(app, block.definition.kind.toLocaleLowerCase());
