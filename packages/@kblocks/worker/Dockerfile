@@ -3,6 +3,15 @@ FROM node:20-alpine
 ARG CLI_VERSION
 ENV CLI_VERSION=${CLI_VERSION}
 
+ARG KBLOCKS_OPERATOR_IMAGE
+ENV KBLOCKS_OPERATOR_IMAGE=${KBLOCKS_OPERATOR_IMAGE}
+
+ARG KBLOCKS_CONTROL_IMAGE
+ENV KBLOCKS_CONTROL_IMAGE=${KBLOCKS_CONTROL_IMAGE}
+
+ARG KBLOCKS_WORKER_IMAGE
+ENV KBLOCKS_WORKER_IMAGE=${KBLOCKS_WORKER_IMAGE}
+
 ENV LOG_TYPE=color
 
 # install opentofu
@@ -22,7 +31,7 @@ RUN ARCH=$(uname -m); \
     mv kubectl /usr/local/bin/
 
     
-RUN npm install -g typescript winglang
+RUN npm install -g typescript winglang cdk8s-cli tsx
 
 RUN mkdir /terraform-cache
 ENV TF_PLUGIN_CACHE_DIR="/terraform-cache"

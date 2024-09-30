@@ -26,21 +26,31 @@ async function getSource(kblock: KConfig, logger: ReturnType<typeof createLogger
   if (kblock.manifest.source) {
     const sourcedir = await cloneRepo(kblock.manifest.source, logger);
     
-    // Copy contents of archivedir to sourcedir
-    const files = await fs.promises.readdir(archivedir);
-    for (const file of files) {
-      const srcPath = path.join(archivedir, file);
-      const destPath = path.join(sourcedir, file);
-      await fs.promises.cp(srcPath, destPath, { recursive: true });
+    if (archivedir) {
+      // Copy contents of archivedir to sourcedir
+      const files = await fs.promises.readdir(archivedir);
+      for (const file of files) {
+        const srcPath = path.join(archivedir, file);
+        const destPath = path.join(sourcedir, file);
+        await fs.promises.cp(srcPath, destPath, { recursive: true });
+      }
     }
 
     return sourcedir;
+  }
+
+  if (!archivedir) {
+    throw new Error("No archive or sourcefound");
   }
 
   return archivedir;
 }
 
 async function extractArchive(dir: string, logger: ReturnType<typeof createLogger>) {
+  if (!fs.existsSync(path.join(dir, "archive.tgz"))) {
+    return;
+  }
+
   logger.info(`Extracting archive from ${dir}`);
   const encodedTgz = fs.readFileSync(path.join(dir, "archive.tgz"), "utf8");
   const decodedTgz = Buffer.from(encodedTgz, "base64");
@@ -148,16 +158,8 @@ async function main() {
   }
 
   const commit = await listenForChanges(kblock, async (commit) => {
-    if (!process.env.RELEASE_NAME) {
-      throw new Error("RELEASE_NAME is not set");
-    }
-
-    console.log(`Changes detected: ${commit}. Rebuilding...`);
-    const newdir = await extractArchive(mountdir, logger);
-
-    const outputdir = tempdir();
-    await exec(logger, "kblocks", ["build", "--output", outputdir], { cwd: newdir });
-    await exec(logger, "helm", ["upgrade", "--install", process.env.RELEASE_NAME, outputdir], { cwd: outputdir });
+    logger.info(`Changes detected: ${commit}. Rebuilding...`);
+    await exec(logger, "kubectl", ["label", "block", kblock.api.metadata.name, "kblocks.io/commit", commit, "-n", kblock.api.metadata.namespace ?? "default"]);
   });
   console.log("Initial commit", commit);
 

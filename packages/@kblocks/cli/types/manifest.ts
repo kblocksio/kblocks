@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export const CustomResourceDefinition = z.object({
   group: z.string(),
@@ -13,33 +14,32 @@ export const CustomResourceDefinition = z.object({
 });
 
 export const Manifest = z.object({
-  include: z.optional(z.array(z.string())),
-
   engine: z.union([ 
     z.literal("tofu"), 
     z.literal("helm"), 
     z.literal("wing"), 
     z.literal("wing/tf-aws"), 
     z.literal("wing/k8s"),
+    z.literal("cdk8s"),
     z.literal("noop"),
   ]),
 
-  source: z.optional(z.object({
+  source: z.object({
     url: z.string(),
     branch: z.string(),
     directory: z.string(),
-  })),
+  }),
 
   definition: z.intersection(CustomResourceDefinition, z.object({
-    schema: z.optional(z.any()),
+    schema: z.any(),
     readme: z.optional(z.string()),
     description: z.optional(z.string()),
     icon: z.optional(z.string()),
     color: z.optional(z.string()),
   })),
 
-  operator: z.optional(z.object({
-    namespace: z.optional(z.string()),
+  operator: z.object({
+    namespace: z.string(),
     permissions: z.optional(z.array(z.object({
       apiGroups: z.array(z.string()),
       resources: z.array(z.string()),
@@ -49,7 +49,9 @@ export const Manifest = z.object({
     envConfigMaps: z.optional(z.record(z.string())),
     env: z.optional(z.record(z.string())),
     workers: z.optional(z.number().default(1)),
-  })),
+  }),
 });
 
 export type Manifest = z.infer<typeof Manifest>;
+
+export const manifestSchema = zodToJsonSchema(Manifest);
