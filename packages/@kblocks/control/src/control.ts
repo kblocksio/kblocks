@@ -51,11 +51,12 @@ async function createKubernetesResource({ group, version, plural, body, systemId
     }
   } catch (error: any) {
     const message = (error.body as any)?.message ?? "unknown error";
-    const objUri = `kblocks://${group}/${version}/${plural}/${systemId}/${namespace}/${name}`;
+    const objType = `${group}/${version}/${plural}`;
+    const objUri = `kblocks://${objType}/${systemId}/${namespace}/${name}`;
     console.error("Error creating Kubernetes resource:", JSON.stringify(body));
     emitEvent({
       type: "ERROR",
-      objType: `${group}/${version}/${plural}`,
+      objType,
       objUri,
       message,
       body,

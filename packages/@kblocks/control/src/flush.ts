@@ -27,7 +27,7 @@ async function flushAllResources(systemId: string, manifest: Manifest) {
   const resources = await listAllResources(manifest);
 
   for (const resource of resources) {
-    const objType = `${manifest.definition.group}.${manifest.definition.version}/${manifest.definition.plural}`;
+    const objType = `${manifest.definition.group}/${manifest.definition.version}/${manifest.definition.plural}`;
     flushResource(systemId, objType, resource);
   }
 }
