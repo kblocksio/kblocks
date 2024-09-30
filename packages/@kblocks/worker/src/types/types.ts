@@ -4,6 +4,16 @@ export type BindingContext = {
   object: ApiObject;
 };
 
+
+export interface Condition {
+  type?: string;
+  status?: string;
+  lastTransitionTime?: string;
+  lastProbeTime?: string;
+  reason?: string;
+  message?: string;
+}
+
 export type ApiObject =  {
   apiVersion: string;
   kind: string;
@@ -20,8 +30,11 @@ export type ApiObject =  {
     managedFields?: any[];
   };
 
-  // actual state
-  status?: any;
+  // current state
+  status?: {
+    conditions?: Condition[];
+    [key: string]: any;
+  };
 
   // desired state
   [key: string]: any;

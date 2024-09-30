@@ -57,14 +57,17 @@ export type WorkerEvent =
   | LifecycleEvent
   | ErrorEvent;
 
+// -------------------------------------------------------------------------------------------------
 
-const KBLOCKS_EVENTS_URL = process.env.KBLOCKS_EVENTS_URL;
-if (!KBLOCKS_EVENTS_URL) {
-  console.warn("WARNING: KBLOCKS_EVENTS_URL not configured, events will not be sent to the backend");
-}
+let warningPrinted = false;
 
 export function emitEvent(event: WorkerEvent) {
+  const KBLOCKS_EVENTS_URL = process.env.KBLOCKS_EVENTS_URL;
   if (!KBLOCKS_EVENTS_URL) {
+    if (!warningPrinted) {
+      console.warn("WARNING: KBLOCKS_EVENTS_URL not configured, events will not be sent to the backend");
+      warningPrinted = true;
+    }
     return;
   }
 

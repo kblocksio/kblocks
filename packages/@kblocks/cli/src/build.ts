@@ -31,6 +31,7 @@ export class Block extends Chart {
     super(scope, id);
 
     const { block, api, kblockDir } = props;
+    console.log("manifest:", block);
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       block: block,

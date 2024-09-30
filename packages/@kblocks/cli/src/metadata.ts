@@ -9,6 +9,8 @@ export interface BlockMetadataProps {
   kind: string;
   readme?: string;
   icon?: string;
+  description?: string;
+  color?: string;
 }
 
 export class BlockMetadata extends Construct {
@@ -19,6 +21,8 @@ export class BlockMetadata extends Construct {
 
     const readme = props.readme ?? `# ${props.resourceName}`;
     const icon = props.icon ? props.icon : "cube";
+    const description = props.description ? props.description : "No description provided";
+    const color = props.color ? props.color : "#000000";
 
     const cm = new ConfigMap(this, "Metadata", {
       metadata: {
@@ -28,6 +32,8 @@ export class BlockMetadata extends Construct {
       data: {
         readme,
         icon,
+        description,
+        color,
       }
     });
 

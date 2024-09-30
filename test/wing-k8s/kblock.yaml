@@ -8,6 +8,8 @@ definition:
     - message
   readme: README.md
   icon: heroicon://cube
+  color: green
+  description: kblock wing/k8s test resource
 operator:
   namespace: kblocks-test
   env:
