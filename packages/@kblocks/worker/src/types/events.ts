@@ -81,6 +81,6 @@ export function emitEvent(event: WorkerEvent) {
       console.warn(`${KBLOCKS_EVENTS_URL}: ${res.status} body: ${res.statusText}`);
     }
   }).catch(err => {
-    console.warn(`${KBLOCKS_EVENTS_URL}: ${err?.message}`);
+    console.warn(`${KBLOCKS_EVENTS_URL}: ${err.cause?.message ?? err.message}`);
   });
 }

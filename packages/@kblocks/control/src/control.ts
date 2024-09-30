@@ -8,6 +8,8 @@ const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 const client = kc.makeApiClient(k8s.CustomObjectsApi);
 
+const FIELD_MANAGER = "kblocks";
+
 async function tryGetResource({ group, version, plural, name, namespace }: { group: string, version: string, plural: string, name: string, namespace: string }) {
   try {
     return await client.getNamespacedCustomObject(group, version, namespace, plural, name);
@@ -35,7 +37,7 @@ async function createKubernetesResource({ group, version, plural, body, systemId
         name,
         body,
         undefined,
-        undefined,
+        FIELD_MANAGER,
         undefined,
         { headers: { 'Content-Type': 'application/merge-patch+json' } }
       );
@@ -46,7 +48,10 @@ async function createKubernetesResource({ group, version, plural, body, systemId
         version,
         namespace,
         plural,
-        body
+        body,
+        undefined,
+        undefined,
+        FIELD_MANAGER
       );
     }
   } catch (error: any) {
