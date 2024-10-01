@@ -157,7 +157,7 @@ async function main() {
 
   const commit = await listenForChanges(kblock, async (commit) => {
     logger.info(`Changes detected: ${commit}. Rebuilding...`);
-    await exec(logger, "kubectl", ["label", "block", kblock.api.metadata.name, "kblocks.io/commit", commit, "-n", kblock.api.metadata.namespace ?? "default"]);
+    await exec(logger, "kubectl", ["label", "blocks.kblocks.io", kblock.api.metadata.name, "kblocks.io/commit", commit, "-n", kblock.api.metadata.namespace ?? "default"]);
   });
   console.log("Initial commit", commit);
 
