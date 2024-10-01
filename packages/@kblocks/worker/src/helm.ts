@@ -7,7 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const postRenderPath = resolve(__dirname, "./helm-add-ownership");
 
-export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingContext, values: string): Promise<Record<string, any>> {
+export interface HelmOptions {
+  wait?: boolean;
+  timeout?: string;
+}
+
+export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingContext, values: string, options: HelmOptions = {}): Promise<Record<string, any>> {
   const obj = ctx.object;
 
   const namespace = obj.metadata.namespace ?? "default";
@@ -29,20 +34,29 @@ export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingC
     "--values", values
   ], { cwd: dir });
 
-  // install/upgrade
-  const output = await host.exec("helm", [
+  const args = [
     "upgrade",
     release, ".", 
     "--namespace", namespace,
     "--create-namespace",
-    "--install",
-    "--wait",
-    "--timeout=5m",
-    "--reset-values",
-    "--values", values,
-    "--output", "json",
-    "--post-renderer", postRenderPath
-  ], { 
+    "--install"
+  ];
+
+  if (options.wait) {
+    args.push("--wait");
+  }
+
+  if (options.timeout) {
+    args.push(`--timeout=${options.timeout}`);
+  }
+
+  args.push("--reset-values");
+  args.push("--values", values);
+  args.push("--output", "json");
+  args.push("--post-renderer", postRenderPath);
+
+  // install/upgrade
+  const output = await host.exec("helm", args, { 
     cwd: dir,
     env: { OWNER_REF: JSON.stringify(ctx.object) } 
   });
