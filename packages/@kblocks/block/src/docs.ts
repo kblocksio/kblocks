@@ -40,6 +40,7 @@ export async function docs(options: DocsOptions) {
         break;
 
       case "wing/tf-aws":
+      case "wing/k8s":
       case "wing":
         readme = await generateDocsWing(dir);
         break

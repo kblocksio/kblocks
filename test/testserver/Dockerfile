@@ -12,7 +12,6 @@ RUN npm install
 COPY src .
 COPY tsconfig.json .
 
-RUN CI=1 npm run test
 RUN tsc
 
 CMD [ "node", "main.js" ]

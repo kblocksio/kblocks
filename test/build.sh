@@ -11,7 +11,7 @@ echo "building test kblocks..."
 cd $dir
 
 (
-  cd wing-k8s
-  ../../packages/@kblocks/block/bin/kblocks build
+  cd test-resource
+  ../../packages/@kblocks/cli/block/kblocks build
   cp dist/templates/* $dir/helm/templates/
 )

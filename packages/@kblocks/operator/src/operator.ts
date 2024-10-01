@@ -65,14 +65,13 @@ main().catch(err => {
 
 async function sendContextToStream(redisClient: Redis, workers: number, context: BindingContext) {
   try {
-    const hash = createHash('md5')
-      .update(`${context.object.metadata.namespace}/${context.object.metadata.name}`)
-      .digest('hex');
+    const key = `${context.object.metadata.namespace}/${context.object.metadata.name}`;
+    const hash = createHash('sha256').update(key).digest('hex');
     const workerIndex = parseInt(hash, 16) % workers;
     const streamName = `worker-${workerIndex}`;
 
+    console.log("PARTITION:", JSON.stringify({ key, hash, workerIndex, workers, streamName }));   
     await redisClient.xadd(streamName, '*', 'context', JSON.stringify(context));
-    console.log(`Context sent to Redis stream ${streamName} successfully`);
   } catch (error) {
     console.error('Error sending context to Redis stream:', error);
   }

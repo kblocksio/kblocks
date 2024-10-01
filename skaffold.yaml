@@ -14,8 +14,8 @@ build:
     context: ./packages/@kblocks/control
     sync:
       infer: ["src/**/*.ts"]
-  - image: wingcloudbot/kblocks-sink
-    context: ./test/sink-server
+  - image: wingcloudbot/kblocks-testserver
+    context: ./test/testserver
     sync:
       infer: ["src/**/*.ts"]
 
@@ -42,4 +42,13 @@ deploy:
           workerImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_worker}}"
           operatorImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_operator}}"
           controlImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_control}}"
-          sinkImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_sink}}"
+          testServerImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_testserver}}"
+
+portForward:
+  - resourceType: service
+    resourceName: kblocks-test-testserver
+    namespace: kblocks-test
+    port: 80
+    localPort: 8080
+
+

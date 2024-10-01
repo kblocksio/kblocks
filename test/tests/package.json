@@ -1,0 +1,14 @@
+{
+  "name": "@kblocks/tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "vitest": "^2.1.1"
+  }
+}

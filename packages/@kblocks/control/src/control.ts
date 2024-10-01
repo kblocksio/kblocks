@@ -1,88 +1,37 @@
+import * as k8s from "@kubernetes/client-node";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from "ws";
-import * as k8s from "@kubernetes/client-node";
-import { Manifest, type ErrorEvent, emitEvent } from "./types";
+import { ControlCommand, Manifest } from "./types";
 import { flush } from "./flush";
+import { applyObject } from "./apply";
+import { deleteObject } from "./delete";
+import { Context } from "./context";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 const client = kc.makeApiClient(k8s.CustomObjectsApi);
 
-const FIELD_MANAGER = "kblocks";
-
-async function tryGetResource({ group, version, plural, name, namespace }: { group: string, version: string, plural: string, name: string, namespace: string }) {
-  try {
-    return await client.getNamespacedCustomObject(group, version, namespace, plural, name);
-  } catch (error) {
-    return null;
-  }
-}
-
-async function createKubernetesResource({ group, version, plural, body, systemId }: { group: string, version: string, plural: string, body: any, systemId: string  }) {
-  const namespace = body?.metadata?.namespace ?? "default";
-  const name = body?.metadata?.name;
-
-  try {
-    // first, check if the resource already exists
-    const existing = await tryGetResource({ group, version, plural, name, namespace });
-
-    // if it does, we need to patch it
-    if (existing) {
-      console.log(`PATCH: ${group}/${version}/${plural}/${systemId}/${namespace}/${name}: ${JSON.stringify(body)}`);
-      return await client.patchNamespacedCustomObject(
-        group,
-        version,
-        namespace,
-        plural,
-        name,
-        body,
-        undefined,
-        FIELD_MANAGER,
-        undefined,
-        { headers: { 'Content-Type': 'application/merge-patch+json' } }
-      );
-    } else {
-      console.log(`CREATE: ${group}/${version}/${plural}/${systemId}/${namespace}/${name}: ${JSON.stringify(body)}`);
-      return await client.createNamespacedCustomObject(
-        group,
-        version,
-        namespace,
-        plural,
-        body,
-        undefined,
-        undefined,
-        FIELD_MANAGER
-      );
-    }
-  } catch (error: any) {
-    const message = (error.body as any)?.message ?? "unknown error";
-    const objType = `${group}/${version}/${plural}`;
-    const objUri = `kblocks://${objType}/${systemId}/${namespace}/${name}`;
-    console.error("Error creating Kubernetes resource:", JSON.stringify(body));
-    emitEvent({
-      type: "ERROR",
-      objType,
-      objUri,
-      message,
-      body,
-    } as ErrorEvent);
-  }
-}
-
 export function connect(controlUrl: string, systemId: string, manifest: Manifest) {
-  const params = new URLSearchParams({ system_id: systemId }).toString();
+  const params = new URLSearchParams({ 
+    system_id: systemId, // <-- TODO: deprecate this
+    system: systemId
+  }).toString();
+
   const group = manifest.definition.group;
   const version = manifest.definition.version;
   const plural = manifest.definition.plural;
   const url = `${controlUrl}/${group}/${version}/${plural}?${params}`;
-  console.log("Connecting to control channel:", url);
+
+  const ctx: Context = { system: systemId, group, version, plural };
+
+  console.log(`Connecting to control channel: ${url}`);
 
   const ws = new ReconnectingWebSocket(url, [], {
     WebSocket,
-    maxRetries: Infinity,
-    minReconnectionDelay: 0, // 1 second
-    maxReconnectionDelay: 30000, // 30 seconds
-    connectionTimeout: 4000, // 4 seconds
+    maxRetries: Infinity,       // never give up
+    minReconnectionDelay: 0,    // try to reconnect as fast as possible
+    maxReconnectionDelay: 5000, // dont wait more than 5 seconds between reconnections
+    connectionTimeout: 10000,    // wait 10 seconds for the connection to open before timing out
   });
 
   ws.addEventListener("open", () => {
@@ -93,23 +42,64 @@ export function connect(controlUrl: string, systemId: string, manifest: Manifest
   });
 
   ws.addEventListener("message", (event) => {
-    try {
-      const body = JSON.parse(event.data);
-      createKubernetesResource({ group, version, plural, body, systemId }).catch((error) => {
-        console.error("Error creating Kubernetes resource:", error);
-      });
-    } catch (error) {
-      console.error("Error parsing control message:", event.data);
-    }
+    handleCommandMessage(ctx, event.data).catch((error) => {
+      console.error(`Error handling control message: ${event.data}`);
+      console.error(error);
+    });
   });
 
-  // send a ping every 10 seconds
-  setInterval(() => {
-    ws.send(JSON.stringify({ type: "PING" }));
-  }, 10000);
-
   ws.addEventListener("close", (event) => {
-    console.log("Control connection closed", event);
+    console.log(`Control connection closed: ${JSON.stringify({ code: event.code, reason: event.reason, type: event.type })}`);
+  });
+
+  keepalive(ws);
+}
+
+function keepalive(ws: ReconnectingWebSocket) {
+  let interval: NodeJS.Timeout;
+
+  const ping = () => {
+    try {
+      ws.send(JSON.stringify({ type: "PING" }));
+    } catch (error: any) {
+      console.error("Error sending keepalive:", error.message);
+    }
+  };
+
+  ws.addEventListener("open", () => {
+    interval = setInterval(ping, 10000);
+    console.log("Control connection opened. Starting keepalive.");
+  });
+
+  ws.addEventListener("close", () => {
+    console.log("Control connection closed. Stopping keepalive.");
+    clearInterval(interval);
   });
 }
 
+async function handleCommandMessage(ctx: Context, message: string) {
+  let command: ControlCommand;
+
+  try {
+    command = JSON.parse(message) as ControlCommand;
+  } catch (error: any) {
+    throw new Error(`Error parsing control command '${message}': ${error.message}`);
+  }
+
+  const type = command.type;
+
+  if (!type) {
+    throw new Error(`Invalid control command. Missing 'type' field: ${JSON.stringify(command)}`);
+  }
+
+  switch (type) {
+    case "APPLY":
+      return await applyObject(client, ctx, command.object);
+
+    case "DELETE":
+      return await deleteObject(client, ctx, command.objUri);
+
+    default:
+      throw new Error(`Unsupported control command type: '${type}'`);
+  }
+}

@@ -1,8 +1,0 @@
-{
-  "name": "wing-k8s",
-  "version": "1.0.0",
-  "description": "WingTest is a custom Kubernetes resource that enables you to define and manage resources in a cluster using Wing objects.",
-  "dependencies": {
-    "@winglibs/k8s": "^0.0.10"
-  }
-}

@@ -7,7 +7,6 @@ import { exec, tempdir } from "./util.js";
 import { BindingContext } from "./types/index.js";
 import { startServer } from "./http.js";
 import { cloneRepo, listenForChanges } from "./git.js";
-import { createLogger } from "./logging.js";
 import { Manifest, KConfig } from "./types/index.js";
 
 const mountdir = "/kblock";
@@ -20,11 +19,11 @@ if (!kblock.engine) {
   throw new Error("kblock.json must contain an 'engine' field");
 }
 
-async function getSource(kblock: KConfig, logger: ReturnType<typeof createLogger>) {
-  const archivedir = await extractArchive(mountdir, logger);
+async function getSource(kblock: KConfig) {
+  const archivedir = await extractArchive(mountdir);
 
   if (kblock.manifest.source) {
-    const clonedir = await cloneRepo(kblock.manifest.source, logger);
+    const clonedir = await cloneRepo(kblock.manifest.source);
     const sourcedir = tempdir();
     await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });
     
@@ -48,12 +47,12 @@ async function getSource(kblock: KConfig, logger: ReturnType<typeof createLogger
   return archivedir;
 }
 
-async function extractArchive(dir: string, logger: ReturnType<typeof createLogger>) {
+async function extractArchive(dir: string) {
   if (!fs.existsSync(path.join(dir, "archive.tgz"))) {
     return;
   }
 
-  logger.info(`Extracting archive from ${dir}`);
+  console.log(`Extracting archive from ${dir}`);
   const encodedTgz = fs.readFileSync(path.join(dir, "archive.tgz"), "utf8");
   const decodedTgz = Buffer.from(encodedTgz, "base64");
   const targetDir = tempdir();
@@ -71,18 +70,18 @@ async function extractArchive(dir: string, logger: ReturnType<typeof createLogge
   return targetDir;
 }
 
-async function installDependencies(dir: string, logger: ReturnType<typeof createLogger>) {
+async function installDependencies(dir: string) {
   if (fs.existsSync(path.join(dir, "package.json"))) {
     if (fs.existsSync(path.join(dir, "node_modules"))) {
       return;
     }
   
-    await exec(logger, "npm", ["install", "--production"], { cwd: dir });
+    await exec(undefined, "npm", ["install", "--production"], { cwd: dir });
   }
 
   // make sure @winglibs/k8s is installed if this is a wing/k8s block.
   if (kblock.engine === "wing" || kblock.engine === "wing/k8s") {
-    await exec(logger, "npm", ["install", "@winglibs/k8s"], { cwd: dir });
+    await exec(undefined, "npm", ["install", "@winglibs/k8s"], { cwd: dir });
   }
 
   if (fs.existsSync(path.join(dir, "Chart.yaml"))) {
@@ -90,7 +89,7 @@ async function installDependencies(dir: string, logger: ReturnType<typeof create
       return;
     }
 
-    await exec(logger, "helm", ["dependency", "update"], { cwd: dir });
+    await exec(undefined, "helm", ["dependency", "update"], { cwd: dir });
     fs.writeFileSync(path.join(dir, "__helm"), "{}");
   }
 }
@@ -120,12 +119,8 @@ async function main() {
 
   startServer(); // TODO: do we need this to keep the pod alive?
 
-  const objType = kblock.manifest.definition.kind.toLocaleLowerCase();
-  const objUri = `system://${objType}`;
-  const logger = createLogger(objUri, objType);
-
-  const sourcedir = await getSource(kblock, logger);
-  await installDependencies(sourcedir, logger);
+  const sourcedir = await getSource(kblock);
+  await installDependencies(sourcedir);
 
   const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
 
@@ -158,8 +153,8 @@ async function main() {
   }
 
   const commit = await listenForChanges(kblock, async (commit) => {
-    logger.info(`Changes detected: ${commit}. Rebuilding...`);
-    await exec(logger, "kubectl", [
+    console.log(`Changes detected: ${commit}. Rebuilding...`);
+    await exec(undefined, "kubectl", [
       "label",
       "blocks.kblocks.io",
       `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}`,

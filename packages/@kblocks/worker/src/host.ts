@@ -7,7 +7,6 @@ import { Event, InvolvedObject, emitEvent } from "./types/index.js";
 import { getenv, tryGetenv, tempdir, exec } from "./util.js";
 import { type createLogger } from "./logging.js";
 
-
 export interface RuntimeContext {
   newSlackThread: typeof newSlackThread,
   getenv: typeof getenv,
@@ -37,9 +36,8 @@ export async function patchObjectState(host: RuntimeContext, patch: any) {
       patch: { status: patch },
     });
 
-
-
-    await host.exec("kubectl", [
+    // do not share the logs of ths command because it's not interesting
+    await exec(undefined, "kubectl", [
       "patch",
       type,
       host.objRef.name,

@@ -3,11 +3,14 @@
   "private": true,
   "scripts": {
     "watch": "cd packages/@kblocks/block && npx tsc --watch",
-    "dev": "skaffold run --tail",
-    "build": "npm run --if-present -ws build"
+    "dev": "skaffold run --port-forward --tail",
+    "start": "skaffold run --port-forward",
+    "build": "npm run --if-present -ws build",
+    "test": "./test/run.sh"
   },
   "workspaces": [
     "packages/**/*",
-    "test/wing-k8s"
+    "test/test-resource",
+    "test/tests"
   ]
 }

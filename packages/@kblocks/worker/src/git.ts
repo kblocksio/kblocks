@@ -1,7 +1,6 @@
 import path from "path";
 import { Octokit } from "@octokit/rest";
 import { exec, tempdir } from "./util.js";
-import { createLogger } from "./logging.js";
 import { KConfig } from "./types/types.js";
 
 const DEFAULT_BRANCH = "main";
@@ -59,7 +58,7 @@ export async function listenForChanges(kblock: KConfig, onChanges: (commit: stri
   return commit;
 }
 
-export async function cloneRepo(source: KConfig["manifest"]["source"], logger: ReturnType<typeof createLogger>) {
+export async function cloneRepo(source: KConfig["manifest"]["source"]) {
   if (!source) {
     throw new Error("No source given");
   }
@@ -70,6 +69,6 @@ export async function cloneRepo(source: KConfig["manifest"]["source"], logger: R
   const auth = token ? `user:${token}@` : "";
   const targetDir = tempdir();
 
-  await exec(logger, "git", ["clone", "-b", branch, `https://${auth}${url}`, targetDir]);
+  await exec(undefined, "git", ["clone", "-b", branch, `https://${auth}${url}`, targetDir]);
   return path.join(targetDir, directory);
 }
