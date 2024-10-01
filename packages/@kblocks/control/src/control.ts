@@ -68,9 +68,11 @@ function keepalive(ws: ReconnectingWebSocket) {
 
   ws.addEventListener("open", () => {
     interval = setInterval(ping, 10000);
+    console.log("Control connection opened. Starting keepalive.");
   });
 
   ws.addEventListener("close", () => {
+    console.log("Control connection closed. Stopping keepalive.");
     clearInterval(interval);
   });
 }

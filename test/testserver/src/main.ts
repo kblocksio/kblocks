@@ -1,9 +1,7 @@
 import http from "http";
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 
 const map: Record<string, any> = {};
-
-let control: WebSocket | undefined;
 
 const server = http.createServer();
 const wss = new WebSocketServer({ server });
@@ -57,13 +55,11 @@ server.on("request", (req, res) => {
       }
 
       if (req.url === "/control") {
-        if (!control) {
-          res.statusCode = 404;
-          res.statusMessage = "No control connection";
-          return res.end();
+        for (const client of wss.clients) {
+          console.log("Sending message to control client");
+          client.send(bodyString);
         }
 
-        control.send(bodyString);
         return res.end();
       }
     });
@@ -75,14 +71,21 @@ server.on("request", (req, res) => {
 
 wss.on('connection', (ws) => {
   console.log('Control client connected');
-  control = ws;
+
+  ws.on("error", (error) => {
+    console.log(`WebSocket error: ${error}`);
+  });
+
+  ws.on("message", (message) => {
+    console.log(`Control message: ${message}`);
+  });
+
   ws.on('close', (code, reason) => {
     console.log('Control client disconnected');
-    console.log(`code: ${code}`);
-    console.log(`reason: ${reason.toString()}`);
-    control = undefined;
   });
 });
+
+
 
 wss.on("error", (error) => {
   console.log(`WebSocket error: ${error}`);
