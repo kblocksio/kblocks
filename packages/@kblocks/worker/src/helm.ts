@@ -37,6 +37,7 @@ export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingC
     "--create-namespace",
     "--install",
     "--wait",
+    "--timeout=5m",
     "--reset-values",
     "--values", values,
     "--output", "json",
