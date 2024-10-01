@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-sink
+  name: {{ .Release.Name }}-testserver
   labels:
-    app: sink
+    app: testserver
 spec:
   selector:
-    app: sink
+    app: testserver
   ports:
     - protocol: TCP
       port: 80
@@ -17,22 +17,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-sink
+  name: {{ .Release.Name }}-testserver
   labels:
-    app: sink
+    app: testserver
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sink
+      app: testserver
   template:
     metadata:
       labels:
-        app: sink
+        app: testserver
     spec:
       containers:
-      - name: sink
-        image: {{ .Values.sinkImage }}
+      - name: testserver
+        image: {{ .Values.testServerImage }}
         ports:
         - containerPort: 3000
         resources:

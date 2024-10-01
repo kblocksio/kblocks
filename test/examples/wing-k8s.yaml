@@ -1,5 +1,0 @@
-apiVersion: kblocks.io/v1
-kind: WingKubernetesResource
-metadata:
-  name: hello-kblocks-wing-k8s
-hello: kblocks

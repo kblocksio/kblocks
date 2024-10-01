@@ -1,5 +1,5 @@
 {
-  "name": "@kblocks/test-sink-server",
+  "name": "@kblocks/testserver",
   "type": "commonjs",
   "dependencies": {
     "@types/ws": "^8.5.12",
@@ -8,12 +8,10 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "test": "vitest **/*.test.ts *.test.ts",
     "watch": "tsc --watch"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
-    "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "typescript": "^5.5.4"
   }
 }

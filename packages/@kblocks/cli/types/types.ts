@@ -1,4 +1,5 @@
 import { Manifest } from "./manifest.js";
+
 export type BindingContext = {
   watchEvent: "Deleted" | "Modified" | "Added";
   object: ApiObject;
