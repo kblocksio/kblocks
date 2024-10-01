@@ -12,6 +12,6 @@ cd $dir
 
 (
   cd test-resource
-  ../../packages/@kblocks/cli/block/kblocks build
+  "$dir/../packages/@kblocks/block/bin/kblocks" build -o dist -v "$dir/test-resource/kblock.yaml" -s "$dir/test-resource"
   cp dist/templates/* $dir/helm/templates/
 )

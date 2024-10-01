@@ -1,5 +1,6 @@
 import { build } from "./build";
 import fs from "fs";
+import yaml from "yaml";
 
 const valuesFile = process.env.KBLOCKS_VALUES_FILE;
 if (!valuesFile) {
@@ -7,7 +8,16 @@ if (!valuesFile) {
   process.exit(1);
 }
 
-const apiObject = JSON.parse(fs.readFileSync(valuesFile, "utf8"));
+let apiObject;
+if (valuesFile.endsWith(".yaml") || valuesFile.endsWith(".yml")) {
+  apiObject = yaml.parse(fs.readFileSync(valuesFile, "utf8"));
+} else if (valuesFile.endsWith(".json")) {
+  apiObject = JSON.parse(fs.readFileSync(valuesFile, "utf8"));
+} else {
+  console.error("KBLOCKS_VALUES_FILE must be a YAML or JSON file");
+  process.exit(1);
+}
+
 const block = apiObject.spec;
 
 const archiveSource = process.env.KBLOCKS_ARCHIVE_SOURCE;
