@@ -124,7 +124,7 @@ export async function synth(sourcedir: string, engine: string, plural: string, c
   
     switch (first) {
       case "helm":
-        outputs = await applyHelm(workdir, host, ctx, values, { wait: true });
+        outputs = await applyHelm(workdir, host, ctx, values);
         break;
       case "wing":
         outputs = await applyWing(workdir, host, engine, ctx, values);
