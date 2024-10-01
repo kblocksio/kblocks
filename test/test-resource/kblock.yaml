@@ -14,6 +14,8 @@ operator:
   namespace: kblocks-test
   workers: 4
   env:
-    KBLOCKS_EVENTS_URL: "http://{{ .Release.Name }}-testserver.kblocks-test.svc.cluster.local/events"
-    KBLOCKS_CONTROL_URL: "ws://{{ .Release.Name }}-testserver.kblocks-test.svc.cluster.local/control"
+    KBLOCKS_EVENTS_URL: "http://{{ .Release.Name
+      }}-testserver.kblocks-test.svc.cluster.local/events"
+    KBLOCKS_CONTROL_URL: "ws://{{ .Release.Name
+      }}-testserver.kblocks-test.svc.cluster.local/control"
     KBLOCKS_SYSTEM_ID: test-system
