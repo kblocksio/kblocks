@@ -63,7 +63,6 @@ export enum StatusReason {
 
 export type KConfig = {
   manifest: Manifest;
-  api: ApiObject
   engine: string;
   config: Record<string, any>;
 }

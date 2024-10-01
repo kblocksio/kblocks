@@ -24,7 +24,9 @@ async function getSource(kblock: KConfig, logger: ReturnType<typeof createLogger
   const archivedir = await extractArchive(mountdir, logger);
 
   if (kblock.manifest.source) {
-    const sourcedir = await cloneRepo(kblock.manifest.source, logger);
+    const clonedir = await cloneRepo(kblock.manifest.source, logger);
+    const sourcedir = tempdir();
+    await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });
     
     if (archivedir) {
       // Copy contents of archivedir to sourcedir
@@ -32,7 +34,7 @@ async function getSource(kblock: KConfig, logger: ReturnType<typeof createLogger
       for (const file of files) {
         const srcPath = path.join(archivedir, file);
         const destPath = path.join(sourcedir, file);
-        await fs.promises.cp(srcPath, destPath, { recursive: true });
+        await fs.promises.cp(srcPath, destPath, { recursive: true, dereference: true });
       }
     }
 
@@ -157,7 +159,14 @@ async function main() {
 
   const commit = await listenForChanges(kblock, async (commit) => {
     logger.info(`Changes detected: ${commit}. Rebuilding...`);
-    await exec(logger, "kubectl", ["label", "blocks.kblocks.io", kblock.api.metadata.name, "kblocks.io/commit", commit, "-n", kblock.api.metadata.namespace ?? "default"]);
+    await exec(logger, "kubectl", [
+      "label",
+      "blocks.kblocks.io",
+      `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}`,
+      `kblocks.io/commit=${commit}`,
+      "-n",
+      kblock.manifest.operator?.namespace ?? "default"
+    ]);
   });
   console.log("Initial commit", commit);
 

@@ -10,7 +10,7 @@ if (!valuesFile) {
 const apiObject = JSON.parse(fs.readFileSync(valuesFile, "utf8"));
 const block = apiObject.spec;
 
-const kblockDir = process.env.KBLOCKS_KBLOCK_DIR;
+const archiveSource = process.env.KBLOCKS_ARCHIVE_SOURCE;
 
 const output = process.env.KBLOCKS_OUTPUT_DIR;
 if (!output) {
@@ -18,7 +18,7 @@ if (!output) {
   process.exit(1);
 }
 
-build({ block, api: apiObject, kblockDir, output }).then(() => {
+build({ block, archiveSource, output }).then(() => {
   console.log("Block built successfully");
 }).catch((err) => {
   console.error(err);

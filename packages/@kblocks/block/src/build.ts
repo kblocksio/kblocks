@@ -9,34 +9,31 @@ import { JsonSchemaProps } from "../imports/k8s";
 import { ConfigMapFromDirectory, createTgzBase64 } from "./configmap";
 import packageJson from "../package.json";
 import { Control } from "./control";
-import { ApiObject, Manifest } from "../types/index.js";
+import { Manifest } from "../types/index.js";
 import { Construct } from "constructs";
 
 interface Options {
   block: Manifest;
-  api: ApiObject;
-  kblockDir?: string;
+  archiveSource?: string;
   output: string;
   force?: boolean;
 }
 
 export interface BlockProps {
   block: Manifest;
-  api: ApiObject;
-  kblockDir?: string;
+  archiveSource?: string;
 }
 
 export class Block extends Chart {
   constructor(scope: Construct, id: string, props: BlockProps) {
     super(scope, id);
 
-    const { block, api, kblockDir } = props;
+    const { block, archiveSource } = props;
     console.log("manifest:", block);
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       block: block,
-      api,
-      kblockDir,
+      archiveSource,
       namespace: block.operator?.namespace,
     });
   
@@ -125,7 +122,7 @@ export async function build(opts: Options) {
   fs.mkdirSync(opts.output, { recursive: true });
 
   const app = new App();
-  new Block(app, block.definition.kind.toLocaleLowerCase(), { block, api: opts.api, kblockDir: opts.kblockDir });
+  new Block(app, block.definition.kind.toLocaleLowerCase(), { block, archiveSource: opts.archiveSource });
 
   app.synth();
 

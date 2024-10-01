@@ -63,7 +63,7 @@ jobs:
         env:
           KBLOCKS_VALUES_FILE: block/kblock.values.json
           KBLOCKS_OUTPUT_DIR: ../../../dist
-          KBLOCKS_KBLOCK_DIR: .
+          KBLOCKS_ARCHIVE_SOURCE: .
           KBLOCKS_VERSION: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
           KBLOCKS_OPERATOR_IMAGE: wingcloudbot/kblocks-operator:${{ fromJson(steps.changelog.outputs.data).newVersion }}
           KBLOCKS_CONTROL_IMAGE: wingcloudbot/kblocks-control:${{ fromJson(steps.changelog.outputs.data).newVersion }}

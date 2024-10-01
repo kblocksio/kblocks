@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
 import * as k8s from "cdk8s-plus-30";
-import { ApiObject, Manifest } from "../types/index.js";
+import { Manifest } from "../types/index.js";
 
 export interface PodEnvironment {
   envSecrets?: Record<string, string>;
@@ -17,8 +17,7 @@ export interface PodEnvironment {
 export interface ConfigMapVolumeProps {
   namespace?: string;
   block: Manifest;
-  api: ApiObject;
-  kblockDir?: string;
+  archiveSource?: string;
 }
 
 export class ConfigMapFromDirectory extends Construct {
@@ -28,13 +27,13 @@ export class ConfigMapFromDirectory extends Construct {
     super(scope, id);
 
     this.configMaps = {};
-    if (props.kblockDir) {
+    if (props.archiveSource) {
       this.configMaps["kblock"] = new ConfigMap(this, "archive-tgz", {
         metadata: {
           namespace: props.namespace,
         },
         data: {
-          "archive.tgz": createTgzBase64(props.kblockDir),
+          "archive.tgz": createTgzBase64(props.archiveSource),
         },
       });
     }
@@ -43,7 +42,7 @@ export class ConfigMapFromDirectory extends Construct {
         namespace: props.namespace,
       },
       data: {
-        "kblock.json": readBlockJson(props.block, props.api),
+        "kblock.json": readBlockJson(props.block),
       },
     });
   }
@@ -125,10 +124,9 @@ export function createTgzBase64(directory: string): string {
   return data.toString("base64");
 }
 
-export function readBlockJson(block: Manifest, api: ApiObject) {
+export function readBlockJson(block: Manifest) {
   return JSON.stringify({
     manifest: block,
-    api,
     engine: block.engine,
     config: {
       configVersion: "v1",
