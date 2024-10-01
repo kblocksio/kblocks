@@ -1,12 +1,12 @@
 {
-  "name": "@kblocks/cli",
+  "name": "@kblocks/block",
   "type": "commonjs",
   "bin": {
     "kblocks": "./bin/kblocks"
   },
   "license": "UNLICENSED",
   "version": "0.0.1",
-  "main": "./src/cli.js",
+  "main": "./src/index.js",
   "dependencies": {
     "cdk8s": "^2.68.93",
     "cdk8s-plus-30": "^2.0.10",

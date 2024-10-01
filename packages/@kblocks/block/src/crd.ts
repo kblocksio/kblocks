@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import { JsonSchemaProps, KubeCustomResourceDefinition } from "../imports/k8s";
+import { ApiObject } from 'cdk8s';
 
 export interface CustomResourceDefinitionProps {
   version: string;
@@ -96,7 +97,9 @@ export class CustomResourceDefinition extends Construct {
     // it's implicit
     delete schema.properties?.metadata;
 
-    new KubeCustomResourceDefinition(this, "crd", {
+    new ApiObject(this, "crd", {
+      apiVersion: "apiextensions.k8s.io/v1",
+      kind: "CustomResourceDefinition",
       metadata: {
         name: `${props.plural}.${props.group}`,
         annotations: props.annotations,
@@ -120,7 +123,7 @@ export class CustomResourceDefinition extends Construct {
               status: {},
             },
             schema: {
-              openApiv3Schema: schema,
+              openAPIV3Schema: schema,
             },
             additionalPrinterColumns,
           },

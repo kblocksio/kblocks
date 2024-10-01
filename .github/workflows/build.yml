@@ -40,6 +40,9 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Install cdk8s
+        run: npm install -g cdk8s-cli tsx
+
       - name: Derive appropriate SHAs for base and head
         id: shas
         uses: nrwl/nx-set-shas@v3
@@ -54,8 +57,17 @@ jobs:
       - name: Build
         run: npm run --if-present -ws build
 
-      - name: Package
-        run: npm run --if-present -ws package
+      - name: Build helm Chart
+        run: npx cdk8s synth --app "tsx ./src/index.ts" --output ../../../dist/templates
+        working-directory: packages/@kblocks/block
+        env:
+          KBLOCKS_VALUES_FILE: block/kblock.values.json
+          KBLOCKS_OUTPUT_DIR: ../../../dist
+          KBLOCKS_ARCHIVE_SOURCE: .
+          KBLOCKS_VERSION: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
+          KBLOCKS_OPERATOR_IMAGE: wingcloudbot/kblocks-operator:${{ fromJson(steps.changelog.outputs.data).newVersion }}
+          KBLOCKS_CONTROL_IMAGE: wingcloudbot/kblocks-control:${{ fromJson(steps.changelog.outputs.data).newVersion }}
+          KBLOCKS_WORKER_IMAGE: wingcloudbot/kblocks-worker:${{ fromJson(steps.changelog.outputs.data).newVersion }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -117,8 +129,9 @@ jobs:
           cache-from: type=registry,ref=wingcloudbot/kblocks-worker:latest
           cache-to: type=inline
           build-args: |
-            CLI_VERSION=${{ needs.build.outputs.version }}
-
+            KBLOCKS_OPERATOR_IMAGE=wingcloudbot/kblocks-operator:${{ needs.build.outputs.version }}
+            KBLOCKS_CONTROL_IMAGE=wingcloudbot/kblocks-control:${{ needs.build.outputs.version }}
+            KBLOCKS_WORKER_IMAGE=wingcloudbot/kblocks-worker:${{ needs.build.outputs.version }}
 
       - name: Build and push control
         uses: docker/build-push-action@v6
@@ -130,39 +143,15 @@ jobs:
           cache-from: type=registry,ref=wingcloudbot/kblocks-control:latest
           cache-to: type=inline
 
-      - name: Login to NPM registry
-        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_PUBLISH_TOKEN }}
+      - name: Login to helm registry
+        id: login
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | helm registry login registry-1.docker.io --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Publish NPM packages
-        uses: nick-fields/retry@v3
-        env:
-          PACKAGE_VERSION: ${{ needs.build.outputs.version }}
-        with:
-          max_attempts: 7
-          timeout_minutes: 5
-          command: |
-            set -o pipefail
+      - name: Package helm chart
+        run: helm package dist
 
-            cd dist
-            PACKAGES=("@kblocks/cli")
-            for PACKAGE in "${PACKAGES[@]}"; do
-              # Check if already published
-              VERSION_FOUND=$(npm view "$PACKAGE@$PACKAGE_VERSION" version --verbose || true)
-              if [ "$VERSION_FOUND" = "$PACKAGE_VERSION" ]; then
-                echo "$PACKAGE@$PACKAGE_VERSION already published, skipping"
-                continue
-              fi
-
-              # remove "@" and replace "/" with "-"
-              TARBALL=$(echo "$PACKAGE-$PACKAGE_VERSION.tgz" | sed 's/@//g' | sed 's/\//-/g')
-
-              npm publish "$TARBALL" --access public --verbose
-
-              if [ $? -ne 0 ]; then
-                echo "Publishing $PACKAGE failed, exiting"
-                exit 1
-              fi
-            done
+      - name: Push helm chart
+        run: helm push block-kblock-*.tgz oci://registry-1.docker.io/${{ secrets.DOCKER_USERNAME }}
 
       - name: Write Changelog
         uses: DamianReeves/write-file-action@v1.3

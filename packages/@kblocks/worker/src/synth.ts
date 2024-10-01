@@ -11,6 +11,7 @@ import { patchObjectState, publishEvent, RuntimeContext } from "./host.js";
 import { BindingContext, InvolvedObject, ObjectEvent, StatusReason, emitEvent } from "./types/index.js";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
+import { applyCdk8s } from "./cdk8s.js";
 
 export async function synth(sourcedir: string, engine: string, plural: string, ctx: BindingContext) {
   // skip updates to the "status" subresource
@@ -123,13 +124,16 @@ export async function synth(sourcedir: string, engine: string, plural: string, c
   
     switch (first) {
       case "helm":
-        outputs = await applyHelm(workdir, host, ctx, values);
+        outputs = await applyHelm(workdir, host, ctx, values, { wait: true });
         break;
       case "wing":
         outputs = await applyWing(workdir, host, engine, ctx, values);
         break;
       case "tofu":
         outputs = await applyTofu(workdir, host, ctx, values);
+        break;
+      case "cdk8s":
+        outputs = await applyCdk8s(workdir, host, engine, ctx, values);
         break;
       case "noop":
         outputs = {};

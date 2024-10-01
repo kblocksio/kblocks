@@ -1,0 +1,31 @@
+{
+  "apiVersion": "kblocks.io/v1",
+  "kind": "Block",
+  "metadata": {
+    "name": "kblock",
+    "namespace": "kblocks"
+  },
+  "spec": {
+    "engine": "cdk8s",
+    "definition": {
+      "group": "kblocks.io",
+      "version": "v1",
+      "kind": "Block",
+      "plural": "blocks",
+      "readme": "README.md",
+      "icon": "heroicon://cube",
+      "schema": {
+        "type": "object",
+        "x-kubernetes-preserve-unknown-fields": true
+      }
+    },
+    "operator": {
+      "namespace": "kblocks",
+      "env": {
+        "KBLOCKS_EVENTS_URL": "https://api.kblocks.io/api/events",
+        "KBLOCKS_CONTROL_URL": "wss://api.kblocks.io/api/control",
+        "KBLOCKS_SYSTEM_ID": "demo"
+      }
+    }
+  }
+}

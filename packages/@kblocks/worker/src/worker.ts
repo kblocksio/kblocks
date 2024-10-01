@@ -23,23 +23,35 @@ async function getSource(kblock: KConfig) {
   const archivedir = await extractArchive(mountdir);
 
   if (kblock.manifest.source) {
-    const sourcedir = await cloneRepo(kblock.manifest.source);
+    const clonedir = await cloneRepo(kblock.manifest.source);
+    const sourcedir = tempdir();
+    await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });
     
-    // Copy contents of archivedir to sourcedir
-    const files = await fs.promises.readdir(archivedir);
-    for (const file of files) {
-      const srcPath = path.join(archivedir, file);
-      const destPath = path.join(sourcedir, file);
-      await fs.promises.cp(srcPath, destPath, { recursive: true });
+    if (archivedir) {
+      // Copy contents of archivedir to sourcedir
+      const files = await fs.promises.readdir(archivedir);
+      for (const file of files) {
+        const srcPath = path.join(archivedir, file);
+        const destPath = path.join(sourcedir, file);
+        await fs.promises.cp(srcPath, destPath, { recursive: true, dereference: true });
+      }
     }
 
     return sourcedir;
+  }
+
+  if (!archivedir) {
+    throw new Error("No archive or sourcefound");
   }
 
   return archivedir;
 }
 
 async function extractArchive(dir: string) {
+  if (!fs.existsSync(path.join(dir, "archive.tgz"))) {
+    return;
+  }
+
   console.log(`Extracting archive from ${dir}`);
   const encodedTgz = fs.readFileSync(path.join(dir, "archive.tgz"), "utf8");
   const decodedTgz = Buffer.from(encodedTgz, "base64");
@@ -59,8 +71,6 @@ async function extractArchive(dir: string) {
 }
 
 async function installDependencies(dir: string) {
-  await exec(undefined, "npm", ["install", "-g", `@kblocks/cli@${process.env.CLI_VERSION}`], { cwd: dir });
-  
   if (fs.existsSync(path.join(dir, "package.json"))) {
     if (fs.existsSync(path.join(dir, "node_modules"))) {
       return;
@@ -143,16 +153,15 @@ async function main() {
   }
 
   const commit = await listenForChanges(kblock, async (commit) => {
-    if (!process.env.RELEASE_NAME) {
-      throw new Error("RELEASE_NAME is not set");
-    }
-
     console.log(`Changes detected: ${commit}. Rebuilding...`);
-    const newdir = await extractArchive(mountdir);
-
-    const outputdir = tempdir();
-    await exec(undefined, "kblocks", ["build", "--output", outputdir], { cwd: newdir });
-    await exec(undefined, "helm", ["upgrade", "--install", process.env.RELEASE_NAME, outputdir], { cwd: outputdir });
+    await exec(undefined, "kubectl", [
+      "label",
+      "blocks.kblocks.io",
+      `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}`,
+      `kblocks.io/commit=${commit}`,
+      "-n",
+      kblock.manifest.operator?.namespace ?? "default"
+    ]);
   });
   console.log("Initial commit", commit);
 

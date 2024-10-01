@@ -5,7 +5,6 @@ import path from "path";
 
 export interface BlockMetadataProps {
   resourceName: string;
-  dir: string;
   namespace?: string;
   kind: string;
   readme?: string;
@@ -20,7 +19,7 @@ export class BlockMetadata extends Construct {
   constructor(scope: Construct, id: string, props: BlockMetadataProps) {
     super(scope, id);
 
-    const readme = props.readme ? fs.readFileSync(path.join(props.dir, props.readme), "utf8") : `# ${props.resourceName}`;
+    const readme = props.readme ?? `# ${props.resourceName}`;
     const icon = props.icon ? props.icon : "cube";
     const description = props.description ? props.description : "No description provided";
     const color = props.color ? props.color : "#000000";

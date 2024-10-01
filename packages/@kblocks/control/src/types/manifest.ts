@@ -21,6 +21,7 @@ export const Manifest = z.object({
     z.literal("wing"), 
     z.literal("wing/tf-aws"), 
     z.literal("wing/k8s"),
+    z.literal("cdk8s"),
     z.literal("noop"),
   ]),
 

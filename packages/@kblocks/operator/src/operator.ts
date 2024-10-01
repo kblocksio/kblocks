@@ -33,7 +33,13 @@ async function main() {
 
   const workers = parseInt(process.env.WORKERS, 10);
   const context = JSON.parse(fs.readFileSync(process.env.BINDING_CONTEXT_PATH, "utf8"));
-  const redisClient = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
+  const redisClient = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+    retryStrategy: (times: number) => {
+      console.log(`Retrying Redis connection attempt ${times}`);
+      return times * 1000;
+    },
+    maxRetriesPerRequest: null,
+  });
 
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {

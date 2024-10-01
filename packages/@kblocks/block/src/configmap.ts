@@ -4,8 +4,8 @@ import * as tar from "tar";
 import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
-import { readManifest } from "./types";
 import * as k8s from "cdk8s-plus-30";
+import { Manifest } from "../types/index.js";
 
 export interface PodEnvironment {
   envSecrets?: Record<string, string>;
@@ -16,8 +16,8 @@ export interface PodEnvironment {
 
 export interface ConfigMapVolumeProps {
   namespace?: string;
-  path: string;
-  archive: string;
+  block: Manifest;
+  archiveSource?: string;
 }
 
 export class ConfigMapFromDirectory extends Construct {
@@ -27,20 +27,22 @@ export class ConfigMapFromDirectory extends Construct {
     super(scope, id);
 
     this.configMaps = {};
-    this.configMaps["kblock"] = new ConfigMap(this, "archive-tgz", {
-      metadata: {
-        namespace: props.namespace,
-      },
-      data: {
-        "archive.tgz": props.archive,
-      },
-    });
+    if (props.archiveSource) {
+      this.configMaps["kblock"] = new ConfigMap(this, "archive-tgz", {
+        metadata: {
+          namespace: props.namespace,
+        },
+        data: {
+          "archive.tgz": createTgzBase64(props.archiveSource),
+        },
+      });
+    }
     this.configMaps["kconfig"] = new ConfigMap(this, "block-json", {
       metadata: {
         namespace: props.namespace,
       },
       data: {
-        "kblock.json": readBlockJson(props.path),
+        "kblock.json": readBlockJson(props.block),
       },
     });
   }
@@ -73,7 +75,7 @@ export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Contain
   }
 }
 
-export async function createTgzBase64(directory: string): Promise<string> {
+export function createTgzBase64(directory: string): string {
   const excludedFolders = ["node_modules", ".git", "target", ".DS_Store"];
   
   const getAllFiles = (dir: string): string[] => {
@@ -97,9 +99,9 @@ export async function createTgzBase64(directory: string): Promise<string> {
   const filesToArchive = getAllFiles(directory);
 
   const tarStream = tar.create(
-    { 
+    {
       gzip: true,
-      sync: false,
+      sync: true,
       noMtime: true,
       cwd: directory,
       portable: true,
@@ -114,17 +116,15 @@ export async function createTgzBase64(directory: string): Promise<string> {
     filesToArchive.map(file => relative(directory, file))
   );
   
-  const chunks: Buffer[] = [];
-  
-  return new Promise<string>((resolve, reject) => {
-    tarStream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
-    tarStream.on("end", () => resolve(Buffer.concat(chunks).toString("base64")));
-    tarStream.on("error", reject);
-  });
+  const data = tarStream.read();
+  if (!data) {
+    throw new Error("Failed to read tar stream");
+  }
+
+  return data.toString("base64");
 }
 
-export function readBlockJson(directory: string) {
-  const block = readManifest(directory);
+export function readBlockJson(block: Manifest) {
   return JSON.stringify({
     manifest: block,
     engine: block.engine,
