@@ -1,3 +1,3 @@
 #!/bin/sh
 rm -fr ./src/types
-cp -rL ../cli/types ./src/types
+cp -rL ../block/types ./src/types

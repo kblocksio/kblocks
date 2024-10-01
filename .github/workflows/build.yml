@@ -59,7 +59,7 @@ jobs:
 
       - name: Build helm Chart
         run: npx cdk8s synth --app "tsx ./src/index.ts" --output ../../../dist/templates
-        working-directory: packages/@kblocks/cli
+        working-directory: packages/@kblocks/block
         env:
           KBLOCKS_VALUES_FILE: block/kblock.values.json
           KBLOCKS_OUTPUT_DIR: ../../../dist
