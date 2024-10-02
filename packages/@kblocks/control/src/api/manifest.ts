@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export const CustomResourceDefinition = z.object({
   group: z.string(),
@@ -54,4 +53,3 @@ export const Manifest = z.object({
 
 export type Manifest = z.infer<typeof Manifest>;
 
-export const manifestSchema = zodToJsonSchema(Manifest);
