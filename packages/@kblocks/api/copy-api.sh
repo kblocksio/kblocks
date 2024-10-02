@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -euo pipefail
 dirname=$(cd $(dirname $0); pwd)
 
