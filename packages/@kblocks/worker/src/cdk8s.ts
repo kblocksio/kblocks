@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import type { BindingContext } from "./types/index.js";
+import type { BindingContext } from "./api";
 import { RuntimeContext } from "./host.js";
 import { tempdir } from "./util.js";
 import { applyHelm } from "./helm.js";

@@ -1,7 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
-import { ApiObject, type ErrorEvent, blockTypeFromUri, emitEvent } from "./types";
+import { ApiObject, type ErrorEvent, blockTypeFromUri, emitEvent } from "./api";
 import { Context } from "./context";
-import { formatBlockUri } from "./types";
+import { formatBlockUri } from "./api";
 
 const FIELD_MANAGER = "kblocks";
 

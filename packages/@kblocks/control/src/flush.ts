@@ -1,4 +1,4 @@
-import { ApiObject, Manifest, emitEvent } from "./types";
+import { ApiObject, Manifest, emitEvent } from "./api";
 import * as k8s from "@kubernetes/client-node";
 
 const KBLOCKS_ANNOTATION_METADATA_NAME = "kblocks.io/metadata-name";

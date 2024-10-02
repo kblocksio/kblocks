@@ -1,7 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from "ws";
-import { ControlCommand, Manifest } from "./types";
+import { ControlCommand, Manifest } from "./api";
 import { flush } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";

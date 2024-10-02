@@ -12,7 +12,7 @@
   },
   "main": "src/operator.js",
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "../api/copy-api.sh && tsc --noEmit",
     "test": "vitest **/*.test.ts *.test.ts",
     "watch": "tsc --watch"
   },

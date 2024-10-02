@@ -57,6 +57,38 @@ jobs:
       - name: Build
         run: npm run --if-present -ws build
 
+
+      - name: Publish NPM packages
+        uses: nick-fields/retry@v3
+        env:
+          PACKAGE_VERSION: ${{ needs.build.outputs.version }}
+        with:
+          max_attempts: 7
+          timeout_minutes: 5
+          command: |
+            set -o pipefail
+
+            cd dist
+            PACKAGES=("@kblocks/api")
+            for PACKAGE in "${PACKAGES[@]}"; do
+              # Check if already published
+              VERSION_FOUND=$(npm view "$PACKAGE@$PACKAGE_VERSION" version --verbose || true)
+              if [ "$VERSION_FOUND" = "$PACKAGE_VERSION" ]; then
+                echo "$PACKAGE@$PACKAGE_VERSION already published, skipping"
+                continue
+              fi
+
+              # remove "@" and replace "/" with "-"
+              TARBALL=$(echo "$PACKAGE-$PACKAGE_VERSION.tgz" | sed 's/@//g' | sed 's/\//-/g')
+
+              npm publish "$TARBALL" --access public --verbose
+
+              if [ $? -ne 0 ]; then
+                echo "Publishing $PACKAGE failed, exiting"
+                exit 1
+              fi
+            done        
+
       - name: Build helm Chart
         run: npx cdk8s synth --app "tsx ./src/index.ts" --output ../../../dist/templates
         working-directory: packages/@kblocks/block

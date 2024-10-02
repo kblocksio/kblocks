@@ -4,10 +4,9 @@ import * as tar from "tar";
 import Redis from "ioredis";
 import { synth } from "./synth.js";
 import { exec, tempdir } from "./util.js";
-import { BindingContext } from "./types/index.js";
 import { startServer } from "./http.js";
 import { cloneRepo, listenForChanges } from "./git.js";
-import { Manifest, KConfig } from "./types/index.js";
+import { Manifest, KConfig, BindingContext } from "./api";
 
 const mountdir = "/kblock";
 const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));

@@ -8,7 +8,7 @@ import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
 import { patchObjectState, publishEvent, RuntimeContext } from "./host.js";
-import { BindingContext, InvolvedObject, ObjectEvent, StatusReason, emitEvent } from "./types/index.js";
+import { BindingContext, InvolvedObject, ObjectEvent, StatusReason, emitEvent } from "./api";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";

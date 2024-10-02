@@ -1,5 +1,5 @@
 import openai from "openai";
-import type { BindingContext } from "./types/index.js";
+import type { BindingContext } from "./api";
 import type { Blocks } from "./slack.js";
 import { RuntimeContext } from "./host.js";
 

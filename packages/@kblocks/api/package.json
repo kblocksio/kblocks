@@ -1,0 +1,20 @@
+{
+  "name": "@kblocks/api",
+  "type": "commonjs",
+  "license": "UNLICENSED",
+  "version": "0.0.1",
+  "main": "./src/index.js",
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "scripts": {
+    "test": "vitest **/*.test.ts",
+    "watch": "../api/copy-api.sh && tsc --watch",
+    "build": "tsc",
+    "package": "node ../../bump-pack/bin/bump-pack.cjs -b"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

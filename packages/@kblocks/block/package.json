@@ -22,7 +22,7 @@
   "scripts": {
     "test": "vitest **/*.test.ts",
     "watch": "tsc --watch",
-    "build": "tsc",
+    "build": "../api/copy-api.sh && tsc",
     "package": "node ../../bump-pack/bin/bump-pack.cjs -b"
   },
   "devDependencies": {

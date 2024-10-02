@@ -1,5 +1,5 @@
 import { RuntimeContext, publishEvent } from "./host.js";
-import type { ApiObject } from "./types/index.js";
+import type { ApiObject } from "./api";
 
 // regular expression that matches `${ref://apigroup/name/field}`, for example: `${ref://queues.acme.com/my-queue/queueUrl}`
 const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;

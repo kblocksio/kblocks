@@ -1,5 +1,5 @@
 import * as k8s from "@kubernetes/client-node";
-import { type ErrorEvent, emitEvent, formatBlockType, parseBlockUri } from "./types";
+import { type ErrorEvent, emitEvent, formatBlockType, parseBlockUri } from "./api";
 import { Context } from "./context";
 
 export async function deleteObject(client: k8s.CustomObjectsApi, ctx: Context, objUri: string) {

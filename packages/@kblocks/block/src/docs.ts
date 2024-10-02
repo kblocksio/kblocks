@@ -3,7 +3,7 @@ import yaml from "yaml";
 import fs from "fs/promises";
 import { readAll } from "./util";
 import path from "path";
-import { Manifest } from "../types";
+import { Manifest } from "./api";
 
 interface DocsOptions {
   readonly path: string;

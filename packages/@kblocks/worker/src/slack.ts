@@ -1,5 +1,3 @@
-import { RuntimeContext } from "./host.js";
-
 type Context  = {
   ts?: string;
   channel?: string;

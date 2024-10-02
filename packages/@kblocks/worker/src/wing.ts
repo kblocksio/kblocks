@@ -4,7 +4,7 @@ import { join } from "path";
 import type { SpawnOptions } from "child_process";
 import { applyTerraform } from "./tf.js";
 import { addOwnerReferences } from "./ownership.js";
-import type { BindingContext } from "./types/index.js";
+import type { BindingContext } from "./api";
 import { kblockOutputs, RuntimeContext } from "./host.js";
 
 export async function applyWing(workdir: string, host: RuntimeContext, engine: string, ctx: BindingContext, values: string): Promise<Record<string, any>> {

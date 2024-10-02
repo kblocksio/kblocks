@@ -9,7 +9,7 @@ import { JsonSchemaProps } from "../imports/k8s";
 import { ConfigMapFromDirectory, createTgzBase64 } from "./configmap";
 import packageJson from "../package.json";
 import { Control } from "./control";
-import { Manifest } from "../types/index.js";
+import { Manifest } from "./api";
 import { Construct } from "constructs";
 
 interface Options {

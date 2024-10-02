@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
 import * as k8s from "cdk8s-plus-30";
-import { Manifest } from "../types/index.js";
+import { Manifest } from "./api";
 
 export interface PodEnvironment {
   envSecrets?: Record<string, string>;
