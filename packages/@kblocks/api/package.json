@@ -11,8 +11,7 @@
     "test": "vitest **/*.test.ts",
     "watch": "../api/copy-api.sh && tsc --watch",
     "build": "tsc",
-    "package": "npm run build && ../../../scripts/npm-package.sh",
-    "publish": "npm run package && ../../../scripts/npm-publish.sh"
+    "publish": "npm run build && ../../../scripts/npm-publish.sh"
   },
   "devDependencies": {
     "typescript": "^5.5.4",
