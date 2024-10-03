@@ -48,8 +48,7 @@ jobs:
         id: changelog
         env:
           GENERATE_VERSION: ${{ github.event_name != 'push' || github.repository != 'winglang/kblocks' }}
-        run: node bin/bump-pack.cjs
-        working-directory: packages/bump-pack
+        run: ./scripts/changelog.sh
 
   publish:
     name: Publish ${{ matrix.package }}
