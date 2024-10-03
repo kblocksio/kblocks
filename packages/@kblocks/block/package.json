@@ -22,7 +22,7 @@
     "test": "vitest **/*.test.ts",
     "watch": "tsc --watch",
     "build": "./build.sh",
-    "publish": "npm run build && ../../../scripts/helm-publish.sh"
+    "publish": "npm run build && ../../../scripts/helm-publish.sh ./dist"
   },
   "devDependencies": {
     "@types/tar": "^6.1.13",
