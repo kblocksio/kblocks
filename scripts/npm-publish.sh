@@ -6,6 +6,7 @@ tgz_count=$(ls -1 *.tgz 2>/dev/null | wc -l)
 
 if [ "$tgz_count" -gt 1 ]; then
     echo "Error: More than one .tgz file found in the current directory." >&2
+    ls -1 *.tgz
     exit 1
 fi
 

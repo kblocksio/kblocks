@@ -87,25 +87,6 @@ jobs:
             cd packages/${{ matrix.package }}
             npm run publish
 
-  version_tag:
-    name: Create version tag
-    if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
-    needs:
-      - prepare
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          
-      - name: Tag commit
-        uses: tvdias/github-tagger@v0.0.1
-        if: ${{ needs.prepare.outputs.last-version != needs.prepare.outputs.version }}
-        with:
-          repo-token: "${{ secrets.PROJEN_GITHUB_TOKEN }}"
-          tag: "v${{ needs.prepare.outputs.version }}"
-
   publish_images:
     name: Publish Image ${{ matrix.image }}
     if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
@@ -153,8 +134,18 @@ jobs:
     if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
     needs:
       - prepare
+      - publish
+      - publish_images
+
     runs-on: ubuntu-latest
     steps:
+      - name: Tag commit
+        uses: tvdias/github-tagger@v0.0.1
+        if: ${{ needs.prepare.outputs.last-version != needs.prepare.outputs.version }}
+        with:
+          repo-token: "${{ secrets.PROJEN_GITHUB_TOKEN }}"
+          tag: "v${{ needs.prepare.outputs.version }}"
+
       - name: Write Changelog
         uses: DamianReeves/write-file-action@v1.3
         with:
