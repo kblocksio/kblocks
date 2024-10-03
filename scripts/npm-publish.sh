@@ -31,14 +31,14 @@ npm --version
 echo "Publishing $tarball to npm..."
 
 # Attempt to publish the package
-if npm publish --access public --verbose $tarball; then
+if npm publish --access public --verbose ./$tarball; then
   echo "Package published successfully"
   exit 0
 else
   echo "Failed to publish package. Trying again to see if it's already published..."
 
   # Try again, but capture the output of the failed publish attempt
-  error_output=$(npm publish --access public --verbose $tarball 2>&1)
+  error_output=$(npm publish --access public --verbose ./$tarball 2>&1)
   
   if echo "$error_output" | grep -q "You cannot publish over the previously published versions"; then
     echo "Package already exists on the registry, skipping"
