@@ -1,7 +1,5 @@
 import { ConfigMap } from "cdk8s-plus-30";
 import { Construct } from "constructs";
-import fs from "fs";
-import path from "path";
 
 export interface BlockMetadataProps {
   resourceName: string;

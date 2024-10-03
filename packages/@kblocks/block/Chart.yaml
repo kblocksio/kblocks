@@ -1,0 +1,7 @@
+apiVersion: v1
+name: kblocks
+version: 0.0.1
+description: Kblocks is a platform for building and sharing Kubernetes blocks.
+home: https://kblocks.io
+sources:
+  - https://github.com/kblocksio/kblocks

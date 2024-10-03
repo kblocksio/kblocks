@@ -8,10 +8,8 @@ echo "building test kblocks..."
   npm run build
 )
 
-cd $dir
-
 (
-  cd test-resource
-  "$dir/../packages/@kblocks/block/bin/kblocks" build -o dist -v "$dir/test-resource/kblock.yaml" -s "$dir/test-resource"
+  cd $dir/test-resource
+  "$dir/../packages/@kblocks/block/bin/kblocks" build -o dist
   cp dist/templates/* $dir/helm/templates/
 )

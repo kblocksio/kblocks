@@ -1,4 +1,4 @@
-import { build } from "./build";
+import { synth } from "./build";
 import fs from "fs";
 import yaml from "yaml";
 
@@ -18,7 +18,7 @@ if (valuesFile.endsWith(".yaml") || valuesFile.endsWith(".yml")) {
   process.exit(1);
 }
 
-const block = apiObject.spec;
+const manifest = apiObject.spec;
 
 const archiveSource = process.env.KBLOCKS_ARCHIVE_SOURCE;
 
@@ -28,7 +28,7 @@ if (!output) {
   process.exit(1);
 }
 
-build({ block, archiveSource, output }).then(() => {
+synth({ block: manifest, source: archiveSource, output }).then(() => {
   console.log("Block built successfully");
 }).catch((err) => {
   console.error(err);

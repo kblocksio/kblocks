@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { RuntimeContext } from "./host.js";
-import type { BindingContext } from "./api";
+import type { BindingContext } from "./api/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

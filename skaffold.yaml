@@ -34,6 +34,16 @@ deploy:
                 export KBLOCKS_CONTROL_IMAGE="{{ .Values.controlImage }}"
                 ./build.sh
     releases:
+      - name: kblocks
+        chartPath: ./packages/@kblocks/block/dist
+        namespace: kblocks
+        createNamespace: true
+        setValueTemplates:
+          workerImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_worker}}"
+          operatorImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_operator}}"
+          controlImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_control}}"
+          testServerImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_testserver}}"
+
       - name: kblocks-test
         chartPath: ./test/helm
         namespace: kblocks-test

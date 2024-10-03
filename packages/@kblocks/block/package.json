@@ -16,21 +16,22 @@
     "tar": "^7.4.3",
     "yaml": "^2.5.1",
     "yargs": "^17.7.2",
-    "zod": "^3.23.8",
-    "zod-to-json-schema": "^3.23.3"
+    "zod": "^3.23.8"
   },
   "scripts": {
     "test": "vitest **/*.test.ts",
     "watch": "tsc --watch",
-    "build": "../api/copy-api.sh && tsc",
+    "build": "./build.sh",
     "package": "node ../../bump-pack/bin/bump-pack.cjs -b"
   },
   "devDependencies": {
     "@types/tar": "^6.1.13",
     "@types/yargs": "^17.0.33",
-    "cdk8s-cli": "^2.198.186",
+    "cdk8s-cli": "^2.198.234",
+    "tsx": "^4.19.1",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5",
-    "winglang": "^0.82.1"
+    "winglang": "^0.82.1",
+    "zod-to-json-schema": "^3.23.3"
   }
 }

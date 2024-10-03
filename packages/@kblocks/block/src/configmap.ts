@@ -15,9 +15,9 @@ export interface PodEnvironment {
 }
 
 export interface ConfigMapVolumeProps {
-  namespace?: string;
+  namespace: string;
   block: Manifest;
-  archiveSource?: string;
+  source?: string;
 }
 
 export class ConfigMapFromDirectory extends Construct {
@@ -27,13 +27,13 @@ export class ConfigMapFromDirectory extends Construct {
     super(scope, id);
 
     this.configMaps = {};
-    if (props.archiveSource) {
+    if (props.source) {
       this.configMaps["kblock"] = new ConfigMap(this, "archive-tgz", {
         metadata: {
           namespace: props.namespace,
         },
         data: {
-          "archive.tgz": createTgzBase64(props.archiveSource),
+          "archive.tgz": createTgzBase64(props.source),
         },
       });
     }
@@ -112,7 +112,7 @@ export function createTgzBase64(directory: string): string {
         stat.ctime = undefined;
         return true;
       }
-    }, 
+    },
     filesToArchive.map(file => relative(directory, file))
   );
   

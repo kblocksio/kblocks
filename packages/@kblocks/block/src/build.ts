@@ -6,49 +6,48 @@ import { Worker } from "./worker";
 import { BlockMetadata } from "./metadata";
 import { CustomResourceDefinition } from "./crd";
 import { JsonSchemaProps } from "../imports/k8s";
-import { ConfigMapFromDirectory, createTgzBase64 } from "./configmap";
+import { ConfigMapFromDirectory } from "./configmap";
 import packageJson from "../package.json";
 import { Control } from "./control";
 import { Manifest } from "./api";
 import { Construct } from "constructs";
-
-interface Options {
-  block: Manifest;
-  archiveSource?: string;
-  output: string;
-  force?: boolean;
-}
+import yaml from 'yaml';
 
 export interface BlockProps {
   block: Manifest;
-  archiveSource?: string;
+  source?: string;
+}
+
+interface Options extends BlockProps {
+  output: string;
+  force?: boolean;
 }
 
 export class Block extends Chart {
   constructor(scope: Construct, id: string, props: BlockProps) {
     super(scope, id);
 
-    const { block, archiveSource } = props;
-    console.log("manifest:", block);
+    const { block, source } = props;
+
+    const namespace = block.operator?.namespace ?? "{{ .Release.Namespace }}";
+    const workers = block.operator?.workers ?? 1;
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
-      block: block,
-      archiveSource,
-      namespace: block.operator?.namespace,
+      block,
+      source,
+      namespace,
     });
   
     const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
-    const workers = block.operator?.workers ?? 1;
-  
-    if (packageJson.version === "0.0.1" && !process.env.KBLOCKS_OPERATOR_IMAGE) {
-      throw new Error("Building from source, KBLOCKS_OPERATOR_IMAGE is not set, please set it to the image you want to use (e.g. 'wingcloudbot/kblocks-operator:0.1.13')");
-    }
-  
-    const image = process.env.KBLOCKS_OPERATOR_IMAGE 
-      ?? `wingcloudbot/kblocks-operator:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
+
+    const image = {
+      operator: calculateImageName("operator"),
+      worker: calculateImageName("worker"),
+      control: calculateImageName("control"),
+    };
   
     new Operator(this, "Operator", {
-      image,
+      image: image.operator,
       configMaps: configmap.configMaps,
       redisServiceName,
       workers,
@@ -56,31 +55,26 @@ export class Block extends Chart {
       ...block.definition
     });
   
-    if (packageJson.version === "0.0.1" && !process.env.KBLOCKS_WORKER_IMAGE) {
-      throw new Error("Building from source, KBLOCKS_WORKER_IMAGE is not set, please set it to the image you want to use (e.g. 'wingcloudbot/kblocks-worker:0.1.13')");
-    }
-  
-    const workerImage = process.env.KBLOCKS_WORKER_IMAGE 
-      ?? `wingcloudbot/kblocks-worker:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
-  
     new Worker(this, "Worker", {
-      image: workerImage,
+      image: image.worker,
       configMaps: configmap.configMaps,
       ...block.operator,
       ...block.definition,
       replicas: workers,
       env: {
         // redis url should be the url of the redis instance in the operator
-        REDIS_URL: `redis://${redisServiceName}.${block.operator?.namespace ?? "default"}.svc.cluster.local:${6379}`,
+        REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
         ...block.operator?.env,
+
+        // this can be used to spawn new blocks (e.g. byt the `Block` block).
+        KBLOCKS_WORKER_IMAGE: image.worker,
+        KBLOCKS_OPERATOR_IMAGE: image.operator,
+        KBLOCKS_CONTROL_IMAGE: image.control,
       }
     });
   
-    const controlImage = process.env.KBLOCKS_CONTROL_IMAGE
-      ?? `wingcloudbot/kblocks-control:${packageJson.version === "0.0.0" ? "latest" : packageJson.version}`;
-  
     new Control(this, "Control", {
-      image: controlImage,
+      image: image.control,
       configMaps: configmap.configMaps,
       ...block.operator,
       ...block.definition,
@@ -88,16 +82,15 @@ export class Block extends Chart {
   
     const schema = resolveSchema(block);
   
-    const metaNamespace = block.operator?.namespace ?? "default";
     const meta = new BlockMetadata(this, "Metadata", {
       resourceName: block.definition.kind,
       ...block.definition,
-      namespace: metaNamespace,
+      namespace,
     });
 
     const annotations: Record<string, string> = {
       "kblocks.io/metadata-name": meta.name,
-      "kblocks.io/metadata-namespace": metaNamespace,
+      "kblocks.io/metadata-namespace": namespace,
     };
   
     if (block.definition.icon) {
@@ -116,23 +109,25 @@ export class Block extends Chart {
   }
 }
 
-export async function build(opts: Options) {
-  const block = opts.block;
+export async function synth(opts: Options) {
+  const name = opts.block.definition.kind.toLocaleLowerCase();
+  const outputDir = path.resolve(opts.output);
+  
+  const templatesdir = path.join(outputDir, "templates");
+  fs.mkdirSync(templatesdir, { recursive: true });
 
-  fs.mkdirSync(opts.output, { recursive: true });
-
-  const app = new App();
-  new Block(app, block.definition.kind.toLocaleLowerCase(), { block, archiveSource: opts.archiveSource });
-
+  const app = new App({ outdir: templatesdir });
+  new Block(app, name, opts);
   app.synth();
 
-  // write the chart file to the output directory
-  const outputDir = path.resolve(opts.output);
-  fs.writeFileSync(path.join(outputDir, `Chart.yaml`),
-`apiVersion: v1
-name: ${block.definition.kind.toLocaleLowerCase()}-kblock
-version: ${process.env.KBLOCKS_VERSION ?? "0.0.1"}
-`);
+  const chartFilePath = path.join(outputDir, 'Chart.yaml');
+  if (!fs.existsSync(chartFilePath)) {
+    fs.writeFileSync(chartFilePath, yaml.stringify({
+      apiVersion: 'v1',
+      name: `${name}-kblock`,
+      version: "1.0.0"
+    }));
+  }
 }
 
 function resolveSchema(props: Manifest): JsonSchemaProps {
@@ -141,4 +136,38 @@ function resolveSchema(props: Manifest): JsonSchemaProps {
   }
 
   throw new Error("No schema found");
+}
+
+/**
+ * Calculate the image name for a given service.
+ * 
+ * @param serviceName The name of the service to calculate the image name for (e.g. `operator`, `worker`, or `control`)
+ * @returns The image name.
+ */
+function calculateImageName(serviceName: string) {
+  const imagePrefix = "wingcloudbot/kblocks-";
+  const versionOverrideEnv = `KBLOCKS_IMAGE_VERSION`;
+  const overrideEnv = `KBLOCKS_${serviceName.toUpperCase()}_IMAGE`;
+
+  // if we have an explicit override KBLOCKS_XXX_IMAGE, then use it
+  const imageOverride = process.env[overrideEnv];
+  if (imageOverride) {
+    console.log(`Override for ${serviceName} is ${imageOverride}`);
+    return imageOverride;
+  }
+
+  // if we only have a version override, use it
+  const versionOverride = process.env[versionOverrideEnv];
+  if (versionOverride) {
+    const image = `${imagePrefix}${serviceName}:${versionOverride}`;
+    console.log(`Version override for ${serviceName} is ${image}`);
+    return image;
+  }
+
+  // now, if this is a source build, we got to bail
+  if (packageJson.version === "0.0.1") {
+    throw new Error(`Building from source and neither '${overrideEnv}' nor '${versionOverrideEnv}' are set, please set one of them to the image you want to use (e.g. '${overrideEnv}=wingcloudbot/kblocks-${serviceName}:0.1.13' or '${versionOverrideEnv}=0.1.13')`);
+  }
+
+  return `${imagePrefix}${serviceName}:${packageJson.version}`;
 }

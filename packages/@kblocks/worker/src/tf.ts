@@ -1,5 +1,5 @@
 import { kblockOutputs, RuntimeContext } from "./host.js";
-import type { BindingContext } from "./api";
+import type { BindingContext } from "./api/index.js";
 
 export async function applyTerraform(host: RuntimeContext, workdir: string, ctx: BindingContext): Promise<Record<string, any>> {
   await host.exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: workdir });

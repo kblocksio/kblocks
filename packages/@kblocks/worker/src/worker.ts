@@ -6,7 +6,7 @@ import { synth } from "./synth.js";
 import { exec, tempdir } from "./util.js";
 import { startServer } from "./http.js";
 import { cloneRepo, listenForChanges } from "./git.js";
-import { Manifest, KConfig, BindingContext } from "./api";
+import { Manifest, KConfig, BindingContext } from "./api/index.js";
 
 const mountdir = "/kblock";
 const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
@@ -40,7 +40,7 @@ async function getSource(kblock: KConfig) {
   }
 
   if (!archivedir) {
-    throw new Error("No archive or sourcefound");
+    throw new Error("No archive or git source found");
   }
 
   return archivedir;

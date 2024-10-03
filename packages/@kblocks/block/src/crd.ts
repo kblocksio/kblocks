@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { JsonSchemaProps, KubeCustomResourceDefinition } from "../imports/k8s";
+import { JsonSchemaProps } from "../imports/k8s";
 import { ApiObject } from 'cdk8s';
 
 export interface CustomResourceDefinitionProps {

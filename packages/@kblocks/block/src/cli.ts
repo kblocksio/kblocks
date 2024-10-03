@@ -1,29 +1,35 @@
 import yargs from "yargs";
-import cp from "child_process";
+import { synth } from "./build";
+import fs from "fs";
+import yaml from "yaml";
+import { ApiObject } from "./api";
 import path from "path";
 export async function cli() {
   return yargs
     .help()
 
-    .command("build [path]", "Build the kblock in the current directory", yargs => yargs
+    .command("build [path]", "Builds a Helm chart for a block from source", yargs => yargs
       .option("output", {
         alias: "o",
-        description: "The output directory",
+        description: "Where to write the output Helm chart",
         type: "string",
-        required: true,
+        required: false,
+        default: "./dist",
       })
-      .option("values", {
-        alias: "v",
-        description: "The values file to use",
+      .option("manifest", {
+        alias: "m",
+        description: "Block manifest",
         type: "string",
-        required: true,
+        required: false,
+        default: "kblock.yaml",
       })
       .option("source", {
         alias: "s",
-        description: "The archive source directory to use",
+        description: "Block implementation source directory",
         type: "string",
-        required: true,
-      }), argv => build(argv))
+        required: false,
+        default: ".",
+      }), argv => buildCommand(argv))
 
     .showHelpOnFail(false)
     .fail((message, err) => {
@@ -41,32 +47,62 @@ export async function cli() {
 }
 
 export interface Options {
-  values: string;
+  manifest: string;
   source: string;
   output: string;
 }
 
-export const build = (opts: Options) => {
-  const values = opts.values;
+export const buildCommand = async (opts: Options) => {
+  const manifest = opts.manifest;
   const source = opts.source;
   const output = opts.output;
-  const templates = path.join(output, "templates");
 
-  const { stdout, stderr } = cp.spawnSync("npx", ["cdk8s", "synth", "--app", `"tsx ${__dirname}/index.ts"`, "--output", templates], {
-    env: {
-      ...process.env,
-      KBLOCKS_VALUES_FILE: values,
-      KBLOCKS_OUTPUT_DIR: output,
-      KBLOCKS_ARCHIVE_SOURCE: source,
-    },
-    stdio: "pipe"
-  });
-
-  if (stdout) {
-    console.log(stdout.toString("utf8"));
+  // read the manifest file and extract the block manifest
+  var { blockObject, additionalObjects } = readManifest(manifest);
+  if (!blockObject) {
+    throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifest}`);
   }
 
-  if (stderr) {
-    console.error(stderr.toString("utf8"));
+  console.log("Block:", blockObject);
+
+  // create the output directory
+  fs.mkdirSync(output, { recursive: true });
+
+  // Check if Chart.yaml exists in the manifest directory
+  const manifestDir = path.dirname(manifest);
+  const chartPath = path.join(manifestDir, 'Chart.yaml');
+  if (fs.existsSync(chartPath)) {
+    fs.copyFileSync(chartPath, path.join(output, 'Chart.yaml'));
   }
+
+  await synth({ block: blockObject.spec, source: source, output });
+
+  // write any additional objects to the templates directory
+  if (additionalObjects.length > 0) {
+    const additionalObjectsManifest = path.join(output, "templates", "additional-objects.yaml");
+    fs.writeFileSync(additionalObjectsManifest, yaml.stringify(additionalObjects));
+  }
+
+  console.log(`Block built successfully: ${output}`);
 };
+
+function readManifest(manifest: string) {
+  const docs = yaml.parseAllDocuments(fs.readFileSync(manifest, "utf8"));
+
+  const additionalObjects = [];
+  let blockObject: ApiObject | undefined;
+  for (const doc of docs) {
+    const json = doc.toJSON();
+    const apiObject = json as ApiObject;
+
+    if (apiObject.kind === "Block") {
+      if (apiObject.apiVersion === "kblocks.io/v1" && apiObject.kind === "Block") {
+        blockObject = apiObject;
+      } else {
+        additionalObjects.push(json);
+      }
+    }
+  }
+  return { blockObject, additionalObjects };
+}
+

@@ -1,7 +1,7 @@
 import path from "path";
 import { Octokit } from "@octokit/rest";
 import { exec, tempdir } from "./util.js";
-import { KConfig } from "./api";
+import { KConfig } from "./api/index.js";
 
 const DEFAULT_BRANCH = "main";
 const token = process.env.GITHUB_TOKEN;

@@ -3,7 +3,7 @@ import path from "path";
 import child_process from "child_process";
 import { chatCompletion } from "./ai.js";
 import { newSlackThread } from "./slack.js";
-import { Event, InvolvedObject, emitEvent } from "./api";
+import { Event, InvolvedObject, emitEvent } from "./api/index.js";
 import { getenv, tryGetenv, tempdir, exec } from "./util.js";
 import { type createLogger } from "./logging.js";
 

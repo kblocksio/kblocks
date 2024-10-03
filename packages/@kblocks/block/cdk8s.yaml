@@ -1,0 +1,5 @@
+# This tells the cdk8s kblocks engine how to synthesize *this* block
+language: typescript
+app: npx tsx src/index.ts
+imports:
+  - k8s
