@@ -10,6 +10,7 @@
   },
   "workspaces": [
     "packages/**/*",
+    "scripts/bump-pack",
     "test/test-resource",
     "test/tests"
   ]

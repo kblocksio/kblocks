@@ -2,9 +2,13 @@ import { Manifest } from "@kblocks/api";
 
 import { zodToJsonSchema } from "zod-to-json-schema";
 import yaml from "yaml";
-import { version } from "../package.json";
 import fs from "fs";
 import path from "path";
+
+const version = process.env.KBLOCKS_VERSION;
+if (!version) {
+  throw new Error("KBLOCKS_VERSION is not set");
+}
 
 const schema = filterAdditionalProperties(zodToJsonSchema(Manifest));
 

@@ -18,9 +18,9 @@ env:
   NODE_VERSION: "20.11.1"
 
 jobs:
-  build:
-    name: "Build"
-    timeout-minutes: 30
+
+  prepare:
+    name: "Prepare Release"
     runs-on: ubuntu-latest
     outputs:
       version: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
@@ -40,9 +40,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Install cdk8s
-        run: npm install -g cdk8s-cli tsx
-
       - name: Derive appropriate SHAs for base and head
         id: shas
         uses: nrwl/nx-set-shas@v3
@@ -54,48 +51,77 @@ jobs:
         run: node bin/bump-pack.cjs
         working-directory: packages/bump-pack
 
-      - name: Build
-        run: npm run --if-present -ws build
-
-      - name: Build helm Chart
-        run: npx cdk8s synth --app "tsx ./src/index.ts" --output ../../../dist/templates
-        working-directory: packages/@kblocks/block
-        env:
-          KBLOCKS_VALUES_FILE: block/kblock.values.json
-          KBLOCKS_OUTPUT_DIR: ../../../dist
-          KBLOCKS_ARCHIVE_SOURCE: .
-          KBLOCKS_VERSION: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
-          KBLOCKS_OPERATOR_IMAGE: wingcloudbot/kblocks-operator:${{ fromJson(steps.changelog.outputs.data).newVersion }}
-          KBLOCKS_CONTROL_IMAGE: wingcloudbot/kblocks-control:${{ fromJson(steps.changelog.outputs.data).newVersion }}
-          KBLOCKS_WORKER_IMAGE: wingcloudbot/kblocks-worker:${{ fromJson(steps.changelog.outputs.data).newVersion }}
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/*
-
   publish:
-    name: Publish
+    name: Publish ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
+    env:
+      KBLOCKS_VERSION: ${{ needs.prepare.outputs.version }}
+      KBLOCKS_OPERATOR_IMAGE: wingcloudbot/kblocks-operator:${{ needs.prepare.outputs.version }}
+      KBLOCKS_CONTROL_IMAGE: wingcloudbot/kblocks-control:${{ needs.prepare.outputs.version }}
+      KBLOCKS_WORKER_IMAGE: wingcloudbot/kblocks-worker:${{ needs.prepare.outputs.version }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    needs:
+      - prepare
+    strategy:
+      matrix:
+        package:
+          - "@kblocks/api"
+          - "@kblocks/block"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Install Dependencies
+        run: npm ci
+  
+      - name: Publish ${{ matrix.package }}
+        uses: nick-fields/retry@v3
+        with:
+          max_attempts: 7
+          timeout_minutes: 5
+          command: |
+            cd packages/${{ matrix.package }}
+            npm run publish
+
+  version_tag:
+    name: Create version tag
     if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
     needs:
-      - build
+      - prepare
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          
+      - name: Tag commit
+        uses: tvdias/github-tagger@v0.0.1
+        if: ${{ needs.prepare.outputs.last-version != needs.prepare.outputs.version }}
+        with:
+          repo-token: "${{ secrets.PROJEN_GITHUB_TOKEN }}"
+          tag: "v${{ needs.prepare.outputs.version }}"
+
+  publish_images:
+    name: Publish Image ${{ matrix.image }}
+    if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
+    strategy:
+      matrix:
+        image: [operator, worker, control]
+    needs:
+      - prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
-
-      - name: Tag commit
-        uses: tvdias/github-tagger@v0.0.1
-        if: ${{ needs.build.outputs.last-version != needs.build.outputs.version }}
-        with:
-          repo-token: "${{ secrets.PROJEN_GITHUB_TOKEN }}"
-          tag: "v${{ needs.build.outputs.version }}"
 
       - name: Docker Login
         uses: docker/login-action@v3
@@ -109,97 +135,37 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push operator
+      - name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@v6
         with:
-          context: packages/@kblocks/operator
+          context: packages/@kblocks/${{ matrix.image }}
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: wingcloudbot/kblocks-operator:latest,wingcloudbot/kblocks-operator:${{ needs.build.outputs.version }}
-          cache-from: type=registry,ref=wingcloudbot/kblocks-operator:latest
-          cache-to: type=inline
-
-      - name: Build and push worker
-        uses: docker/build-push-action@v6
-        with:
-          context: packages/@kblocks/worker
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: wingcloudbot/kblocks-worker:latest,wingcloudbot/kblocks-worker:${{ needs.build.outputs.version }}
-          cache-from: type=registry,ref=wingcloudbot/kblocks-worker:latest
+          tags: wingcloudbot/kblocks-${{ matrix.image }}:latest,wingcloudbot/kblocks-${{ matrix.image }}:${{ needs.prepare.outputs.version }}
+          cache-from: type=registry,ref=wingcloudbot/kblocks-${{ matrix.image }}:latest
           cache-to: type=inline
           build-args: |
-            KBLOCKS_OPERATOR_IMAGE=wingcloudbot/kblocks-operator:${{ needs.build.outputs.version }}
-            KBLOCKS_CONTROL_IMAGE=wingcloudbot/kblocks-control:${{ needs.build.outputs.version }}
-            KBLOCKS_WORKER_IMAGE=wingcloudbot/kblocks-worker:${{ needs.build.outputs.version }}
+            KBLOCKS_OPERATOR_IMAGE=wingcloudbot/kblocks-operator:${{ needs.prepare.outputs.version }}
+            KBLOCKS_CONTROL_IMAGE=wingcloudbot/kblocks-control:${{ needs.prepare.outputs.version }}
+            KBLOCKS_WORKER_IMAGE=wingcloudbot/kblocks-worker:${{ needs.prepare.outputs.version }}
 
-      - name: Build and push control
-        uses: docker/build-push-action@v6
-        with:
-          context: packages/@kblocks/control
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: wingcloudbot/kblocks-control:latest,wingcloudbot/kblocks-control:${{ needs.build.outputs.version }}
-          cache-from: type=registry,ref=wingcloudbot/kblocks-control:latest
-          cache-to: type=inline
-
-      - name: Login to helm registry
-        id: login
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | helm registry login registry-1.docker.io --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Package helm chart
-        run: helm package dist
-
-      - name: Push helm chart
-        run: helm push block-kblock-*.tgz oci://registry-1.docker.io/${{ secrets.DOCKER_USERNAME }}
-
-      - name: Login to NPM registry
-        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_PUBLISH_TOKEN }}
-
-      - name: Publish NPM packages
-        uses: nick-fields/retry@v3
-        env:
-          PACKAGE_VERSION: ${{ needs.build.outputs.version }}
-        with:
-          max_attempts: 7
-          timeout_minutes: 5
-          command: |
-            set -o pipefail
-
-            cd dist
-            PACKAGES=("@kblocks/api")
-            for PACKAGE in "${PACKAGES[@]}"; do
-              # Check if already published
-              VERSION_FOUND=$(npm view "$PACKAGE@$PACKAGE_VERSION" version --verbose || true)
-              if [ "$VERSION_FOUND" = "$PACKAGE_VERSION" ]; then
-                echo "$PACKAGE@$PACKAGE_VERSION already published, skipping"
-                continue
-              fi
-
-              # remove "@" and replace "/" with "-"
-              TARBALL=$(echo "$PACKAGE-$PACKAGE_VERSION.tgz" | sed 's/@//g' | sed 's/\//-/g')
-
-              npm publish "$TARBALL" --access public --verbose
-
-              if [ $? -ne 0 ]; then
-                echo "Publishing $PACKAGE failed, exiting"
-                exit 1
-              fi
-            done        
-
-
+  cut_release:
+    name: Cut Release
+    if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'winglang/kblocks' && github.ref == 'refs/heads/main' }}
+    needs:
+      - prepare
+    runs-on: ubuntu-latest
+    steps:
       - name: Write Changelog
         uses: DamianReeves/write-file-action@v1.3
         with:
           path: "CHANGELOG.md"
-          contents: ${{ needs.build.outputs.changelog }}
+          contents: ${{ needs.prepare.outputs.changelog }}
           write-mode: overwrite
-
       - name: Cut Development Release
         uses: softprops/action-gh-release@v1
         with:
-          name: "Kblocks ${{ needs.build.outputs.version }}"
-          tag_name: "v${{ needs.build.outputs.version }}"
+          name: "Kblocks ${{ needs.prepare.outputs.version }}"
+          tag_name: "v${{ needs.prepare.outputs.version }}"
           body_path: CHANGELOG.md
-          files: dist/*
           token: ${{ secrets.PROJEN_GITHUB_TOKEN }}

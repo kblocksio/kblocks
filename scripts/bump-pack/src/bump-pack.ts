@@ -44,7 +44,7 @@ if (bumpPackage) {
     appendFile(githubStepSummaryFile, `${releaseData.changelog}\n`);
     appendFile(
       githubEnvFile,
-      `PROJEN_BUMP_VERSION=${releaseData.newVersion}\n`
+      `KBLOCKS_VERSION=${releaseData.newVersion}\n`
     );
   }
 }

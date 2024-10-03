@@ -4,7 +4,6 @@ import fs from "fs-extra";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { setPackageVersion } from "./bump";
-import { fileURLToPath } from "node:url";
 
 export interface PackOptions {
   /**
@@ -26,7 +25,7 @@ export async function pack(options: PackOptions) {
   const { packageDir, dryRun } = options;
 
   if (dryRun) {
-    console.log(`Would have run "pnpm pack" in ${packageDir}`);
+    console.log(`Would have run "npm pack" in ${packageDir}`);
   } else {
     // const packageData = (await findWorkspacePackages(packageDir)).find(
     //   (p) => p.dir === packageDir
@@ -50,16 +49,13 @@ export async function pack(options: PackOptions) {
     await setPackageVersion({
       packageDir: tmpDir,
       dryRun,
-      version: process.env.PROJEN_BUMP_VERSION,
+      version: process.env.KBLOCKS_VERSION,
     });
 
     await preparePackageJson(tmpDir);
     // await prepareBundledDeps(packageData.dir, tmpDir);
 
-    const distDir = path.resolve(
-      fileURLToPath(new URL("../../../dist", import.meta.url))
-    );
-    await fs.ensureDir(distDir);
+    const distDir = packageDir;
 
     // const packageMatcher = `${packageData.manifest.name?.replace("@", "")}-\\d+\\.\\d+\\.\\d+\\.tgz`;
     // const existingFiles = fs.readdirSync(distDir);

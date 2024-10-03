@@ -32,6 +32,7 @@ deploy:
                 export KBLOCKS_WORKER_IMAGE="{{ .Values.workerImage }}"
                 export KBLOCKS_OPERATOR_IMAGE="{{ .Values.operatorImage }}"
                 export KBLOCKS_CONTROL_IMAGE="{{ .Values.controlImage }}"
+                export KBLOCKS_VERSION="0.0.0"
                 ./build.sh
     releases:
       - name: kblocks
