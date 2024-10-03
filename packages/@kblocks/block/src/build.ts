@@ -146,7 +146,7 @@ function resolveSchema(props: Manifest): JsonSchemaProps {
  */
 function calculateImageName(serviceName: string) {
   const imagePrefix = "wingcloudbot/kblocks-";
-  const versionOverrideEnv = `KBLOCKS_IMAGE_VERSION`;
+  const versionOverrideEnv = `KBLOCKS_VERSION`;
   const overrideEnv = `KBLOCKS_${serviceName.toUpperCase()}_IMAGE`;
 
   // if we have an explicit override KBLOCKS_XXX_IMAGE, then use it

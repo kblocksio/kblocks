@@ -1,4 +1,4 @@
-name: Build
+name: Release
 
 on:
   push:
@@ -60,9 +60,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KBLOCKS_VERSION: ${{ needs.prepare.outputs.version }}
-      KBLOCKS_OPERATOR_IMAGE: wingcloudbot/kblocks-operator:${{ needs.prepare.outputs.version }}
-      KBLOCKS_CONTROL_IMAGE: wingcloudbot/kblocks-control:${{ needs.prepare.outputs.version }}
-      KBLOCKS_WORKER_IMAGE: wingcloudbot/kblocks-worker:${{ needs.prepare.outputs.version }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -131,9 +128,7 @@ jobs:
           cache-from: type=registry,ref=wingcloudbot/kblocks-${{ matrix.image }}:latest
           cache-to: type=inline
           build-args: |
-            KBLOCKS_OPERATOR_IMAGE=wingcloudbot/kblocks-operator:${{ needs.prepare.outputs.version }}
-            KBLOCKS_CONTROL_IMAGE=wingcloudbot/kblocks-control:${{ needs.prepare.outputs.version }}
-            KBLOCKS_WORKER_IMAGE=wingcloudbot/kblocks-worker:${{ needs.prepare.outputs.version }}
+            KBLOCKS_VERSION=${{ needs.prepare.outputs.version }}
 
   cut_release:
     name: Cut Release
