@@ -4,12 +4,12 @@ dir=$(cd $(dirname $0) && pwd)
 echo "building test kblocks..."
 
 (
-  cd ../packages/@kblocks/block
+  cd ../packages/@kblocks/cli
   npm run build
 )
 
 (
   cd $dir/test-resource
-  "$dir/../packages/@kblocks/block/bin/kblocks" build -o dist
+  "$dir/../packages/@kblocks/cli/bin/kblocks" build -o dist
   cp dist/templates/* $dir/helm/templates/
 )

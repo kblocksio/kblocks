@@ -1,5 +1,5 @@
 {
-  "name": "@kblocks/block",
+  "name": "@kblocks/cli",
   "type": "commonjs",
   "bin": {
     "kblocks": "./bin/kblocks"
@@ -22,7 +22,7 @@
     "test": "vitest **/*.test.ts",
     "watch": "tsc --watch",
     "build": "./build.sh",
-    "publish": "npm run build && ../../../scripts/helm-publish.sh ./dist"
+    "publish": "./publish.sh"
   },
   "devDependencies": {
     "@types/tar": "^6.1.13",

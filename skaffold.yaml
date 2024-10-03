@@ -36,7 +36,7 @@ deploy:
                 ./build.sh
     releases:
       - name: kblocks
-        chartPath: ./packages/@kblocks/block/dist
+        chartPath: ./packages/@kblocks/cli/dist
         namespace: kblocks
         createNamespace: true
         setValueTemplates:

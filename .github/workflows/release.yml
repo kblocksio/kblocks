@@ -69,7 +69,7 @@ jobs:
       matrix:
         package:
           - "@kblocks/api"
-          - "@kblocks/block"
+          - "@kblocks/cli"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
