@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+
 dir=$(cd $(dirname $0) && pwd)
 
 if [ -z "$KBLOCKS_VERSION" ]; then
@@ -10,12 +11,12 @@ fi
 echo "KBLOCKS_VERSION=$KBLOCKS_VERSION"
 
 # There shouldn't be any .tgz files in the current directory at this point
-tgz_count=$(ls -1 *.tgz 2>/dev/null | wc -l)
+tgz_count="$((ls -1 *.tgz 2>/dev/null || true) | wc -l | xargs)"
 
 if [ "$tgz_count" -gt 0 ]; then
-    echo "Error: More than one .tgz file found in the current directory." >&2
-    ls -1 *.tgz
-    exit 1
+  echo "Error: More than one .tgz file found in the current directory." >&2
+  ls -1 *.tgz
+  exit 1
 fi
 
 # Bump the package version
