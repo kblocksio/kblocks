@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+set -x
+
 dir=$(cd $(dirname $0) && pwd)
 
 if [ -z "$KBLOCKS_VERSION" ]; then
