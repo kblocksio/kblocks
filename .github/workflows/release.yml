@@ -45,15 +45,19 @@ jobs:
           GENERATE_VERSION: ${{ github.event_name != 'push' || github.repository != 'winglang/kblocks' }}
         run: ./scripts/changelog.sh
 
+      - name: Check if version changed
+        if: ${{ fromJson(steps.changelog.outputs.data).lastVersion == fromJson(steps.changelog.outputs.data).newVersion }}
+        run: |
+          echo "No version change detected. Failing the workflow."
+          exit 1
+
       # tag the commit so it won't be reused for a different release - if our release fails, we will
       # skip this version but that's better than trying to release the same version twice
       - name: Tag commit
         uses: tvdias/github-tagger@v0.0.1
-        if: ${{ fromJson(steps.changelog.outputs.data).lastVersion != fromJson(steps.changelog.outputs.data).newVersion }}
         with:
           repo-token: "${{ secrets.PROJEN_GITHUB_TOKEN }}"
           tag: "v${{ fromJson(steps.changelog.outputs.data).newVersion }}"
-
 
   publish:
     name: Publish ${{ matrix.package }}
