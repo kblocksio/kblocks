@@ -26,7 +26,9 @@ $dir/bump-pack/bin/bump-pack.cjs -b
 
 tarball=$(ls -1 *.tgz)
 
-npm --version
+mkdir /tmp/npm-publish
+mv $tarball /tmp/npm-publish
+cd /tmp/npm-publish
 
 echo "Publishing $tarball to npm..."
 
