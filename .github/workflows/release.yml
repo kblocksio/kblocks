@@ -69,6 +69,7 @@ jobs:
 
     needs:
       - prepare
+      - publish_images # make sure images are published first before we publish the CLI and API packages
     strategy:
       matrix:
         package:
