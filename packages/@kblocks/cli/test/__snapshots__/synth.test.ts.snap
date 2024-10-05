@@ -1,0 +1,1478 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`minimal block snapshot 1`] = `
+[
+  {
+    "apiVersion": "v1",
+    "data": {
+      "kblock.json": "{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}}},"engine":"noop","config":{"configVersion":"v1","kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
+    },
+    "immutable": false,
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "boom-configmapvolume-block-json-c8b85b34",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "automountServiceAccountToken": false,
+    "kind": "ServiceAccount",
+    "metadata": {
+      "name": "boom-operator-serviceaccount-c863141e",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRole",
+    "metadata": {
+      "name": "boom-operator-clusterrole-c8e55e70",
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          "boom.com",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "booms",
+        ],
+        "verbs": [
+          "get",
+          "watch",
+          "list",
+        ],
+      },
+      {
+        "apiGroups": [
+          "*",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "*",
+        ],
+        "verbs": [
+          "*",
+        ],
+      },
+    ],
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRoleBinding",
+    "metadata": {
+      "name": "boom-operator-clusterrolebinding-c8dd7855",
+    },
+    "roleRef": {
+      "apiGroup": "rbac.authorization.k8s.io",
+      "kind": "ClusterRole",
+      "name": "boom-operator-clusterrole-c8e55e70",
+    },
+    "subjects": [
+      {
+        "apiGroup": "",
+        "kind": "ServiceAccount",
+        "name": "boom-operator-serviceaccount-c863141e",
+        "namespace": "{{ .Release.Namespace }}",
+      },
+    ],
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/name": "kblocks-boom-operator",
+        "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+      },
+      "name": "kblocks-boom-operator",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+    "spec": {
+      "minReadySeconds": 0,
+      "progressDeadlineSeconds": 600,
+      "replicas": 1,
+      "selector": {
+        "matchLabels": {
+          "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
+        },
+      },
+      "strategy": {
+        "rollingUpdate": {
+          "maxSurge": "25%",
+          "maxUnavailable": "25%",
+        },
+        "type": "RollingUpdate",
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
+            "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": true,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "KBLOCK_OUTPUTS",
+                  "value": "",
+                },
+                {
+                  "name": "WORKERS",
+                  "value": "1",
+                },
+              ],
+              "image": "wingcloudbot/kblocks-operator:99.99.99",
+              "imagePullPolicy": "Always",
+              "name": "operator",
+              "ports": [
+                {
+                  "containerPort": 3000,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+                },
+              ],
+            },
+            {
+              "image": "redis:6.2-alpine",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "redis",
+              "ports": [
+                {
+                  "containerPort": 6379,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Always",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
+          "serviceAccountName": "boom-operator-serviceaccount-c863141e",
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "boom-configmapvolume-block-json-c8b85b34",
+              },
+              "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "name": "boom-redis",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+    "spec": {
+      "externalIPs": [],
+      "ports": [
+        {
+          "port": 6379,
+          "targetPort": 6379,
+        },
+      ],
+      "selector": {
+        "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
+      },
+      "type": "ClusterIP",
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "automountServiceAccountToken": false,
+    "kind": "ServiceAccount",
+    "metadata": {
+      "name": "boom-worker-workerserviceaccount-c8480528",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRole",
+    "metadata": {
+      "name": "boom-worker-workerclusterrole-c88cb3c8",
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          "boom.com",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "booms",
+        ],
+        "verbs": [
+          "get",
+          "watch",
+          "list",
+        ],
+      },
+      {
+        "apiGroups": [
+          "*",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "*",
+        ],
+        "verbs": [
+          "*",
+        ],
+      },
+    ],
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRoleBinding",
+    "metadata": {
+      "name": "boom-worker-workerclusterrolebinding-c8dc7047",
+    },
+    "roleRef": {
+      "apiGroup": "rbac.authorization.k8s.io",
+      "kind": "ClusterRole",
+      "name": "boom-worker-workerclusterrole-c88cb3c8",
+    },
+    "subjects": [
+      {
+        "apiGroup": "",
+        "kind": "ServiceAccount",
+        "name": "boom-worker-workerserviceaccount-c8480528",
+        "namespace": "{{ .Release.Namespace }}",
+      },
+    ],
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "name": "kblocks-boom-worker",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+    "spec": {
+      "externalIPs": [],
+      "ports": [
+        {
+          "port": 3000,
+        },
+      ],
+      "selector": {
+        "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
+      },
+      "type": "ClusterIP",
+    },
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+      "labels": {
+        "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+      },
+      "name": "kblocks-boom-worker",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+    "spec": {
+      "minReadySeconds": 0,
+      "podManagementPolicy": "OrderedReady",
+      "replicas": 1,
+      "selector": {
+        "matchLabels": {
+          "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
+        },
+      },
+      "serviceName": "kblocks-boom-worker",
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
+            "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": true,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "REDIS_URL",
+                  "value": "redis://boom-redis.{{ .Release.Namespace }}.svc.cluster.local:6379",
+                },
+                {
+                  "name": "KBLOCKS_WORKER_IMAGE",
+                  "value": "wingcloudbot/kblocks-worker:99.99.99",
+                },
+                {
+                  "name": "KBLOCKS_OPERATOR_IMAGE",
+                  "value": "wingcloudbot/kblocks-operator:99.99.99",
+                },
+                {
+                  "name": "KBLOCKS_CONTROL_IMAGE",
+                  "value": "wingcloudbot/kblocks-control:99.99.99",
+                },
+                {
+                  "name": "RELEASE_NAME",
+                  "value": "{{ .Release.Name }}",
+                },
+                {
+                  "name": "KBLOCK_OUTPUTS",
+                  "value": "",
+                },
+                {
+                  "name": "WORKER_INDEX",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.labels['apps.kubernetes.io/pod-index']",
+                    },
+                  },
+                },
+              ],
+              "image": "wingcloudbot/kblocks-worker:99.99.99",
+              "imagePullPolicy": "Always",
+              "name": "worker",
+              "ports": [
+                {
+                  "containerPort": 3000,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "startupProbe": {
+                "failureThreshold": 3,
+                "tcpSocket": {
+                  "port": 3000,
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+                },
+              ],
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Always",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
+          "serviceAccountName": "boom-worker-workerserviceaccount-c8480528",
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "boom-configmapvolume-block-json-c8b85b34",
+              },
+              "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+            },
+          ],
+        },
+      },
+      "updateStrategy": {
+        "rollingUpdate": {
+          "partition": 0,
+        },
+        "type": "RollingUpdate",
+      },
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "automountServiceAccountToken": false,
+    "kind": "ServiceAccount",
+    "metadata": {
+      "name": "boom-control-serviceaccount-c867682d",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRole",
+    "metadata": {
+      "name": "boom-control-clusterrole-c822c923",
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          "*",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "*",
+        ],
+        "verbs": [
+          "*",
+        ],
+      },
+    ],
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRoleBinding",
+    "metadata": {
+      "name": "boom-control-clusterrolebinding-c839e5e6",
+    },
+    "roleRef": {
+      "apiGroup": "rbac.authorization.k8s.io",
+      "kind": "ClusterRole",
+      "name": "boom-control-clusterrole-c822c923",
+    },
+    "subjects": [
+      {
+        "apiGroup": "",
+        "kind": "ServiceAccount",
+        "name": "boom-control-serviceaccount-c867682d",
+        "namespace": "{{ .Release.Namespace }}",
+      },
+    ],
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/name": "kblocks-boom-control",
+        "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+      },
+      "name": "kblocks-boom-control",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+    "spec": {
+      "minReadySeconds": 0,
+      "progressDeadlineSeconds": 600,
+      "replicas": 1,
+      "selector": {
+        "matchLabels": {
+          "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
+        },
+      },
+      "strategy": {
+        "rollingUpdate": {
+          "maxSurge": "25%",
+          "maxUnavailable": "25%",
+        },
+        "type": "RollingUpdate",
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
+            "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": true,
+          "containers": [
+            {
+              "image": "wingcloudbot/kblocks-control:99.99.99",
+              "imagePullPolicy": "Always",
+              "name": "control",
+              "ports": [
+                {
+                  "containerPort": 3000,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+                },
+              ],
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Always",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
+          "serviceAccountName": "boom-control-serviceaccount-c867682d",
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "boom-configmapvolume-block-json-c8b85b34",
+              },
+              "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "data": {
+      "color": "#000000",
+      "description": "No description provided",
+      "icon": "cube",
+      "readme": "# Boom",
+    },
+    "immutable": false,
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "kblocks-boom-metadata",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+  },
+  {
+    "apiVersion": "apiextensions.k8s.io/v1",
+    "kind": "CustomResourceDefinition",
+    "metadata": {
+      "annotations": {
+        "kblocks.io/metadata-name": "kblocks-boom-metadata",
+        "kblocks.io/metadata-namespace": "{{ .Release.Namespace }}",
+      },
+      "name": "booms.boom.com",
+    },
+    "spec": {
+      "group": "boom.com",
+      "names": {
+        "kind": "Boom",
+        "plural": "booms",
+      },
+      "scope": "Namespaced",
+      "versions": [
+        {
+          "additionalPrinterColumns": [
+            {
+              "description": "Is resource ready",
+              "jsonPath": ".status.conditions[0].status",
+              "name": "Ready",
+              "type": "string",
+            },
+            {
+              "description": "The status of the resource",
+              "jsonPath": ".status.conditions[0].message",
+              "name": "Status",
+              "type": "string",
+            },
+          ],
+          "name": "v1",
+          "schema": {
+            "openAPIV3Schema": {
+              "properties": {
+                "name": {
+                  "type": "string",
+                },
+                "status": {
+                  "properties": {
+                    "conditions": {
+                      "items": {
+                        "properties": {
+                          "lastProbeTime": {
+                            "format": "date-time",
+                            "type": "string",
+                          },
+                          "lastTransitionTime": {
+                            "format": "date-time",
+                            "type": "string",
+                          },
+                          "message": {
+                            "type": "string",
+                          },
+                          "reason": {
+                            "type": "string",
+                          },
+                          "status": {
+                            "type": "string",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "type",
+                          "status",
+                          "lastTransitionTime",
+                        ],
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                  },
+                  "type": "object",
+                },
+              },
+              "type": "object",
+            },
+          },
+          "served": true,
+          "storage": true,
+          "subresources": {
+            "status": {},
+          },
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`operator configuration 1`] = `
+[
+  {
+    "apiVersion": "v1",
+    "data": {
+      "kblock.json": "{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"namespace":"my-namespace","envSecrets":{"SECRET1":"secret-1","SECRET2":"secret-2"},"envConfigMaps":{"CONFIGMAP1":"configmap-1"},"env":{"ENV1":"env-1","ENV2":"env-2"},"workers":2}},"engine":"noop","config":{"configVersion":"v1","kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
+    },
+    "immutable": false,
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "boom-configmapvolume-block-json-c8b85b34",
+      "namespace": "my-namespace",
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "automountServiceAccountToken": false,
+    "kind": "ServiceAccount",
+    "metadata": {
+      "name": "boom-operator-serviceaccount-c863141e",
+      "namespace": "my-namespace",
+    },
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRole",
+    "metadata": {
+      "name": "boom-operator-clusterrole-c8e55e70",
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          "boom.com",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "booms",
+        ],
+        "verbs": [
+          "get",
+          "watch",
+          "list",
+        ],
+      },
+      {
+        "apiGroups": [
+          "*",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "*",
+        ],
+        "verbs": [
+          "*",
+        ],
+      },
+    ],
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRoleBinding",
+    "metadata": {
+      "name": "boom-operator-clusterrolebinding-c8dd7855",
+    },
+    "roleRef": {
+      "apiGroup": "rbac.authorization.k8s.io",
+      "kind": "ClusterRole",
+      "name": "boom-operator-clusterrole-c8e55e70",
+    },
+    "subjects": [
+      {
+        "apiGroup": "",
+        "kind": "ServiceAccount",
+        "name": "boom-operator-serviceaccount-c863141e",
+        "namespace": "my-namespace",
+      },
+    ],
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/name": "kblocks-boom-operator",
+        "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+      },
+      "name": "kblocks-boom-operator",
+      "namespace": "my-namespace",
+    },
+    "spec": {
+      "minReadySeconds": 0,
+      "progressDeadlineSeconds": 600,
+      "replicas": 1,
+      "selector": {
+        "matchLabels": {
+          "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
+        },
+      },
+      "strategy": {
+        "rollingUpdate": {
+          "maxSurge": "25%",
+          "maxUnavailable": "25%",
+        },
+        "type": "RollingUpdate",
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
+            "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": true,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "SECRET1",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET1",
+                      "name": "secret-1",
+                    },
+                  },
+                },
+                {
+                  "name": "SECRET2",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET2",
+                      "name": "secret-2",
+                    },
+                  },
+                },
+                {
+                  "name": "CONFIGMAP1",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "CONFIGMAP1",
+                      "name": "configmap-1",
+                    },
+                  },
+                },
+                {
+                  "name": "ENV1",
+                  "value": "env-1",
+                },
+                {
+                  "name": "ENV2",
+                  "value": "env-2",
+                },
+                {
+                  "name": "KBLOCK_OUTPUTS",
+                  "value": "",
+                },
+                {
+                  "name": "WORKERS",
+                  "value": "2",
+                },
+              ],
+              "image": "wingcloudbot/kblocks-operator:99.99.99",
+              "imagePullPolicy": "Always",
+              "name": "operator",
+              "ports": [
+                {
+                  "containerPort": 3000,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+                },
+              ],
+            },
+            {
+              "image": "redis:6.2-alpine",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "redis",
+              "ports": [
+                {
+                  "containerPort": 6379,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Always",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
+          "serviceAccountName": "boom-operator-serviceaccount-c863141e",
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "boom-configmapvolume-block-json-c8b85b34",
+              },
+              "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "name": "boom-redis",
+      "namespace": "my-namespace",
+    },
+    "spec": {
+      "externalIPs": [],
+      "ports": [
+        {
+          "port": 6379,
+          "targetPort": 6379,
+        },
+      ],
+      "selector": {
+        "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
+      },
+      "type": "ClusterIP",
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "automountServiceAccountToken": false,
+    "kind": "ServiceAccount",
+    "metadata": {
+      "name": "boom-worker-workerserviceaccount-c8480528",
+      "namespace": "my-namespace",
+    },
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRole",
+    "metadata": {
+      "name": "boom-worker-workerclusterrole-c88cb3c8",
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          "boom.com",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "booms",
+        ],
+        "verbs": [
+          "get",
+          "watch",
+          "list",
+        ],
+      },
+      {
+        "apiGroups": [
+          "*",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "*",
+        ],
+        "verbs": [
+          "*",
+        ],
+      },
+    ],
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRoleBinding",
+    "metadata": {
+      "name": "boom-worker-workerclusterrolebinding-c8dc7047",
+    },
+    "roleRef": {
+      "apiGroup": "rbac.authorization.k8s.io",
+      "kind": "ClusterRole",
+      "name": "boom-worker-workerclusterrole-c88cb3c8",
+    },
+    "subjects": [
+      {
+        "apiGroup": "",
+        "kind": "ServiceAccount",
+        "name": "boom-worker-workerserviceaccount-c8480528",
+        "namespace": "my-namespace",
+      },
+    ],
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "name": "kblocks-boom-worker",
+      "namespace": "my-namespace",
+    },
+    "spec": {
+      "externalIPs": [],
+      "ports": [
+        {
+          "port": 3000,
+        },
+      ],
+      "selector": {
+        "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
+      },
+      "type": "ClusterIP",
+    },
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+      "labels": {
+        "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+      },
+      "name": "kblocks-boom-worker",
+      "namespace": "my-namespace",
+    },
+    "spec": {
+      "minReadySeconds": 0,
+      "podManagementPolicy": "OrderedReady",
+      "replicas": 2,
+      "selector": {
+        "matchLabels": {
+          "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
+        },
+      },
+      "serviceName": "kblocks-boom-worker",
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
+            "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": true,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "SECRET1",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET1",
+                      "name": "secret-1",
+                    },
+                  },
+                },
+                {
+                  "name": "SECRET2",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET2",
+                      "name": "secret-2",
+                    },
+                  },
+                },
+                {
+                  "name": "CONFIGMAP1",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "CONFIGMAP1",
+                      "name": "configmap-1",
+                    },
+                  },
+                },
+                {
+                  "name": "REDIS_URL",
+                  "value": "redis://boom-redis.my-namespace.svc.cluster.local:6379",
+                },
+                {
+                  "name": "ENV1",
+                  "value": "env-1",
+                },
+                {
+                  "name": "ENV2",
+                  "value": "env-2",
+                },
+                {
+                  "name": "KBLOCKS_WORKER_IMAGE",
+                  "value": "wingcloudbot/kblocks-worker:99.99.99",
+                },
+                {
+                  "name": "KBLOCKS_OPERATOR_IMAGE",
+                  "value": "wingcloudbot/kblocks-operator:99.99.99",
+                },
+                {
+                  "name": "KBLOCKS_CONTROL_IMAGE",
+                  "value": "wingcloudbot/kblocks-control:99.99.99",
+                },
+                {
+                  "name": "RELEASE_NAME",
+                  "value": "{{ .Release.Name }}",
+                },
+                {
+                  "name": "KBLOCK_OUTPUTS",
+                  "value": "",
+                },
+                {
+                  "name": "WORKER_INDEX",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.labels['apps.kubernetes.io/pod-index']",
+                    },
+                  },
+                },
+              ],
+              "image": "wingcloudbot/kblocks-worker:99.99.99",
+              "imagePullPolicy": "Always",
+              "name": "worker",
+              "ports": [
+                {
+                  "containerPort": 3000,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "startupProbe": {
+                "failureThreshold": 3,
+                "tcpSocket": {
+                  "port": 3000,
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+                },
+              ],
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Always",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
+          "serviceAccountName": "boom-worker-workerserviceaccount-c8480528",
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "boom-configmapvolume-block-json-c8b85b34",
+              },
+              "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+            },
+          ],
+        },
+      },
+      "updateStrategy": {
+        "rollingUpdate": {
+          "partition": 0,
+        },
+        "type": "RollingUpdate",
+      },
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "automountServiceAccountToken": false,
+    "kind": "ServiceAccount",
+    "metadata": {
+      "name": "boom-control-serviceaccount-c867682d",
+      "namespace": "my-namespace",
+    },
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRole",
+    "metadata": {
+      "name": "boom-control-clusterrole-c822c923",
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          "*",
+        ],
+        "resourceNames": [],
+        "resources": [
+          "*",
+        ],
+        "verbs": [
+          "*",
+        ],
+      },
+    ],
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "ClusterRoleBinding",
+    "metadata": {
+      "name": "boom-control-clusterrolebinding-c839e5e6",
+    },
+    "roleRef": {
+      "apiGroup": "rbac.authorization.k8s.io",
+      "kind": "ClusterRole",
+      "name": "boom-control-clusterrole-c822c923",
+    },
+    "subjects": [
+      {
+        "apiGroup": "",
+        "kind": "ServiceAccount",
+        "name": "boom-control-serviceaccount-c867682d",
+        "namespace": "my-namespace",
+      },
+    ],
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/name": "kblocks-boom-control",
+        "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+      },
+      "name": "kblocks-boom-control",
+      "namespace": "my-namespace",
+    },
+    "spec": {
+      "minReadySeconds": 0,
+      "progressDeadlineSeconds": 600,
+      "replicas": 1,
+      "selector": {
+        "matchLabels": {
+          "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
+        },
+      },
+      "strategy": {
+        "rollingUpdate": {
+          "maxSurge": "25%",
+          "maxUnavailable": "25%",
+        },
+        "type": "RollingUpdate",
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
+            "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": true,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "SECRET1",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET1",
+                      "name": "secret-1",
+                    },
+                  },
+                },
+                {
+                  "name": "SECRET2",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET2",
+                      "name": "secret-2",
+                    },
+                  },
+                },
+                {
+                  "name": "CONFIGMAP1",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "CONFIGMAP1",
+                      "name": "configmap-1",
+                    },
+                  },
+                },
+                {
+                  "name": "ENV1",
+                  "value": "env-1",
+                },
+                {
+                  "name": "ENV2",
+                  "value": "env-2",
+                },
+              ],
+              "image": "wingcloudbot/kblocks-control:99.99.99",
+              "imagePullPolicy": "Always",
+              "name": "control",
+              "ports": [
+                {
+                  "containerPort": 3000,
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+                },
+              ],
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Always",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
+          "serviceAccountName": "boom-control-serviceaccount-c867682d",
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "boom-configmapvolume-block-json-c8b85b34",
+              },
+              "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "data": {
+      "color": "#000000",
+      "description": "No description provided",
+      "icon": "cube",
+      "readme": "# Boom",
+    },
+    "immutable": false,
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "kblocks-boom-metadata",
+      "namespace": "my-namespace",
+    },
+  },
+  {
+    "apiVersion": "apiextensions.k8s.io/v1",
+    "kind": "CustomResourceDefinition",
+    "metadata": {
+      "annotations": {
+        "kblocks.io/metadata-name": "kblocks-boom-metadata",
+        "kblocks.io/metadata-namespace": "my-namespace",
+      },
+      "name": "booms.boom.com",
+    },
+    "spec": {
+      "group": "boom.com",
+      "names": {
+        "kind": "Boom",
+        "plural": "booms",
+      },
+      "scope": "Namespaced",
+      "versions": [
+        {
+          "additionalPrinterColumns": [
+            {
+              "description": "Is resource ready",
+              "jsonPath": ".status.conditions[0].status",
+              "name": "Ready",
+              "type": "string",
+            },
+            {
+              "description": "The status of the resource",
+              "jsonPath": ".status.conditions[0].message",
+              "name": "Status",
+              "type": "string",
+            },
+          ],
+          "name": "v1",
+          "schema": {
+            "openAPIV3Schema": {
+              "properties": {
+                "name": {
+                  "type": "string",
+                },
+                "status": {
+                  "properties": {
+                    "conditions": {
+                      "items": {
+                        "properties": {
+                          "lastProbeTime": {
+                            "format": "date-time",
+                            "type": "string",
+                          },
+                          "lastTransitionTime": {
+                            "format": "date-time",
+                            "type": "string",
+                          },
+                          "message": {
+                            "type": "string",
+                          },
+                          "reason": {
+                            "type": "string",
+                          },
+                          "status": {
+                            "type": "string",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "type",
+                          "status",
+                          "lastTransitionTime",
+                        ],
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                  },
+                  "type": "object",
+                },
+              },
+              "type": "object",
+            },
+          },
+          "served": true,
+          "storage": true,
+          "subresources": {
+            "status": {},
+          },
+        },
+      ],
+    },
+  },
+]
+`;

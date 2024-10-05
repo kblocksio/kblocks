@@ -37,8 +37,8 @@ export const Manifest = z.object({
     color: z.optional(z.string()),
   })),
 
-  operator: z.object({
-    namespace: z.string(),
+  operator: z.optional(z.object({
+    namespace: z.optional(z.string()),
     permissions: z.optional(z.array(z.object({
       apiGroups: z.array(z.string()),
       resources: z.array(z.string()),
@@ -48,7 +48,7 @@ export const Manifest = z.object({
     envConfigMaps: z.optional(z.record(z.string())),
     env: z.optional(z.record(z.string())),
     workers: z.optional(z.number().default(1)),
-  }),
+  })),
 });
 
 export type Manifest = z.infer<typeof Manifest>;

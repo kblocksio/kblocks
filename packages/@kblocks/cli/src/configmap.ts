@@ -8,6 +8,7 @@ import * as k8s from "cdk8s-plus-30";
 import { Manifest } from "./api";
 
 export interface PodEnvironment {
+  namespace: string;
   envSecrets?: Record<string, string>;
   envConfigMaps?: Record<string, string>;
   env?: Record<string, string>;

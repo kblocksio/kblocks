@@ -5,7 +5,6 @@ import { PodEnvironment, setupPodEnvironment } from "./configmap";
 export interface ControlProps extends PodEnvironment {
   image: string;
   kind: string
-  namespace?: string;
 }
 
 export class Control extends Construct {

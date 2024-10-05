@@ -7,7 +7,6 @@ export interface OperatorProps extends PodEnvironment {
   group: string;
   kind: string
   plural: string;
-  namespace?: string;
   redisServiceName: string;
   workers: number;
   outputs?: string[];

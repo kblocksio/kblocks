@@ -7,7 +7,6 @@ export interface WorkerProps extends PodEnvironment {
   group: string;
   kind: string
   plural: string;
-  namespace?: string;
   replicas: number;
   env?: Record<string, string>;
   outputs?: string[];

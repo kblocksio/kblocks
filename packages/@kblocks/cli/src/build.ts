@@ -12,6 +12,7 @@ import { Control } from "./control";
 import { Manifest } from "./api";
 import { Construct } from "constructs";
 import yaml from 'yaml';
+import { z } from "zod";
 
 export interface BlockProps {
   block: Manifest;
@@ -28,6 +29,8 @@ export class Block extends Chart {
     super(scope, id);
 
     const { block, source } = props;
+
+    this.validateManifest(block);
 
     const namespace = block.operator?.namespace ?? "{{ .Release.Namespace }}";
     const workers = block.operator?.workers ?? 1;
@@ -51,6 +54,7 @@ export class Block extends Chart {
       configMaps: configmap.configMaps,
       redisServiceName,
       workers,
+      namespace,
       ...block.operator,
       ...block.definition
     });
@@ -61,6 +65,7 @@ export class Block extends Chart {
       ...block.operator,
       ...block.definition,
       replicas: workers,
+      namespace,
       env: {
         // redis url should be the url of the redis instance in the operator
         REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
@@ -78,6 +83,7 @@ export class Block extends Chart {
       configMaps: configmap.configMaps,
       ...block.operator,
       ...block.definition,
+      namespace,
     });
   
     const schema = resolveSchema(block);
@@ -107,9 +113,21 @@ export class Block extends Chart {
       schema,
     });
   }
+
+  private validateManifest(block: Manifest) {
+    try {
+      Manifest.parse(block);
+    } catch (err: any) {
+      if (typeof(err["format"]) === "function") {
+        throw new Error(`Invalid block manifest: ${JSON.stringify(err.format(), null, 2)}`);
+      }
+
+      throw err;
+    }
+  }
 }
 
-export async function synth(opts: Options) {
+export function synth(opts: Options) {
   const name = opts.block.definition.kind.toLocaleLowerCase();
   const outputDir = path.resolve(opts.output);
   
@@ -131,11 +149,11 @@ export async function synth(opts: Options) {
 }
 
 function resolveSchema(props: Manifest): JsonSchemaProps {
-  if (props.definition.schema) {
-    return props.definition.schema;
+  if (!props.definition.schema) {
+    throw new Error("No schema found in kblock manifest. Please define the OpenAPIV3 schema under the 'schema' field of the 'definition' section of the manifest.");
   }
 
-  throw new Error("No schema found");
+  return props.definition.schema;
 }
 
 /**
