@@ -39,10 +39,6 @@ async function getSource(kblock: KConfig) {
     return sourcedir;
   }
 
-  if (!archivedir) {
-    throw new Error("No archive or git source found");
-  }
-
   return archivedir;
 }
 
@@ -119,7 +115,9 @@ async function main() {
   startServer(); // TODO: do we need this to keep the pod alive?
 
   const sourcedir = await getSource(kblock);
-  await installDependencies(sourcedir);
+  if (sourcedir) {
+    await installDependencies(sourcedir);
+  }
 
   const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
 

@@ -13,7 +13,7 @@ import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
 
-export async function synth(sourcedir: string, engine: string, plural: string, ctx: BindingContext) {
+export async function synth(sourcedir: string | undefined, engine: string, plural: string, ctx: BindingContext) {
   // skip updates to the "status" subresource
   if (ctx.watchEvent === "Modified") {
     const managedFields = ctx.object.metadata?.managedFields ?? [];
@@ -56,7 +56,9 @@ export async function synth(sourcedir: string, engine: string, plural: string, c
 
   // create a temporary directory to work in, which we will clean up at the end
   const workdir = tempdir();
-  await fs.cp(sourcedir, workdir, { recursive: true });
+  if (sourcedir) {
+    await fs.cp(sourcedir, workdir, { recursive: true });
+  }
 
   console.log("-------------------------------------------------------------------------------------------");
   const isDeletion = ctx.watchEvent === "Deleted";
