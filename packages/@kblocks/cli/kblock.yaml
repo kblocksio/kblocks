@@ -124,12 +124,9 @@ spec:
                 workers:
                   type: number
                   default: 1
-              required:
-                - namespace
           required:
             - engine
             - definition
-            - operator
       required:
         - spec
   operator:
