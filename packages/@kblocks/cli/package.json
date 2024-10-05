@@ -19,9 +19,9 @@
     "zod": "^3.23.8"
   },
   "scripts": {
-    "test": "vitest **/*.test.ts",
+    "test": "vitest run **/*.test.ts",
     "watch": "tsc --watch",
-    "build": "./build.sh",
+    "build": "./build.sh && npm run test",
     "publish": "./publish.sh"
   },
   "devDependencies": {
