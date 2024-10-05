@@ -58,17 +58,14 @@ export async function listenForChanges(kblock: KConfig, onChanges: (commit: stri
   return commit;
 }
 
-export async function cloneRepo(source: KConfig["manifest"]["source"]) {
-  if (!source) {
-    throw new Error("No source given");
-  }
-
+export async function cloneRepo(source: NonNullable<KConfig["manifest"]["source"]>) {
   const url = source.url;
   const branch = source.branch ?? DEFAULT_BRANCH;
   const directory = source.directory ?? "";
   const auth = token ? `user:${token}@` : "";
   const targetDir = tempdir();
 
-  await exec(undefined, "git", ["clone", "-b", branch, `https://${auth}${url}`, targetDir]);
+  // shallow clone
+  await exec(undefined, "git", ["clone", "--depth", "1", "-b", branch, `https://${auth}${url}`, targetDir]);
   return path.join(targetDir, directory);
 }

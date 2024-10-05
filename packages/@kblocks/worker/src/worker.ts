@@ -21,25 +21,23 @@ if (!kblock.engine) {
 async function getSource(kblock: KConfig) {
   const archivedir = await extractArchive(mountdir);
 
+  if (archivedir) {
+    if (kblock.manifest.source) {
+      console.log("WARNING: Found block source in archive, skipping git source.");
+    }
+
+    return archivedir;
+  }
+
   if (kblock.manifest.source) {
     const clonedir = await cloneRepo(kblock.manifest.source);
     const sourcedir = tempdir();
-    await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });
-    
-    if (archivedir) {
-      // Copy contents of archivedir to sourcedir
-      const files = await fs.promises.readdir(archivedir);
-      for (const file of files) {
-        const srcPath = path.join(archivedir, file);
-        const destPath = path.join(sourcedir, file);
-        await fs.promises.cp(srcPath, destPath, { recursive: true, dereference: true });
-      }
-    }
-
+    await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });    
     return sourcedir;
   }
 
-  return archivedir;
+  console.log("NOTE: No block source found.");
+  return undefined;
 }
 
 async function extractArchive(dir: string) {
