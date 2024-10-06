@@ -1,0 +1,5 @@
+apiVersion: acme.com/v1
+kind: Helloer
+metadata:
+  name: helloer01
+greeting: this is so cool

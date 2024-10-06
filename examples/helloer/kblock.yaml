@@ -1,0 +1,18 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: helloers.acme.com
+spec:
+  engine: helm
+  definition:
+    group: acme.com
+    version: v1
+    kind: Helloer
+    plural: helloers
+    schema:
+      type: object
+      required:
+        - greeting
+      properties:
+        greeting:
+          type: string

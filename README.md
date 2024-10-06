@@ -1,6 +1,155 @@
- kblocks
+# Kblocks
 
-kblocks is a tool for packaging Helm charts and IaC modules as native high-level Kubernetes objects.
+Kblocks is a tool for creating platform building blocks using any IAC engine or Helm charts and
+packaging them as Kubernetes custom resources.
+
+## Getting Started
+
+Let's create a Helm-based block that creates a ConfigMap with a value provided by the user.
+
+Create a directory for your new block:
+
+```sh
+mkdir helloer
+cd helloer
+```
+
+And create a completely standard and innocent Helm Chart:
+
+`Chart.yaml`:
+
+```yaml
+apiVersion: v2
+name: my-hello-chart
+version: 1.0.0
+```
+
+`templates/configmap.yaml`:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config-map
+data:
+  greeting: {{ .Values.greeting }}
+```
+
+We can test this chart locally:
+
+```sh
+helm install helloer . --set greeting=howdy
+```
+
+As you can see, we set `greeting` to `howdy`, so this should be reflected in our ConfigMap.
+
+```sh
+$ kubectl describe configmaps helloer-config-map 
+Data
+====
+key:
+----
+howdy
+```
+
+Let's clean up before moving to the next step:
+
+```sh
+helm uninstall helloer
+```
+
+OK, our Helm chart is ready to be packaged as a Kblock.
+
+Next, we are going to create a *Block Manifest* to package this chart:
+
+`kblock.yaml`:
+
+```yaml
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: helloers.acme.com
+spec:
+  engine: helm
+  definition:
+    group: acme.com
+    version: v1
+    kind: Helloer
+    plural: helloers
+    schema:
+      type: object
+      required:
+        - greeting
+      properties:
+        greeting:
+          type: string
+```
+
+This should be pretty self-explainatory. But here's a quick rundown.
+
+- We are using a `helm` engine. This means that kblocks will basically call `helm upgrade --install`
+  in order to apply changes to `Helloer` resourcea.
+- The type of the Kubernetes object is `acme.com/v1` (the `apiVersion`) and the `kind` is `Helloer`.
+- The input schema takes a single string attribute called `greeting`. This will be passed to `helm` as values (`--set`).
+
+We are ready to install our Kblock.
+
+First, we'll need to grab the Kblocks CLI from npm:
+
+```sh
+npm i -g @kblocks/cli
+```
+
+We will now use `kblocks build` to package our block as a Helm chart:
+
+```sh
+kblocks build
+...
+Block built successfully: ./dist
+```
+
+And install this as a Helm chart in our cluster:
+
+```sh
+helm upgrade --install helloer-block ./dist
+```
+
+We can check that our cluster now has a new custom resource definition:
+
+```sh
+$ kubectl get customresourcedefinitions.apiextensions.k8s.io helloers.acme.com
+NAME                CREATED AT
+helloers.acme.com   2024-10-05T13:36:09Z
+```
+
+Yey! So now, we can create a new object:
+
+`test.yaml`:
+
+```yaml
+apiVersion: acme.com/v1
+kind: Helloer
+metadata:
+  name: helloer01
+greeting: this is so cool
+```
+
+Apply:
+
+```sh
+kubectl apply -f ./test.yaml  
+```
+
+---
+
+## GitOps
+
+Let's install the kblocks controller under the `kblocks` namespace:
+
+```sh
+helm upgrade --install --create-namespace -n kblocks kblocks oci://registry-1.docker.io/wingcloudbot/kblocks
+```
+
 
 ## Prerequisites
 
