@@ -12,7 +12,6 @@ import { Control } from "./control";
 import { Manifest } from "./api";
 import { Construct } from "constructs";
 import yaml from 'yaml';
-import { z } from "zod";
 
 export interface BlockProps {
   block: Manifest;

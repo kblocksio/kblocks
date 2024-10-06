@@ -11,11 +11,11 @@ const k8sExtClient = kc.makeApiClient(k8s.ApiextensionsV1Api);
 const k8sCoreClient = kc.makeApiClient(k8s.CoreV1Api);
 const k8sCustomClient = kc.makeApiClient(k8s.CustomObjectsApi);
 
-export function flush(systemId: string, manifest: Manifest) {
+export function flush(system: string, manifest: Manifest) {
   console.log("flushing resources and resource types...");
   Promise.all([
-    flushType(systemId, manifest),
-    flushAllResources(systemId, manifest),
+    flushType(system, manifest),
+    flushAllResources(system, manifest),
   ]).then(() => {
     console.log("flushed");
   }).catch((error) => {
@@ -23,16 +23,16 @@ export function flush(systemId: string, manifest: Manifest) {
   });
 }
 
-async function flushAllResources(systemId: string, manifest: Manifest) {
+async function flushAllResources(system: string, manifest: Manifest) {
   const resources = await listAllResources(manifest);
 
   for (const resource of resources) {
     const objType = `${manifest.definition.group}/${manifest.definition.version}/${manifest.definition.plural}`;
-    flushResource(systemId, objType, resource);
+    flushResource(system, objType, resource);
   }
 }
 
-async function flushType(systemId: string, manifest: Manifest) {
+async function flushType(system: string, manifest: Manifest) {
   const name = `${manifest.definition.plural}.${manifest.definition.group}`;
 
   console.log("flushing resource type", name);
@@ -53,7 +53,7 @@ async function flushType(systemId: string, manifest: Manifest) {
 
   // we emulate a CRD here that represents the block (in the future it will actually be a CRD)
   const objType = `kblocks.io/v1/blocks`;
-  await flushResource(systemId, objType, {
+  await flushResource(system, objType, {
     apiVersion: "kblocks.io/v1",
     kind: "Block",
     metadata: {
@@ -73,8 +73,8 @@ async function flushType(systemId: string, manifest: Manifest) {
   });
 }
 
-async function flushResource(systemId: string, objType: string, resource: ApiObject) {
-  const objUri = `kblocks://${objType}/${systemId}/${resource.metadata.namespace ?? "default"}/${resource.metadata.name}`;
+async function flushResource(system: string, objType: string, resource: ApiObject) {
+  const objUri = `kblocks://${objType}/${system}/${resource.metadata.namespace ?? "default"}/${resource.metadata.name}`;
 
   console.log(`flushing resource: ${objUri}`);
 

@@ -11,18 +11,15 @@ const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 const client = kc.makeApiClient(k8s.CustomObjectsApi);
 
-export function connect(controlUrl: string, systemId: string, manifest: Manifest) {
-  const params = new URLSearchParams({ 
-    system_id: systemId, // <-- TODO: deprecate this
-    system: systemId
-  }).toString();
+export function connect(controlUrl: string, system: string, manifest: Manifest) {
+  const params = new URLSearchParams({ system }).toString();
 
   const group = manifest.definition.group;
   const version = manifest.definition.version;
   const plural = manifest.definition.plural;
   const url = `${controlUrl}/${group}/${version}/${plural}?${params}`;
 
-  const ctx: Context = { system: systemId, group, version, plural };
+  const ctx: Context = { system, group, version, plural };
 
   console.log(`Connecting to control channel: ${url}`);
 
@@ -38,7 +35,7 @@ export function connect(controlUrl: string, systemId: string, manifest: Manifest
     console.log("Control connection opened");
 
     // flush the current state of the system to the control plane
-    flush(systemId, manifest);
+    flush(system, manifest);
   });
 
   ws.addEventListener("message", (event) => {
