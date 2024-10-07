@@ -70,7 +70,7 @@ jobs:
       - name: Create empty kube config
         run: |
           mkdir -p /home/runner/.kube
-          touch /home/runner/.kube/config
+          echo "apiVersion: v1" > /home/runner/.kube/config
 
       - name: Setup a new qkube
         id: qkube
@@ -95,5 +95,5 @@ jobs:
           QKUBE_NAME=${{ steps.qkube.outputs.qbube-name }}
           if [ -n "$QKUBE_NAME" ]; then
             echo "Deleting qkube $QKUBE_NAME"
-            qkube delete $QKUBE_NAME
+            qkube rm $QKUBE_NAME
           fi
