@@ -2,7 +2,7 @@ import yargs from "yargs";
 import { synth } from "./build";
 import fs from "fs";
 import yaml from "yaml";
-import { ApiObject } from "./api";
+import { ApiObject, Manifest } from "./api";
 import path from "path";
 export async function cli() {
   return yargs
@@ -25,7 +25,7 @@ export async function cli() {
       })
       .option("source", {
         alias: "s",
-        description: "Block implementation source directory",
+        description: "Directory containing the manifest (kblock.yaml) and source code is expected to be under 'src'.",
         type: "string",
         required: false,
         default: ".",
@@ -63,7 +63,9 @@ export const buildCommand = async (opts: Options) => {
     throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifest}`);
   }
 
-  console.log("Block:", blockObject);
+  const spec: Manifest = blockObject.spec;
+
+  console.log("Block:", spec);
 
   // create the output directory
   fs.mkdirSync(output, { recursive: true });
@@ -75,15 +77,19 @@ export const buildCommand = async (opts: Options) => {
     fs.copyFileSync(chartPath, path.join(output, 'Chart.yaml'));
   }
 
-  await synth({ block: blockObject.spec, source: source, output });
+  synth({ block: blockObject.spec, source, output });
 
   // write any additional objects to the templates directory
   if (additionalObjects.length > 0) {
     const additionalObjectsManifest = path.join(output, "templates", "additional-objects.yaml");
     fs.writeFileSync(additionalObjectsManifest, yaml.stringify(additionalObjects));
   }
-
-  console.log(`Block built successfully: ${output}`);
+  console.log();
+  console.log("-------------------------------------------------------------------------------------------------------------------");
+  console.log(`Block '${spec.definition.group}/${spec.definition.version}.${spec.definition.kind}' is ready. To install:`);
+  console.log();
+  console.log(`  helm upgrade --install ${spec.definition.kind.toLowerCase()}-block ${output}`);
+  console.log();
 };
 
 function readManifest(manifest: string) {

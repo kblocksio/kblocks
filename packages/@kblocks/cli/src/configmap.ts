@@ -6,6 +6,7 @@ import { readdirSync } from "fs";
 import { relative, join } from "path";
 import * as k8s from "cdk8s-plus-30";
 import { Manifest } from "./api";
+import fs from "fs";
 
 export interface PodEnvironment {
   namespace: string;
@@ -76,19 +77,24 @@ export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Contain
   }
 }
 
-export function createTgzBase64(directory: string): string {
+export function createTgzBase64(rootDir: string): string {
+  const srcDir = join(rootDir, "src");
+  if (!fs.existsSync(srcDir)) {
+    throw new Error("No 'src' directory found in the provided directory. Please ensure that the source directory is named 'src'.");
+  }
+
   const excludedFolders = ["node_modules", ".git", "target", ".DS_Store"];
   
   const getAllFiles = (dir: string): string[] => {
     const files = readdirSync(dir, { withFileTypes: true });
-    let paths: string[] = [];
+    const paths: string[] = [];
     
     for (const file of files) {
       if (excludedFolders.includes(file.name)) continue;
       
       const fullPath = join(dir, file.name);
       if (file.isDirectory()) {
-        paths = paths.concat(getAllFiles(fullPath));
+        paths.push(...getAllFiles(fullPath));
       } else {
         paths.push(fullPath);
       }
@@ -97,14 +103,15 @@ export function createTgzBase64(directory: string): string {
     return paths.sort(); // Sort the paths for deterministic order
   };
   
-  const filesToArchive = getAllFiles(directory);
+  const filesToArchive = getAllFiles(srcDir);
+  console.log("Source files:\n  " + filesToArchive.join("\n  "));
 
   const tarStream = tar.create(
     {
       gzip: true,
       sync: true,
       noMtime: true,
-      cwd: directory,
+      cwd: srcDir,
       portable: true,
       follow: true,
       filter: (_, stat) => {
@@ -114,7 +121,7 @@ export function createTgzBase64(directory: string): string {
         return true;
       }
     },
-    filesToArchive.map(file => relative(directory, file))
+    filesToArchive.map(file => relative(srcDir, file))
   );
   
   const data = tarStream.read();

@@ -30,6 +30,11 @@ async function getSource(kblock: KConfig) {
   }
 
   if (kblock.manifest.source) {
+    // we expect the source directory to always end with "/src"
+    if (!kblock.manifest.source.directory.endsWith("/src")) {
+      throw new Error("Source directory must end with '/src'");
+    }
+
     const clonedir = await cloneRepo(kblock.manifest.source);
     const sourcedir = tempdir();
     await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });    

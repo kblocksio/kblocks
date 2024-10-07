@@ -116,6 +116,11 @@ export class Block extends Chart {
   private validateManifest(block: Manifest) {
     try {
       Manifest.parse(block);
+
+      if (block.source?.directory && !block.source.directory.endsWith("/src")) {
+        throw new Error(`Source directory must end with '/src'. got: ${block.source.directory}`);
+      }
+
     } catch (err: any) {
       if (typeof(err["format"]) === "function") {
         throw new Error(`Invalid block manifest: ${JSON.stringify(err.format(), null, 2)}`);
@@ -177,7 +182,7 @@ function calculateImageName(serviceName: string) {
   const versionOverride = process.env[versionOverrideEnv];
   if (versionOverride) {
     const image = `${imagePrefix}${serviceName}:${versionOverride}`;
-    console.log(`Version override for ${serviceName} is ${image}`);
+    console.log(`Docker image for ${serviceName}: ${image}`);
     return image;
   }
 
