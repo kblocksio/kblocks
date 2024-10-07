@@ -1,5 +1,5 @@
 #!/bin/sh
-set -euo pipefail
+set -eu pipefail
 dir=$(cd $(dirname $0) && pwd)
 echo "building test kblocks..."
 

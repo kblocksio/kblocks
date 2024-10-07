@@ -73,12 +73,12 @@ jobs:
           touch /home/runner/.kube/config
 
       - name: Setup a new qkube
+        id: qkube
         run: |
           QKUBE_NAME=$(qkube new --size micro | awk -F'"' '/\.quickube\.sh/ {print $2; exit}')
           echo "Using qkube $QKUBE_NAME"
           # save the qkube name to the workspace
-          echo "QKUBE_NAME=$QKUBE_NAME" >> $GITHUB_OUTPUT
-          cat $GITHUB_OUTPUT
+          echo "qbube-name=$QKUBE_NAME" >> $GITHUB_OUTPUT
 
       - name: Start skaffold
         run: |
@@ -92,8 +92,7 @@ jobs:
       - name: Delete the qkube on exit
         if: always()
         run: |
-          cat $GITHUB_OUTPUT
-          QKUBE_NAME=$(cat $GITHUB_OUTPUT | grep QKUBE_NAME | cut -d= -f2)
+          QKUBE_NAME=${{ steps.qkube.outputs.qbube-name }}
           if [ -n "$QKUBE_NAME" ]; then
             echo "Deleting qkube $QKUBE_NAME"
             qkube delete $QKUBE_NAME
