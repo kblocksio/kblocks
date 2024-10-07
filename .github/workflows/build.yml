@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20.17.0"
+
+jobs:
+  test:
+    name: "Prepare Build"
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
+      last-version: ${{ fromJson(steps.changelog.outputs.data).lastVersion }}
+      changelog: ${{ fromJson(steps.changelog.outputs.data).changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Skaffold
+        run: |
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          chmod +x skaffold
+          sudo mv skaffold /usr/local/bin
+
+      - name: Install Qkube
+        run: |
+          qkube_url=$(curl -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" https://api.github.com/repos/winglang/quickube/releases/latest | jq -r ".assets[].browser_download_url")
+          curl -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" -H "Accept: application/octet-stream" -L -o /tmp/qkube $qkube_url
+          sudo mv /tmp/qkube /usr/local/bin/qkube
+          sudo chmod +x /usr/local/bin/qkube
+          qkube ls
+
+      - name: Setup a new qkube
+        run: |
+          QKUBE_NAME=$(qkube new --size micro | awk -F'"' '/\.quickube\.sh/ {print $2; exit}')
+          echo "Using qkube $QKUBE_NAME"
+          # save the qkube name to the workspace
+          echo "QKUBE_NAME=$QKUBE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Start skaffold
+        run: |
+          skaffold run
+
+      - name: Run tests
+        run: |
+          cd test/tests
+          npm run test
+
+      - name: Delete the qkube on exit
+        if: always()
+        run: |
+          if [ -n "$QKUBE_NAME" ]; then
+            echo "Deleting qkube $QKUBE_NAME"
+            qkube delete $QKUBE_NAME
+          fi
