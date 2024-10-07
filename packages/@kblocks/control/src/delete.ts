@@ -1,5 +1,5 @@
 import * as k8s from "@kubernetes/client-node";
-import { type ErrorEvent, emitEvent, formatBlockType, parseBlockUri } from "./api";
+import { type ErrorEvent, ObjectEvent, emitEvent, formatBlockType, parseBlockUri } from "./api";
 import { Context } from "./context";
 
 export async function deleteObject(client: k8s.CustomObjectsApi, ctx: Context, objUri: string) {
@@ -15,6 +15,17 @@ export async function deleteObject(client: k8s.CustomObjectsApi, ctx: Context, o
   try {
     await client.deleteNamespacedCustomObject(group, version, blockUri.namespace, plural, blockUri.name);
   } catch (error: any) {
+
+    if (error.statusCode === 404) {
+      console.log(`Object ${objUri} not found, sending an empty OBJECT event`);
+      return emitEvent({
+        type: "OBJECT",
+        objType: blockType,
+        objUri,
+        object: {},
+      } as ObjectEvent);
+    }
+
     const msg = (error.body as any)?.message ?? "unknown error";
     const message = `Error deleting object ${objUri}: ${msg}`;
     console.error(message);

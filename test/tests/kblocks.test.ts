@@ -63,7 +63,7 @@ async function waitForResourceToBeDeleted(objUri: string) {
   });
 }
 
-async function deleteResource(objUri: string) {
+async function deleteResource(objUri: string, wait = true) {
   console.log("deleting resource", objUri);
 
   await sendControlCommand({
@@ -72,7 +72,9 @@ async function deleteResource(objUri: string) {
   });
 
 
-  await waitForResourceToBeDeleted(objUri);
+  if (wait) {
+    await waitForResourceToBeDeleted(objUri);
+  } 
 }
 
 test("create resource", opts, async () => {
@@ -112,12 +114,8 @@ test("refresh resource that does not exist", opts, async () => {
     objUri
   });
 
-  await waitUntil(async () => {
-    // we expect the last event to be an empty OBJECT to represent the deleted resource
-    const events = await getEvents();
-    const lastEvent = events[events.length - 1];
-    return (lastEvent.type === "OBJECT" && Object.keys(lastEvent.object ?? {}).length === 0);
-  });
+  // we expect the last event to be an empty OBJECT to represent the deleted resource
+  await waitUntilLastEvent(e => e.type === "OBJECT" && Object.keys(e.object ?? {}).length === 0);
 });
 
 test("refresh resource that exists", opts, async () => {
@@ -133,24 +131,41 @@ test("refresh resource that exists", opts, async () => {
   });
 
   // we expect the last event to be an OBJECT to represent the updated resource
-  let lastEvent: any = undefined;
-  await waitUntil(async () => {   
-    const events = await getEvents();
-    lastEvent = events[events.length - 1];
-    return (lastEvent.type === "OBJECT" && Object.keys(lastEvent.object ?? {}).length > 0);
-  });
-
-  console.log("lastEvent", lastEvent);
-
+  const lastEvent = await waitUntilLastEvent(e => e.type === "OBJECT" && Object.keys(e.object ?? {}).length > 0);
   expect(lastEvent.object.apiVersion).toEqual(obj.apiVersion);
   expect(lastEvent.object.kind).toEqual(obj.kind);
   expect(lastEvent.object.metadata.name).toEqual(obj.metadata.name);
   expect(lastEvent.object.hello).toEqual("world1234");
 });
 
+test("delete resource that does not exist", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  const objUri = `kblocks://testing.kblocks.io/v1/testresources/test-system/default/${name}`;
+
+  // send a request to delete the resource
+  await deleteResource(objUri, /* wait */ false);
+
+  // we expect the last event to be an empty OBJECT to represent the deleted resource
+  await waitUntilLastEvent(e => e.type === "OBJECT" && Object.keys(e.object ?? {}).length === 0);
+});
+
+async function waitUntilLastEvent(predicate: (event: any) => boolean, timeout: number = 60_000) {
+  let lastEvent: any = undefined;
+  await waitUntil(async () => {   
+    const events = await getEvents();
+    lastEvent = events[events.length - 1];
+    return predicate(lastEvent);
+  }, timeout);
+
+  console.log("lastEvent:", lastEvent);
+  return lastEvent;
+}
+
 async function waitUntil(condition: () => Promise<boolean>, timeout: number = 60_000) {
   const end = Date.now() + timeout;
   while (!(await condition())) {
+    process.stdout.write(".");
     if (Date.now() > end) {
       throw new Error("Timeout");
     }
