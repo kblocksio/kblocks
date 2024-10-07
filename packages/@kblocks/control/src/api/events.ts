@@ -1,4 +1,5 @@
-import { ApiObject, Event } from "./types";
+import { endpoints } from "./endpoints.js";
+import { ApiObject, Event } from "./types.js";
 
 export interface EventBase {
   objUri: string;
@@ -59,18 +60,7 @@ export type WorkerEvent =
 
 // -------------------------------------------------------------------------------------------------
 
-let warningPrinted = false;
-
 export function emitEvent(event: WorkerEvent) {
-  const KBLOCKS_EVENTS_URL = process.env.KBLOCKS_EVENTS_URL;
-  if (!KBLOCKS_EVENTS_URL) {
-    if (!warningPrinted) {
-      console.warn("WARNING: KBLOCKS_EVENTS_URL not configured, events will not be sent to the backend");
-      warningPrinted = true;
-    }
-    return;
-  }
-
   const req = {
     method: "POST",
     body: JSON.stringify(event),
@@ -79,11 +69,11 @@ export function emitEvent(event: WorkerEvent) {
     },
   };
 
-  fetch(KBLOCKS_EVENTS_URL, req).then(res => {
+  fetch(endpoints.events, req).then(res => {
     if (!res.ok) {
-      console.warn(`${KBLOCKS_EVENTS_URL}: ${res.status} body: ${res.statusText}`);
+      console.warn(`${endpoints.events}: ${res.status} body: ${res.statusText}`);
     }
   }).catch(err => {
-    console.warn(`${KBLOCKS_EVENTS_URL}: ${err.cause?.message ?? err.message}`);
+    console.warn(`${endpoints.events}: ${err.cause?.message ?? err.message}`);
   });
 }

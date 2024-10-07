@@ -52,7 +52,9 @@ const fixtures: Record<string, Manifest> = {
 };
 
 beforeEach(() => {
-  process.env.KBLOCKS_VERSION = "99.99.99";
+  process.env.KBLOCKS_WORKER_IMAGE = "dummy/test-worker-image:latest";
+  process.env.KBLOCKS_OPERATOR_IMAGE = "dummy/test-operator-image:latest";
+  process.env.KBLOCKS_CONTROL_IMAGE = "dummy/test-control-image:latest";
 });
 
 test("minimal block snapshot", () => {

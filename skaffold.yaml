@@ -39,6 +39,8 @@ deploy:
         chartPath: ./packages/@kblocks/cli/dist
         namespace: kblocks
         createNamespace: true
+        setValues:
+          system: kblocks-tests
         setValueTemplates:
           workerImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_worker}}"
           operatorImage: "{{.IMAGE_FULLY_QUALIFIED_wingcloudbot_kblocks_operator}}"

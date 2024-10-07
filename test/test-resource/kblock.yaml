@@ -25,7 +25,7 @@ spec:
           description: Hello world
   operator:
     namespace: kblocks-test
-    workers: 4
+    workers: 2
     env:
       KBLOCKS_EVENTS_URL: "http://{{ .Release.Name
         }}-testserver.kblocks-test.svc.cluster.local/events"

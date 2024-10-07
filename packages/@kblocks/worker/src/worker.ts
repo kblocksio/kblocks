@@ -115,6 +115,19 @@ async function main() {
     maxRetriesPerRequest: null,
   });
 
+  // Add signal handlers
+  let isShuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.log(`Received ${signal}. Shutting down gracefully...`);
+    await redisClient.quit();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+
   startServer(); // TODO: do we need this to keep the pod alive?
 
   const sourcedir = await getSource(kblock);
@@ -125,6 +138,7 @@ async function main() {
   const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
 
   async function listenForMessage(lastId = "0") {
+    if (isShuttingDown) return;
     console.log(`Listening for messages on worker-${workerIndex} with id: `, lastId);
     const results = await redisClient.xread("BLOCK", 0, "STREAMS", `worker-${workerIndex}`, lastId);
     if (!results) {
@@ -138,6 +152,7 @@ async function main() {
     const manifest = kblock.manifest as Manifest;
 
     for (const message of messages) {
+      if (isShuttingDown) break;
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
@@ -149,7 +164,9 @@ async function main() {
       }
     }
 
-    setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
+    if (!isShuttingDown) {
+      setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
+    }
   }
 
   const commit = await listenForChanges(kblock, async (commit) => {

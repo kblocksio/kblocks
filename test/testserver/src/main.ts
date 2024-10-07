@@ -2,6 +2,7 @@ import http from "http";
 import { WebSocketServer } from 'ws';
 
 const map: Record<string, any> = {};
+const events: Array<any> = [];
 
 const server = http.createServer();
 const wss = new WebSocketServer({ server });
@@ -10,6 +11,11 @@ server.on("request", (req, res) => {
   if (req.method === "GET" && req.url === "/") {
     res.setHeader("Content-Type", "application/json");
     return res.end(JSON.stringify(map));
+  }
+
+  if (req.method === "GET" && req.url === "/events") {
+    res.setHeader("Content-Type", "application/json");
+    return res.end(JSON.stringify(events));
   }
 
   if (req.method === "POST") {
@@ -31,12 +37,19 @@ server.on("request", (req, res) => {
       
       if (req.url === "/events") {
 
+        events.push(body);
+
         if (body.type === "OBJECT") {
           const key = body.objUri;
-          map[key] = body.object;
 
           // delete managedFields
-          delete map[key].metadata?.managedFields;
+          delete body.object?.metadata?.managedFields;
+
+          if (Object.keys(body.object).length === 0) {
+            delete map[key];
+          } else {
+            map[key] = body.object;
+          }
 
           return res.end();
         }
@@ -80,12 +93,19 @@ wss.on('connection', (ws) => {
     console.log(`Control message: ${message}`);
   });
 
-  ws.on('close', (code, reason) => {
+  ws.on('close', () => {
     console.log('Control client disconnected');
   });
 });
 
+// Add shutdown signal handlers
+process.on('SIGTERM', () => shutdownServer());
+process.on('SIGINT', () => shutdownServer());
 
+function shutdownServer() {
+  console.log('Shutting down server...');
+  process.exit(0);
+}
 
 wss.on("error", (error) => {
   console.log(`WebSocket error: ${error}`);

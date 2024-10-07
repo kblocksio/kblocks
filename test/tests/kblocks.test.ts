@@ -1,5 +1,6 @@
 import { test, expect } from "vitest";
 import crypto from "crypto";
+import { ControlCommand } from "../../packages/@kblocks/control/src/api";
 
 const SERVER_URL = "http://localhost:8080";
 const opts = { timeout: 60_000 };
@@ -9,41 +10,72 @@ async function getResources() {
   return response.json();
 }
 
-async function createResource(name: string) {
+async function getEvents() {
+  const response = await fetch(`${SERVER_URL}/events`);
+  return response.json();
+}
+
+async function sendControlCommand(command: ControlCommand) {
   const response = await fetch(`${SERVER_URL}/control`, {
     method: "POST",
-    body: JSON.stringify({
-      type: "APPLY",
-      object: {
-        apiVersion: "testing.kblocks.io/v1",
-        kind: "TestResource",
-        metadata: { name },
-        hello: "world1234",
-      }
-    })
+    body: JSON.stringify(command)
   });
 
-  expect(response.status).toBe(200);
+  if (!response.ok) {
+    throw new Error(`Failed to send control command: ${response.statusText}`);
+  }
+}
+
+async function createResource(name: string) {
+  console.log("creating resource", name);
+
+  await sendControlCommand({
+    type: "APPLY",
+    object: {
+      apiVersion: "testing.kblocks.io/v1",
+      kind: "TestResource",
+      metadata: { name },
+      hello: "world1234",
+    }
+  });
 
   const objUri = `kblocks://testing.kblocks.io/v1/testresources/test-system/default/${name}`;
 
   let obj: any = undefined;
 
   console.log(`waiting for ${objUri} resource to be created...`);
-  while (!obj) {
+  await waitUntil(async () => {
     const resources = await getResources();
     obj = resources[objUri];
-    if (obj) {
-      break;
-    }
+    return obj;
+  });
 
-    await sleep(1000);
-  }
-
+  console.log("object created", obj);
   return { obj, objUri };
 }
 
-test("create resource", async () => {
+async function waitForResourceToBeDeleted(objUri: string) {
+  console.log(`waiting for ${objUri} resource to be deleted...`);
+
+  await waitUntil(async () => {
+    const resources = await getResources();
+    return !(objUri in resources);
+  });
+}
+
+async function deleteResource(objUri: string) {
+  console.log("deleting resource", objUri);
+
+  await sendControlCommand({
+    type: "DELETE",
+    objUri
+  });
+
+
+  await waitForResourceToBeDeleted(objUri);
+}
+
+test("create resource", opts, async () => {
   const name = `my-resource-${crypto.randomUUID()}`;
 
   // send a request to create the resource and wait for it to be created
@@ -54,36 +86,78 @@ test("create resource", async () => {
   expect(obj.kind).toBe("TestResource");
   expect(obj.metadata.name).toBe(name);
   expect(obj.hello).toBe("world1234");
-}, opts);
+});
 
-test("delete resource", async () => {
+test("delete resource", opts, async () => {
   const name = `my-resource-${crypto.randomUUID()}`;
 
   // send a request to create the resource and wait for it to be created
-  const { obj, objUri } = await createResource(name);
-
-  console.log("object created", obj);
+  const { objUri } = await createResource(name);
 
   // send a request to delete the resource
-  const response = await fetch(`${SERVER_URL}/control`, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "DELETE",
-      objUri: `kblocks://testing.kblocks.io/v1/testresources/test-system/default/${name}`
-    })
+  await deleteResource(objUri);
+});
+
+test("refresh resource that does not exist", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  // let's create and then delete the resource
+  // send a request to create the resource and wait for it to be created
+  const { objUri } = await createResource(name);
+  await deleteResource(objUri);
+
+  // now, let's ask for a refresh for the resource
+  await sendControlCommand({
+    type: "REFRESH",
+    objUri
   });
 
-  expect(response.status).toBe(200);
+  await waitUntil(async () => {
+    // we expect the last event to be an empty OBJECT to represent the deleted resource
+    const events = await getEvents();
+    const lastEvent = events[events.length - 1];
+    return (lastEvent.type === "OBJECT" && Object.keys(lastEvent.object ?? {}).length === 0);
+  });
+});
 
-  // wait for the resource to be deleted
-  console.log(`waiting for ${objUri} resource to be deleted...`);
-  while (true) {
-    const resources = await getResources();
-    if (objUri in resources) {
-      break;
+test("refresh resource that exists", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  // send a request to create the resource and wait for it to be created
+  const { objUri, obj } = await createResource(name);
+  
+  // send a request to refresh the resource
+  await sendControlCommand({
+    type: "REFRESH",
+    objUri
+  });
+
+  // we expect the last event to be an OBJECT to represent the updated resource
+  let lastEvent: any = undefined;
+  await waitUntil(async () => {   
+    const events = await getEvents();
+    lastEvent = events[events.length - 1];
+    return (lastEvent.type === "OBJECT" && Object.keys(lastEvent.object ?? {}).length > 0);
+  });
+
+  console.log("lastEvent", lastEvent);
+
+  expect(lastEvent.object.apiVersion).toEqual(obj.apiVersion);
+  expect(lastEvent.object.kind).toEqual(obj.kind);
+  expect(lastEvent.object.metadata.name).toEqual(obj.metadata.name);
+  expect(lastEvent.object.hello).toEqual("world1234");
+});
+
+async function waitUntil(condition: () => Promise<boolean>, timeout: number = 60_000) {
+  const end = Date.now() + timeout;
+  while (!(await condition())) {
+    if (Date.now() > end) {
+      throw new Error("Timeout");
     }
+
+    await sleep(500);
   }
-}, opts);
+}
 
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

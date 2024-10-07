@@ -6,6 +6,7 @@ import { flush } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
 import { Context } from "./context";
+import { refreshObject } from "./refresh";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -50,6 +51,8 @@ export function connect(controlUrl: string, system: string, manifest: Manifest) 
   });
 
   keepalive(ws);
+
+  return ws;
 }
 
 function keepalive(ws: ReconnectingWebSocket) {
@@ -95,6 +98,9 @@ async function handleCommandMessage(ctx: Context, message: string) {
 
     case "DELETE":
       return await deleteObject(client, ctx, command.objUri);
+
+    case "REFRESH":
+      return await refreshObject(client, ctx, command.objUri);
 
     default:
       throw new Error(`Unsupported control command type: '${type}'`);

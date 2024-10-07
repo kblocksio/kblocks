@@ -1,4 +1,4 @@
-import { Manifest } from "@kblocks/api";
+import { Manifest } from "../src/api/index.js";
 
 import { zodToJsonSchema } from "zod-to-json-schema";
 import yaml from "yaml";
@@ -11,7 +11,6 @@ if (!version) {
 }
 
 const schema = filterAdditionalProperties(zodToJsonSchema(Manifest));
-
 delete schema["$schema"];
 
 const manifest = {
@@ -36,15 +35,13 @@ const manifest = {
           spec: schema
         },
         required: ["spec"]
-      }
+      },
     },
     operator: {
       env: {
-        "KBLOCKS_EVENTS_URL": "https://api.kblocks.io/api/events",
-        "KBLOCKS_CONTROL_URL": "wss://api.kblocks.io/api/control",
-        "KBLOCKS_SYSTEM_ID": "demo"
+        "KBLOCKS_SYSTEM_ID": "{{ required \"'system' is required\" .Values.system }}",
       }
-    },
+    }
   }
 };
 

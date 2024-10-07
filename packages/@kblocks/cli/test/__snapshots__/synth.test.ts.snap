@@ -126,7 +126,7 @@ exports[`minimal block snapshot 1`] = `
                   "value": "1",
                 },
               ],
-              "image": "wingcloudbot/kblocks-operator:99.99.99",
+              "image": "dummy/test-operator-image:latest",
               "imagePullPolicy": "Always",
               "name": "operator",
               "ports": [
@@ -345,15 +345,15 @@ exports[`minimal block snapshot 1`] = `
                 },
                 {
                   "name": "KBLOCKS_WORKER_IMAGE",
-                  "value": "wingcloudbot/kblocks-worker:99.99.99",
+                  "value": "dummy/test-worker-image:latest",
                 },
                 {
                   "name": "KBLOCKS_OPERATOR_IMAGE",
-                  "value": "wingcloudbot/kblocks-operator:99.99.99",
+                  "value": "dummy/test-operator-image:latest",
                 },
                 {
                   "name": "KBLOCKS_CONTROL_IMAGE",
-                  "value": "wingcloudbot/kblocks-control:99.99.99",
+                  "value": "dummy/test-control-image:latest",
                 },
                 {
                   "name": "RELEASE_NAME",
@@ -372,7 +372,7 @@ exports[`minimal block snapshot 1`] = `
                   },
                 },
               ],
-              "image": "wingcloudbot/kblocks-worker:99.99.99",
+              "image": "dummy/test-worker-image:latest",
               "imagePullPolicy": "Always",
               "name": "worker",
               "ports": [
@@ -524,7 +524,7 @@ exports[`minimal block snapshot 1`] = `
           "automountServiceAccountToken": true,
           "containers": [
             {
-              "image": "wingcloudbot/kblocks-control:99.99.99",
+              "image": "dummy/test-control-image:latest",
               "imagePullPolicy": "Always",
               "name": "control",
               "ports": [
@@ -846,7 +846,7 @@ exports[`operator configuration 1`] = `
                   "value": "2",
                 },
               ],
-              "image": "wingcloudbot/kblocks-operator:99.99.99",
+              "image": "dummy/test-operator-image:latest",
               "imagePullPolicy": "Always",
               "name": "operator",
               "ports": [
@@ -1100,15 +1100,15 @@ exports[`operator configuration 1`] = `
                 },
                 {
                   "name": "KBLOCKS_WORKER_IMAGE",
-                  "value": "wingcloudbot/kblocks-worker:99.99.99",
+                  "value": "dummy/test-worker-image:latest",
                 },
                 {
                   "name": "KBLOCKS_OPERATOR_IMAGE",
-                  "value": "wingcloudbot/kblocks-operator:99.99.99",
+                  "value": "dummy/test-operator-image:latest",
                 },
                 {
                   "name": "KBLOCKS_CONTROL_IMAGE",
-                  "value": "wingcloudbot/kblocks-control:99.99.99",
+                  "value": "dummy/test-control-image:latest",
                 },
                 {
                   "name": "RELEASE_NAME",
@@ -1127,7 +1127,7 @@ exports[`operator configuration 1`] = `
                   },
                 },
               ],
-              "image": "wingcloudbot/kblocks-worker:99.99.99",
+              "image": "dummy/test-worker-image:latest",
               "imagePullPolicy": "Always",
               "name": "worker",
               "ports": [
@@ -1316,7 +1316,7 @@ exports[`operator configuration 1`] = `
                   "value": "env-2",
                 },
               ],
-              "image": "wingcloudbot/kblocks-control:99.99.99",
+              "image": "dummy/test-control-image:latest",
               "imagePullPolicy": "Always",
               "name": "control",
               "ports": [

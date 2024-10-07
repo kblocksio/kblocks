@@ -53,23 +53,34 @@ async function flushType(system: string, manifest: Manifest) {
 
   // we emulate a CRD here that represents the block (in the future it will actually be a CRD)
   const objType = `kblocks.io/v1/blocks`;
+
+  const spec: Manifest["definition"] = {
+    group: manifest.definition.group,
+    version: manifest.definition.version,
+    kind: manifest.definition.kind,
+    plural: manifest.definition.plural,
+    description: manifest.definition.description,
+    readme,
+    icon: manifest.definition.icon,
+    color: manifest.definition.color,
+    schema: openApiSchema,
+  };
+
   await flushResource(system, objType, {
     apiVersion: "kblocks.io/v1",
     kind: "Block",
-    metadata: {
-      name,
+    metadata: { name },
+    status: {
+      conditions: [
+        {
+          type: "Ready",
+          status: "True",
+          reason: "Synced",
+          message: "Synthetic block",
+        }
+      ]
     },
-    spec: {
-      group: manifest.definition.group,
-      version: manifest.definition.version,
-      kind: manifest.definition.kind,
-      plural: manifest.definition.plural,
-      description: manifest.definition.description,
-      readme,
-      icon: manifest.definition.icon,
-      color: manifest.definition.color,
-      openApiSchema,
-    }
+    spec,
   });
 }
 
