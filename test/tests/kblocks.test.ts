@@ -165,7 +165,6 @@ async function waitUntilLastEvent(predicate: (event: any) => boolean, timeout: n
 async function waitUntil(condition: () => Promise<boolean>, timeout: number = 60_000) {
   const end = Date.now() + timeout;
   while (!(await condition())) {
-    process.stdout.write(".");
     if (Date.now() > end) {
       throw new Error("Timeout");
     }
