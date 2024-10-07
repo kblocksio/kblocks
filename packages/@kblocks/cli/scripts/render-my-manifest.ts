@@ -39,7 +39,7 @@ const manifest = {
     },
     operator: {
       env: {
-        "KBLOCKS_SYSTEM_ID": "{{ required \"'system' is required\" .Values.system }}",
+        "KBLOCKS_SYSTEM_ID": "{{ .Values.system }}",
       }
     }
   }
