@@ -15,7 +15,7 @@ env:
 
 jobs:
   test:
-    name: "Prepare Build"
+    name: "Test"
     runs-on: ubuntu-latest
     outputs:
       version: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
@@ -32,8 +32,26 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
       - name: Install Dependencies
         run: npm ci
+
+      - name: Install kubectl
+        run:
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
 
       - name: Install Skaffold
         run: |
@@ -68,6 +86,7 @@ jobs:
       - name: Delete the qkube on exit
         if: always()
         run: |
+          QKUBE_NAME=$(cat $GITHUB_OUTPUT | grep QKUBE_NAME | cut -d= -f2)
           if [ -n "$QKUBE_NAME" ]; then
             echo "Deleting qkube $QKUBE_NAME"
             qkube delete $QKUBE_NAME
