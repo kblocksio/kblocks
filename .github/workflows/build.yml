@@ -75,7 +75,7 @@ jobs:
       - name: Setup a new qkube
         id: qkube
         run: |
-          QKUBE_NAME=$(qkube new --size micro | awk -F'"' '/\.quickube\.sh/ {print $2; exit}')
+          QKUBE_NAME=$(qkube new --size small | awk -F'"' '/\.quickube\.sh/ {print $2; exit}')
           echo "Using qkube $QKUBE_NAME"
           # save the qkube name to the workspace
           echo "qbube-name=$QKUBE_NAME" >> $GITHUB_OUTPUT
@@ -87,6 +87,7 @@ jobs:
       - name: Run tests
         run: |
           cd test/tests
+          kubectl port-forward svc/kblocks-test-testserver 8080:80 -n kblocks-test
           npm run test
 
       - name: Delete the qkube on exit
