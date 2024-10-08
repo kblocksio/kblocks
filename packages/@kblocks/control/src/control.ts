@@ -7,6 +7,7 @@ import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
 import { Context } from "./context";
 import { refreshObject } from "./refresh";
+import { patchObject } from "./patch";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -95,6 +96,9 @@ async function handleCommandMessage(ctx: Context, message: string) {
   switch (type) {
     case "APPLY":
       return await applyObject(client, ctx, command.object);
+
+    case "PATCH":
+      return await patchObject(client, ctx, command.objUri, command.object);
 
     case "DELETE":
       return await deleteObject(client, ctx, command.objUri);

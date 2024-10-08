@@ -63,6 +63,21 @@ async function waitForResourceToBeDeleted(objUri: string) {
   });
 }
 
+async function waitForResourceToMatch(objUri: string, obj: any) {
+  console.log(`waiting for ${objUri} resource to match...`, obj);
+
+  await waitUntil(async () => {
+    const resources = await getResources();
+    try {
+      const resource = resources[objUri];
+      expect(resource).toMatchObject(obj);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  });
+}
+
 async function deleteResource(objUri: string, wait = true) {
   console.log("deleting resource", objUri);
 
@@ -77,6 +92,29 @@ async function deleteResource(objUri: string, wait = true) {
   } 
 }
 
+async function patchResource(objUri: string, name: string) {
+  console.log("patching resource", objUri);
+
+  await sendControlCommand({
+    type: "PATCH",
+    objUri,
+    object: {
+      hello: "4321world",
+    }
+  });
+
+  let obj: any = undefined;
+
+  console.log(`waiting for ${objUri} resource to be patched...`);
+  await waitUntil(async () => {
+    const resources = await getResources();
+    obj = resources[objUri];
+    return obj;
+  });
+
+  return obj;
+}
+
 test("create resource", opts, async () => {
   const name = `my-resource-${crypto.randomUUID()}`;
 
@@ -88,6 +126,22 @@ test("create resource", opts, async () => {
   expect(obj.kind).toBe("TestResource");
   expect(obj.metadata.name).toBe(name);
   expect(obj.hello).toBe("world1234");
+});
+
+test("patch resource", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  // send a request to create the resource and wait for it to be created
+  const { obj, objUri } = await createResource(name);
+  
+  // get the resource from the server
+  expect(obj.apiVersion).toBe("testing.kblocks.io/v1");
+  expect(obj.kind).toBe("TestResource");
+  expect(obj.metadata.name).toBe(name);
+  expect(obj.hello).toBe("world1234");
+
+  await patchResource(objUri, obj.metadata.name);
+  await waitForResourceToMatch(objUri, { hello: "4321world" });
 });
 
 test("delete resource", opts, async () => {
