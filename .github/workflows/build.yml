@@ -17,10 +17,6 @@ jobs:
   test:
     name: "Test"
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
-      last-version: ${{ fromJson(steps.changelog.outputs.data).lastVersion }}
-      changelog: ${{ fromJson(steps.changelog.outputs.data).changelog }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -89,9 +85,6 @@ jobs:
           cd test/tests
           kubectl port-forward svc/kblocks-test-testserver 8080:80 -n kblocks-test &
           npm run test
-
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
 
       - name: Delete the qkube on exit
         if: always()
