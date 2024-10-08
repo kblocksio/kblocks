@@ -9,6 +9,15 @@ export type ApplyCommand = {
 };
 
 /**
+ * Patch command is used to update a resource.
+ */
+export type PatchCommand = {
+  type: "PATCH";
+  objUri: string;
+  object: Record<string, any>;
+};
+
+/**
  * Deletes a resource. If the resource does not exist, an "OBJECT" event with an empty object will
  * be published.
  */
@@ -27,4 +36,4 @@ export type RefreshCommand = {
   objUri: string;
 };
 
-export type ControlCommand = ApplyCommand | DeleteCommand | RefreshCommand;
+export type ControlCommand = ApplyCommand | PatchCommand | DeleteCommand | RefreshCommand;
