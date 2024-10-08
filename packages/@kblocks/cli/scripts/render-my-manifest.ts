@@ -10,8 +10,8 @@ if (!version) {
   throw new Error("KBLOCKS_VERSION is not set");
 }
 
-const schema = filterAdditionalProperties(zodToJsonSchema(Manifest));
-delete schema["$schema"];
+const specSchema = filterAdditionalProperties(zodToJsonSchema(Manifest));
+delete specSchema["$schema"];
 
 const manifest = {
   apiVersion: "kblocks.io/v1",
@@ -29,13 +29,7 @@ const manifest = {
       plural: "blocks",
       readme: "README.md",
       icon: "heroicon://cube",
-      schema: {
-        type: "object",
-        properties: {
-          spec: schema
-        },
-        required: ["spec"]
-      },
+      schema: "./manifest.schema.json",
     },
     operator: {
       env: {
@@ -56,6 +50,13 @@ const chart = {
   ],
 }
 
+const schema = {
+  type: "object",
+  properties: { spec: specSchema },
+  required: ["spec"]
+};
+
+fs.writeFileSync(path.join(__dirname, "../manifest.schema.json"), JSON.stringify(schema, null, 2));
 fs.mkdirSync(path.join(__dirname, "../templates"), { recursive: true });
 fs.writeFileSync(path.join(__dirname, "../Chart.yaml"), yaml.stringify(chart));
 fs.writeFileSync(path.join(__dirname, "../kblock.yaml"), yaml.stringify(manifest));

@@ -4,16 +4,17 @@ import cp from "child_process";
 
 function wingcli(cwd: string, args: string[]) {
   const cli = require.resolve("winglang/bin/wing");
+  
   return cp.spawnSync(cli, args, { cwd });
 }
 
 export function generateSchemaFromWingStruct(workdir: string, struct: string) {
   const tmpfile = join(workdir, ".tmp.schema.main.w");
   
-  fs.writeFileSync(tmpfile, `
-    bring "./" as l;
-    log(l.${struct}.schema().asStr());
-  `);
+  fs.writeFileSync(tmpfile, [
+    `bring "./" as lib;`,
+    `log(lib.${struct}.schema().asStr());`
+  ].join("\n"));
 
   const result = wingcli(workdir, ["compile", tmpfile]);
   if (result.status !== 0) {

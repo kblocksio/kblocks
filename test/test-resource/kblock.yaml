@@ -15,14 +15,7 @@ spec:
     icon: heroicon://sparkles
     color: green
     description: kblock wing/k8s test resource
-    schema:
-      type: object
-      required:
-        - hello
-      properties:
-        hello:
-          type: string
-          description: Hello world
+    schema: ./src/resource.w
   operator:
     namespace: kblocks-test
     workers: 2
