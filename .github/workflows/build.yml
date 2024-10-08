@@ -90,6 +90,9 @@ jobs:
           kubectl port-forward svc/kblocks-test-testserver 8080:80 -n kblocks-test &
           npm run test
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Delete the qkube on exit
         if: always()
         run: |
