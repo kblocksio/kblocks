@@ -84,6 +84,7 @@ jobs:
         run: |
           cd test/tests
           kubectl port-forward svc/kblocks-test-testserver 8080:80 -n kblocks-test &
+          sleep 7
           npm run test
 
       - name: Delete the qkube on exit
