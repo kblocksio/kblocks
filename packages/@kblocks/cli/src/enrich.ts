@@ -7,8 +7,6 @@ import { EnrichInput, EnrichOutput } from "./enrich-prompts";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { resolveExternalAssets } from "./manifest-util";
 
-const oai = new openai.OpenAI();
-
 export async function enrich(dir: string, manifest: Manifest): Promise<Manifest> {
   const resolved = await resolveExternalAssets(manifest);
   const result = await enrichWithAi(dir, resolved);
@@ -77,6 +75,7 @@ async function enrichWithAi(dir: string, manifest: Manifest): Promise<EnrichOutp
     console.log(`Dumped prompt to ${dump} for debugging`);
   }
 
+  const oai = new openai.OpenAI();
   const result = await oai.chat.completions.create({
     model: "gpt-4o",
     max_completion_tokens: 4096,
