@@ -1,4 +1,4 @@
-import { endpoints } from "./endpoints.js";
+import { getEndpoints } from "./endpoints.js";
 import { ApiObject, Event } from "./types.js";
 
 export interface EventBase {
@@ -69,11 +69,12 @@ export function emitEvent(event: WorkerEvent) {
     },
   };
 
-  fetch(endpoints.events, req).then(res => {
+  const eventsEndpoint = getEndpoints().events;
+  fetch(eventsEndpoint, req).then(res => {
     if (!res.ok) {
-      console.warn(`${endpoints.events}: ${res.status} body: ${res.statusText}`);
+      console.warn(`${eventsEndpoint}: ${res.status} body: ${res.statusText}`);
     }
   }).catch(err => {
-    console.warn(`${endpoints.events}: ${err.cause?.message ?? err.message}`);
+    console.warn(`${eventsEndpoint}: ${err.cause?.message ?? err.message}`);
   });
 }
