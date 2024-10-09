@@ -3,6 +3,7 @@ import yaml from "yaml";
 import { ApiObject, Manifest } from "./api";
 import { generateSchemaFromWingStruct } from "./wing-schema";
 import path from "path";
+import $RefParser from '@apidevtools/json-schema-ref-parser';
 
 export function writeManifest(manifest: string, blockObject: ApiObject, additionalObjects: ApiObject[]) {
   const docs = [
@@ -61,9 +62,14 @@ async function resolveSchema(schema: string | undefined, kind: string) {
   }
 
   if (schema.endsWith(".schema.json")) {
-    const o = JSON.parse(await fs.promises.readFile(schema, "utf8"));
-    delete o["$schema"];
-    return o;
+    const dereferencedSchema = await $RefParser.dereference(schema);
+    if ('$defs' in dereferencedSchema) {
+        delete (dereferencedSchema as any).$defs;
+    }
+
+    delete dereferencedSchema["$schema"];
+
+    return dereferencedSchema;
   }
 
   if (schema.endsWith(".w")) {
