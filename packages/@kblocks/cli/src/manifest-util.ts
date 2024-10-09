@@ -68,7 +68,7 @@ async function resolveSchema(schema: string | undefined, kind: string) {
     }
 
     delete dereferencedSchema["$schema"];
-
+    delete dereferencedSchema["$id"];
     return dereferencedSchema;
   }
 
