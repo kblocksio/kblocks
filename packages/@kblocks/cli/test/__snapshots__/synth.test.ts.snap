@@ -666,6 +666,9 @@ exports[`minimal block snapshot 1`] = `
                       },
                       "type": "array",
                     },
+                    "lastStateHash": {
+                      "type": "string",
+                    },
                   },
                   "type": "object",
                 },
@@ -1457,6 +1460,9 @@ exports[`operator configuration 1`] = `
                         "type": "object",
                       },
                       "type": "array",
+                    },
+                    "lastStateHash": {
+                      "type": "string",
                     },
                   },
                   "type": "object",

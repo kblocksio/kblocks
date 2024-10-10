@@ -12,17 +12,9 @@ import { BindingContext, InvolvedObject, EventReason, StatusReason, emitEvent, E
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
+import { updateLastStateHash, saveLastStateHash } from "./state.js";
 
 export async function synth(sourcedir: string | undefined, engine: string, plural: string, ctx: BindingContext) {
-  // skip updates to the "status" subresource
-  if (ctx.watchEvent === "Modified") {
-    const managedFields = ctx.object.metadata?.managedFields ?? [];
-    const last = managedFields.length > 0 ? managedFields[managedFields.length - 1] : undefined;
-    if (last?.subresource === "status") {
-      return;
-    }
-  }
-
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
   if (!KBLOCKS_SYSTEM_ID) {
     throw new Error("KBLOCKS_SYSTEM_ID is not set");
@@ -98,6 +90,17 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
       object: ctx.object,
       reason: eventAction,
     });
+
+    // for new objects, save the initial state hash for future comparison
+    // for modified objects, only save if the state has actually changed
+    if (ctx.watchEvent === "Added") {
+      await saveLastStateHash(host, ctx.object);
+    } else if (ctx.watchEvent === "Modified") {
+      if (!(await updateLastStateHash(host, ctx.object))) {
+        console.log("skipping status update");
+        return;
+      }
+    }
   }
 
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
