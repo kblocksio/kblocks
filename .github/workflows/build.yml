@@ -46,9 +46,10 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Install Test Dependencies
-        working-directory: test/test-resource/src
-        run: npm ci
+      - name: just testing
+        run: |
+          cd packages/@kblocks/cli
+          npm run build
 
       - name: Install kubectl
         run: |
