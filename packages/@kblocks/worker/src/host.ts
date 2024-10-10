@@ -31,6 +31,7 @@ export async function patchObjectState(host: RuntimeContext, patch: any) {
 
     host.emitEvent({
       type: "PATCH",
+      timestamp: new Date(),
       objUri: host.objUri,
       objType: host.objType,
       patch: { status: patch },
@@ -62,7 +63,7 @@ export async function publishNotification(host: RuntimeContext, event: Event) {
       objUri: host.objUri,
       objType: host.objType,
       event,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     });
   
     fs.writeFileSync(eventJson, JSON.stringify({

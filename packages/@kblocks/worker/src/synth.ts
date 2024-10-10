@@ -85,6 +85,7 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
   if (!isDeletion) {
     host.emitEvent({
       type: "OBJECT",
+      timestamp: new Date(),
       objUri,
       objType,
       object: ctx.object,
@@ -166,6 +167,7 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
       // only emit when we are done because this will cause the object to be emptied.
       host.emitEvent({
         type: "OBJECT",
+        timestamp: new Date(),
         objUri,
         objType,
         object: {},
@@ -198,6 +200,7 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
     host.emitEvent({
       objUri,
       objType,
+      timestamp: new Date(),
       type: "ERROR",
       message: err.message,
       stack: err.stack,
