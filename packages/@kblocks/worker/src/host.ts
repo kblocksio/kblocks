@@ -50,7 +50,7 @@ export async function patchObjectState(host: RuntimeContext, patch: any) {
     // just ignore errors
   }
 }
-export async function publishEvent(host: RuntimeContext, event: Event) {
+export async function publishNotification(host: RuntimeContext, event: Event) {
   const workdir = tempdir();
   try {
     // create a unique event name
@@ -76,7 +76,7 @@ export async function publishEvent(host: RuntimeContext, event: Event) {
       ...event,
     }));
 
-    await host.exec("kubectl", [
+    await exec(undefined, "kubectl", [
       "apply",
       "-f", eventJson
     ]);

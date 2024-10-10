@@ -49,11 +49,36 @@ export type InvolvedObject = {
   uid?: string;
 };
 
+/**
+ * This needs to be compatible to k8s.io/api/core/v1/types.go#Event
+ * @see https://kubernetes.io/docs/reference/kubernetes-api/cluster-resources/event-v1/
+ */
 export type Event = {
-  type: string;
-  reason: string;
+  type: EventType;
+  reason: EventReason;
+  action: EventAction;
   message: string;
 };
+
+export enum EventType {
+  Normal = "Normal",
+  Warning = "Warning",
+}
+
+export enum EventReason {
+  Started = "Started",
+  Succeeded = "Succeeded",
+  Failed = "Failed",
+  Resolving = "Resolving",
+  Resolved = "Resolved",
+}
+
+export enum EventAction {
+  Create = "CREATE",
+  Update = "UPDATE",
+  Delete = "DELETE",
+  Sync = "SYNC",
+}
 
 export enum StatusReason {
   ResolvingReferences = "ResolvingReferences",
