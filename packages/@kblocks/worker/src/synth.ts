@@ -7,8 +7,8 @@ import { applyWing } from "./wing.js";
 import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
-import { patchObjectState, publishEvent, RuntimeContext } from "./host.js";
-import { BindingContext, InvolvedObject, ObjectEvent, StatusReason, emitEvent } from "./api/index.js";
+import { patchObjectState, publishNotification, RuntimeContext } from "./host.js";
+import { BindingContext, InvolvedObject, EventReason, StatusReason, emitEvent, EventType, EventAction } from "./api/index.js";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
@@ -61,7 +61,6 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
   }
 
   console.log("-------------------------------------------------------------------------------------------");
-  const isDeletion = ctx.watchEvent === "Deleted";
   const lastProbeTime = new Date().toISOString();
   const updateReadyCondition = async (ready: boolean, reason: StatusReason) => patchObjectState(host, {
     conditions: [{
@@ -74,29 +73,30 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
     }]
   });
 
-  let reason: ObjectEvent["reason"];
+  const isDeletion = ctx.watchEvent === "Deleted";
+  let eventAction: EventAction;
   switch (ctx.watchEvent) {
     case "Deleted":
-      reason = "DELETE";
+      eventAction = EventAction.Delete;
       break;
     case "Modified":
-      reason = "UPDATE";
+      eventAction = EventAction.Update;
       break;
     case "Added":
-      reason = "CREATE";
+      eventAction = EventAction.Create;
       break;
     default:
-      reason = "SYNC";
+      eventAction = EventAction.Sync;
       break;
   }
 
-  if (reason !== "DELETE") {
+  if (!isDeletion) {
     host.emitEvent({
       type: "OBJECT",
       objUri,
       objType,
       object: ctx.object,
-      reason,
+      reason: eventAction,
     });
   }
 
@@ -104,16 +104,18 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
   const slackStatus = (icon: string, reason: string) => `${icon} _${objRef.kind}_ *${objRef.namespace}/${objRef.name}*: ${reason}`;
   const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
 
+
   try {
-    await publishEvent(host, {
-      type: "Normal",
-      reason: "UpdateStarted",
-      message: "Starting to update resource",
+    await publishNotification(host, {
+      type: EventType.Normal,
+      action: eventAction,
+      reason: EventReason.Started,
+      message: isDeletion ? "Deleting resource" : "Updating resource",
     });
 
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, StatusReason.ResolvingReferences);
-    ctx.object = await resolveReferences(workdir, host, ctx.object);
+    ctx.object = await resolveReferences(eventAction,workdir, host, ctx.object);
     console.log(JSON.stringify(ctx)); // one line per object
 
     await updateReadyCondition(false, StatusReason.InProgress);
@@ -148,6 +150,13 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
       await patchObjectState(host, outputs);
     }
 
+    await publishNotification(host, {
+      type: EventType.Normal,
+      action: eventAction,
+      reason: EventReason.Succeeded,
+      message: "Completed successfully",
+    });
+
     if (isDeletion) {
       await slack.update(slackStatus("⚪", "Deleted"));
       
@@ -157,15 +166,11 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
         objUri,
         objType,
         object: {},
-        reason,
+        reason: eventAction,
       });
+
     } else {
       await updateReadyCondition(true, StatusReason.Completed);
-      await publishEvent(host, {
-        type: "Normal",
-        reason: "UpdateSucceeded",
-        message: "Resource updated successfully",
-      });
 
       const outputDesc = [];
       for (const [key, value] of Object.entries(outputs)) {
@@ -176,9 +181,10 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
     }
   } catch (err: any) {
     console.error(err.stack);
-    await publishEvent(host, {
-      type: "Warning",
-      reason: "Error",
+    await publishNotification(host, {
+      type: EventType.Warning,
+      action: eventAction,
+      reason: EventReason.Failed,
       message: err.stack,
     });
     await slack.update(slackStatus("🔴", "Failure"));
