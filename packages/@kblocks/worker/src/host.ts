@@ -76,7 +76,7 @@ export async function publishEvent(host: RuntimeContext, event: Event) {
       ...event,
     }));
 
-    await host.exec("kubectl", [
+    await exec(undefined, "kubectl", [
       "apply",
       "-f", eventJson
     ]);
