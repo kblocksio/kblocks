@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+const fs = require("fs");
+const child_process = require("child_process");
+
+const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+const outputs = process.env.KBLOCKS_OUTPUTS;
+
+const hello = object.hello;
+const configmap = `
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${object.metadata.name}
+  namespace: ${object.metadata.namespace}
+data:
+  hello: ${hello}
+`;
+
+console.log("updating configmap", configmap);
+child_process.execSync(`kubectl apply -f -`, {
+  input: configmap,
+});
+
+fs.writeFileSync(outputs, JSON.stringify({ message: `custom-update ${hello}` }));

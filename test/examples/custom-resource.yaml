@@ -1,0 +1,5 @@
+apiVersion: testing.kblocks.io/v1
+kind: CustomResource
+metadata:
+  name: custom-resource-001
+hello: kblocks

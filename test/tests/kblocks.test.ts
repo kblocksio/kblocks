@@ -26,20 +26,20 @@ async function sendControlCommand(command: ControlCommand) {
   }
 }
 
-async function createResource(name: string) {
+async function createResource(name: string, { kind = "TestResource", plural = "testresources" }: { kind?: string, plural?: string } = {}) {
   console.log("creating resource", name);
 
   await sendControlCommand({
     type: "APPLY",
     object: {
       apiVersion: "testing.kblocks.io/v1",
-      kind: "TestResource",
+      kind,
       metadata: { name },
       hello: "world1234",
     }
   });
 
-  const objUri = `kblocks://testing.kblocks.io/v1/testresources/test-system/default/${name}`;
+  const objUri = `kblocks://testing.kblocks.io/v1/${plural}/test-system/default/${name}`;
 
   let obj: any = undefined;
 
@@ -218,6 +218,27 @@ test("delete resource that does not exist", opts, async () => {
     }
     return false;
   });
+});
+
+test("custom resource", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  // send a request to create the resource and wait for it to be created
+  const { obj, objUri } = await createResource(name, { kind: "CustomResource", plural: "customresources" });
+  
+  // get the resource from the server
+  expect(obj.apiVersion).toBe("testing.kblocks.io/v1");
+  expect(obj.kind).toBe("CustomResource");
+  expect(obj.metadata.name).toBe(name);
+  expect(obj.hello).toBe("world1234");
+
+  await waitForResourceToMatch(objUri, { status: { message: `custom-create world1234` } });
+
+  await patchResource(objUri, obj.metadata.name);
+  await waitForResourceToMatch(objUri, { status: { message: `custom-update 4321world` } });
+
+  await deleteResource(objUri);
+  await waitForResourceToBeDeleted(objUri);
 });
 
 async function waitUntilLastEvent(predicate: (event: any, events?: any[]) => boolean, timeout: number = 60_000) {

@@ -1,0 +1,27 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: custom-resource
+spec:
+  engine: custom
+  definition: 
+    group: testing.kblocks.io
+    version: v1
+    kind: CustomResource
+    plural: customresources
+    outputs:
+      - message
+    readme: README.md
+    icon: heroicon://sparkles
+    color: green
+    description: kblock custom test resource
+    schema: ./src/values.schema.json
+  operator:
+    namespace: kblocks-test
+    workers: 1
+    env:
+      KBLOCKS_EVENTS_URL: "http://{{ .Release.Name
+        }}-testserver.kblocks-test.svc.cluster.local/events"
+      KBLOCKS_CONTROL_URL: "ws://{{ .Release.Name
+        }}-testserver.kblocks-test.svc.cluster.local/control"
+      KBLOCKS_SYSTEM_ID: test-system
