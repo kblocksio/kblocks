@@ -41,6 +41,7 @@ export class CustomResourceDefinition extends Construct {
     const status = {
       type: "object",
       properties: {
+        lastStateHash: { type: "string" },
         conditions: {
           type: "array",
           items: {

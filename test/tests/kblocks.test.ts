@@ -184,8 +184,17 @@ test("refresh resource that exists", opts, async () => {
     objUri
   });
 
-  // we expect the last event to be an OBJECT to represent the updated resource
-  const lastEvent = await waitUntilLastEvent(e => e.type === "OBJECT" && Object.keys(e.object ?? {}).length > 0);
+  let lastEvent: any = undefined;
+  await waitUntilLastEvent((e, events) => {
+    for (const event of (events ?? []).reverse()) {
+      if (event.objUri === objUri && event.type === "OBJECT" && Object.keys(event.object ?? {}).length > 0) {
+        lastEvent = event;
+        return true;
+      }
+    }
+    return false;
+  });
+
   expect(lastEvent.object.apiVersion).toEqual(obj.apiVersion);
   expect(lastEvent.object.kind).toEqual(obj.kind);
   expect(lastEvent.object.metadata.name).toEqual(obj.metadata.name);
@@ -201,15 +210,22 @@ test("delete resource that does not exist", opts, async () => {
   await deleteResource(objUri, /* wait */ false);
 
   // we expect the last event to be an empty OBJECT to represent the deleted resource
-  await waitUntilLastEvent(e => e.type === "OBJECT" && Object.keys(e.object ?? {}).length === 0);
+  await waitUntilLastEvent((e, events) => {
+    for (const event of (events ?? []).reverse()) {
+      if (event.objUri === objUri && event.type === "OBJECT" && Object.keys(event.object ?? {}).length === 0) {
+        return true;
+      }
+    }
+    return false;
+  });
 });
 
-async function waitUntilLastEvent(predicate: (event: any) => boolean, timeout: number = 60_000) {
+async function waitUntilLastEvent(predicate: (event: any, events?: any[]) => boolean, timeout: number = 60_000) {
   let lastEvent: any = undefined;
   await waitUntil(async () => {   
     const events = await getEvents();
     lastEvent = events[events.length - 1];
-    return predicate(lastEvent);
+    return predicate(lastEvent, events);
   }, timeout);
 
   console.log("lastEvent:", lastEvent);
