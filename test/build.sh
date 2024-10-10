@@ -13,3 +13,9 @@ echo "building test kblocks..."
   "$dir/../packages/@kblocks/cli/bin/kblocks" build -o dist
   cp dist/templates/* $dir/helm/templates/
 )
+
+(
+  cd $dir/custom-resource
+  "$dir/../packages/@kblocks/cli/bin/kblocks" build -o dist
+  cp dist/templates/* $dir/helm/templates/
+)

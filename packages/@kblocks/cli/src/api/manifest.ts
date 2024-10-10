@@ -21,6 +21,7 @@ export const Manifest = z.object({
     z.literal("wing/k8s"),
     z.literal("cdk8s"),
     z.literal("noop"),
+    z.literal("custom"),
   ]),
 
   source: z.optional(z.object({

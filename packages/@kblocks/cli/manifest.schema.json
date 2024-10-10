@@ -13,7 +13,8 @@
             "wing/tf-aws",
             "wing/k8s",
             "cdk8s",
-            "noop"
+            "noop",
+            "custom"
           ]
         },
         "source": {

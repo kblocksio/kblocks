@@ -13,6 +13,7 @@ import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
 import { updateLastStateHash, saveLastStateHash } from "./state.js";
+import { applyCustom } from "./custom.js";
 
 export async function synth(sourcedir: string | undefined, engine: string, plural: string, ctx: BindingContext) {
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
@@ -91,7 +92,13 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
       object: ctx.object,
       reason: eventAction,
     });
+  }
 
+  const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
+  const slackStatus = (icon: string, reason: string) => `${icon} _${objRef.kind}_ *${objRef.namespace}/${objRef.name}*: ${reason}`;
+  const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
+
+  try {
     // for new objects, save the initial state hash for future comparison
     // for modified objects, only save if the state has actually changed
     if (ctx.watchEvent === "Added") {
@@ -102,14 +109,7 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
         return;
       }
     }
-  }
 
-  const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
-  const slackStatus = (icon: string, reason: string) => `${icon} _${objRef.kind}_ *${objRef.namespace}/${objRef.name}*: ${reason}`;
-  const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
-
-
-  try {
     await publishNotification(host, {
       type: EventType.Normal,
       action: eventAction,
@@ -145,6 +145,9 @@ export async function synth(sourcedir: string | undefined, engine: string, plura
         break;
       case "noop":
         outputs = {};
+        break;
+      case "custom":
+        outputs = await applyCustom(workdir, host, ctx, values);
         break;
       default:
         throw new Error(`unsupported engine: ${engine}`);
