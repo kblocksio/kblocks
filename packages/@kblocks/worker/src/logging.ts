@@ -21,7 +21,7 @@ export function createLogger(objUri: string, objType: string) {
       objType,
       message,
       level,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       logId,
       parentLogId,
     });

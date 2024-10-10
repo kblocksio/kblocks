@@ -94,7 +94,8 @@ async function flushResource(system: string, objType: string, resource: ApiObjec
     reason: "SYNC",
     objUri,
     objType,
-    object: resource
+    object: resource,
+    timestamp: new Date(),
   });
 }
 

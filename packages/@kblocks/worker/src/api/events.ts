@@ -4,6 +4,7 @@ import { ApiObject, Event } from "./types.js";
 export interface EventBase {
   objUri: string;
   objType: string;
+  timestamp: Date;
 }
 
 export interface ObjectEvent extends EventBase {
@@ -20,7 +21,6 @@ export interface PatchEvent extends EventBase {
 export interface LifecycleEvent extends EventBase {
   type: "LIFECYCLE";
   event: Event;
-  timestamp: string;
 }
 
 export enum LogLevel {
@@ -33,7 +33,6 @@ export enum LogLevel {
 export interface LogEvent extends EventBase {
   type: "LOG";
   level: LogLevel;
-  timestamp: string;
   message: string;
 
   /**
