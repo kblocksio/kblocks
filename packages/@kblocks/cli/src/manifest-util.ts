@@ -69,6 +69,12 @@ async function resolveSchema(schema: string | undefined, kind: string) {
 
     delete dereferencedSchema["$schema"];
     delete dereferencedSchema["$id"];
+    if (dereferencedSchema.properties) {
+      dereferencedSchema.properties.orderedJson = {
+        type: "string",
+        description: JSON.stringify(dereferencedSchema)
+      };
+    }
     return dereferencedSchema;
   }
 
