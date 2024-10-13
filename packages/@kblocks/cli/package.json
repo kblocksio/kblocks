@@ -2,7 +2,8 @@
   "name": "@kblocks/cli",
   "type": "commonjs",
   "bin": {
-    "kblocks": "./bin/kblocks"
+    "kblocks": "./bin/kblocks",
+    "kb": "./bin/kb"
   },
   "license": "UNLICENSED",
   "version": "0.0.1",
