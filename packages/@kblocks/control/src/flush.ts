@@ -1,13 +1,9 @@
 import { ApiObject, Manifest, emitEvent } from "./api";
 import * as k8s from "@kubernetes/client-node";
 
-const KBLOCKS_ANNOTATION_METADATA_NAME = "kblocks.io/metadata-name";
-const KBLOCKS_ANNOTATION_METADATA_NAMESPACE = "kblocks.io/metadata-namespace";
-
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 
-const k8sExtClient = kc.makeApiClient(k8s.ApiextensionsV1Api);
 const k8sCoreClient = kc.makeApiClient(k8s.CoreV1Api);
 const k8sCustomClient = kc.makeApiClient(k8s.CustomObjectsApi);
 
@@ -38,33 +34,8 @@ async function flushType(system: string, manifest: Manifest) {
   console.log("flushing resource type", name);
   console.log("manifest:", JSON.stringify(manifest));
 
-  const { body: crd } = await k8sExtClient.readCustomResourceDefinition(name);
-
-  const metadataConfigMapName = crd.metadata?.annotations?.[KBLOCKS_ANNOTATION_METADATA_NAME];
-  const metadataConfigMapNamespace = crd.metadata?.annotations?.[KBLOCKS_ANNOTATION_METADATA_NAMESPACE];
-
-  let readme;
-  if (metadataConfigMapName && metadataConfigMapNamespace) {
-    const configMap = await k8sCoreClient.readNamespacedConfigMap(metadataConfigMapName, metadataConfigMapNamespace);
-    readme = configMap.body.data?.readme;
-  }
-
-  const openApiSchema = crd.spec.versions[0]?.schema?.openAPIV3Schema;
-
   // we emulate a CRD here that represents the block (in the future it will actually be a CRD)
   const objType = `kblocks.io/v1/blocks`;
-
-  const spec: Manifest["definition"] = {
-    group: manifest.definition.group,
-    version: manifest.definition.version,
-    kind: manifest.definition.kind,
-    plural: manifest.definition.plural,
-    description: manifest.definition.description,
-    readme,
-    icon: manifest.definition.icon,
-    color: manifest.definition.color,
-    schema: openApiSchema,
-  };
 
   await flushResource(system, objType, {
     apiVersion: "kblocks.io/v1",
@@ -80,7 +51,7 @@ async function flushType(system: string, manifest: Manifest) {
         }
       ]
     },
-    spec,
+    spec: manifest,
   });
 }
 
