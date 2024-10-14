@@ -1,0 +1,3 @@
+name: Custom
+description: Block implemented using custom hooks for "create", "update" and "delete"
+icon: ./shell-logo.svg

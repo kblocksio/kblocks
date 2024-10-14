@@ -5,7 +5,7 @@ exports[`minimal block snapshot 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "kblock.json": "{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}}},"engine":"noop","config":{"configVersion":"v1","kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
+      "kblock.json": "{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"envConfigMaps":{"KBLOCKS_SYSTEM_ID":"kblocks-system"}}},"engine":"noop","config":{"configVersion":"v1","kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -84,7 +84,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-operator",
-        "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+        "configmap-hash-kconfig": "077ede010959f72306eac093e1e3a3424e4add3323de6ed34720bc9cb5eaac",
       },
       "name": "kblocks-boom-operator",
       "namespace": "{{ .Release.Namespace }}",
@@ -109,7 +109,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
-            "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+            "configmap-hash-kconfig": "077ede010959f72306eac093e1e3a3424e4add3323de6ed34720bc9cb5eaac",
           },
         },
         "spec": {
@@ -117,6 +117,15 @@ exports[`minimal block snapshot 1`] = `
           "containers": [
             {
               "env": [
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks-system",
+                    },
+                  },
+                },
                 {
                   "name": "KBLOCK_OUTPUTS",
                   "value": "",
@@ -312,7 +321,7 @@ exports[`minimal block snapshot 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+        "configmap-hash-kconfig": "077ede010959f72306eac093e1e3a3424e4add3323de6ed34720bc9cb5eaac",
       },
       "name": "kblocks-boom-worker",
       "namespace": "{{ .Release.Namespace }}",
@@ -331,7 +340,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
-            "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+            "configmap-hash-kconfig": "077ede010959f72306eac093e1e3a3424e4add3323de6ed34720bc9cb5eaac",
           },
         },
         "spec": {
@@ -339,6 +348,15 @@ exports[`minimal block snapshot 1`] = `
           "containers": [
             {
               "env": [
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks-system",
+                    },
+                  },
+                },
                 {
                   "name": "REDIS_URL",
                   "value": "redis://boom-redis.{{ .Release.Namespace }}.svc.cluster.local:6379",
@@ -492,7 +510,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-control",
-        "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+        "configmap-hash-kconfig": "077ede010959f72306eac093e1e3a3424e4add3323de6ed34720bc9cb5eaac",
       },
       "name": "kblocks-boom-control",
       "namespace": "{{ .Release.Namespace }}",
@@ -517,13 +535,24 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
-            "configmap-hash-kconfig": "cac11dac683dc166f091a9897d380ae9121bceaac9abe0779c678eccdc5bc3",
+            "configmap-hash-kconfig": "077ede010959f72306eac093e1e3a3424e4add3323de6ed34720bc9cb5eaac",
           },
         },
         "spec": {
           "automountServiceAccountToken": true,
           "containers": [
             {
+              "env": [
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks-system",
+                    },
+                  },
+                },
+              ],
               "image": "dummy/test-control-image:latest",
               "imagePullPolicy": "Always",
               "name": "control",
@@ -693,7 +722,7 @@ exports[`operator configuration 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "kblock.json": "{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"namespace":"my-namespace","envSecrets":{"SECRET1":"secret-1","SECRET2":"secret-2"},"envConfigMaps":{"CONFIGMAP1":"configmap-1"},"env":{"ENV1":"env-1","ENV2":"env-2"},"workers":2}},"engine":"noop","config":{"configVersion":"v1","kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
+      "kblock.json": "{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"namespace":"my-namespace","envSecrets":{"SECRET1":"secret-1","SECRET2":"secret-2"},"envConfigMaps":{"CONFIGMAP1":"configmap-1","KBLOCKS_SYSTEM_ID":"kblocks-system"},"env":{"ENV1":"env-1","ENV2":"env-2"},"workers":2}},"engine":"noop","config":{"configVersion":"v1","kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -772,7 +801,7 @@ exports[`operator configuration 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-operator",
-        "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+        "configmap-hash-kconfig": "7e1186517908d68e344ca342ea572c4dbfece0075f9eaf9f3238f5362541a8",
       },
       "name": "kblocks-boom-operator",
       "namespace": "my-namespace",
@@ -797,7 +826,7 @@ exports[`operator configuration 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
-            "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+            "configmap-hash-kconfig": "7e1186517908d68e344ca342ea572c4dbfece0075f9eaf9f3238f5362541a8",
           },
         },
         "spec": {
@@ -829,6 +858,15 @@ exports[`operator configuration 1`] = `
                     "configMapKeyRef": {
                       "key": "CONFIGMAP1",
                       "name": "configmap-1",
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks-system",
                     },
                   },
                 },
@@ -1035,7 +1073,7 @@ exports[`operator configuration 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+        "configmap-hash-kconfig": "7e1186517908d68e344ca342ea572c4dbfece0075f9eaf9f3238f5362541a8",
       },
       "name": "kblocks-boom-worker",
       "namespace": "my-namespace",
@@ -1054,7 +1092,7 @@ exports[`operator configuration 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
-            "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+            "configmap-hash-kconfig": "7e1186517908d68e344ca342ea572c4dbfece0075f9eaf9f3238f5362541a8",
           },
         },
         "spec": {
@@ -1086,6 +1124,15 @@ exports[`operator configuration 1`] = `
                     "configMapKeyRef": {
                       "key": "CONFIGMAP1",
                       "name": "configmap-1",
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks-system",
                     },
                   },
                 },
@@ -1250,7 +1297,7 @@ exports[`operator configuration 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-control",
-        "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+        "configmap-hash-kconfig": "7e1186517908d68e344ca342ea572c4dbfece0075f9eaf9f3238f5362541a8",
       },
       "name": "kblocks-boom-control",
       "namespace": "my-namespace",
@@ -1275,7 +1322,7 @@ exports[`operator configuration 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
-            "configmap-hash-kconfig": "b6cc0b3467e6d9c49e8d0d05367ff8443d8f35d11d79610a1ff3dc10b61f8a",
+            "configmap-hash-kconfig": "7e1186517908d68e344ca342ea572c4dbfece0075f9eaf9f3238f5362541a8",
           },
         },
         "spec": {
@@ -1307,6 +1354,15 @@ exports[`operator configuration 1`] = `
                     "configMapKeyRef": {
                       "key": "CONFIGMAP1",
                       "name": "configmap-1",
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks-system",
                     },
                   },
                 },

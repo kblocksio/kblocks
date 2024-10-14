@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+const fs = require("fs");
+
+const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+
+console.log("deleting resource", object);

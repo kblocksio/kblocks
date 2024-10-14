@@ -1,0 +1,3 @@
+name: Helm
+description: Helm is an open-source package manager for Kubernetes that allows you to define, install, and upgrade even the most complex Kubernetes applications.
+icon: ./winglang-logo.svg

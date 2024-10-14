@@ -104,7 +104,6 @@ export function createTgzBase64(rootDir: string): string {
   };
   
   const filesToArchive = getAllFiles(srcDir);
-  console.log("Source files:\n  " + filesToArchive.join("\n  "));
 
   const tarStream = tar.create(
     {

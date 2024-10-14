@@ -1,0 +1,10 @@
+apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: helm
+  definition:
+    outputs:
+      - myOutput
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: An example block implemented using Helm

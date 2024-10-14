@@ -1,0 +1,515 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`custom template 1`] = `
+{
+  "README.md": "# Bang Block
+
+This project is an example block implemented by a set of custom hooks. You can do anything with it!
+
+## Manifest
+
+The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
+such as names, icons and description as well as optional operator environment settings.
+
+## Inputs
+
+The file \`src/values.schema.json\` is where the input JSON schema of the block is defined.
+
+Within the script, the \`KBLOCKS_OBJECT\` environment variable points to a JSON file that contains the
+object's full state (for \`create\` and \`update\`).
+
+## Implementation
+
+The engine calls an executable program under \`src\` based on the lifecycle event:
+
+* \`create\` is called when an object was created.
+* \`update\` is called when an object was updated.
+* \`delete\` is called when an object is deleted.
+
+## Outputs
+
+The environment variable \`KBLOCKS_OUTPUTS\` is the path where a file should be written by the program
+with a JSON object that contains the outputs listed in the \`outputs\` section fo the block.
+",
+  "kblock.yaml": "apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: custom
+  definition:
+    outputs:
+      - myOutput
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: the bang bang description
+    group: bang.com
+    version: v99
+    kind: Bang
+    plural: bangs
+    icon: 🔥
+    color: red
+    listKind: BangList
+    shortNames:
+      - b
+      - ba
+    categories:
+      - cat1
+      - cat2
+    singular: bang
+metadata:
+  name: bangs.bang.com
+",
+  "src/.gitignore": "charts/",
+  "src/Chart.yaml": "apiVersion: v2
+name: bang-block
+description: the bang bang description
+type: application
+version: 0.1.0
+
+# dependencies:
+#   - name: postgresql
+#     repository: https://charts.bitnami.com/bitnami
+#     version: 15.5.20
+",
+  "src/create": "#!/usr/bin/env node
+const fs = require("fs");
+
+const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+
+console.log("creating resource with value:", object.myValue);
+
+fs.writeFileSync(process.env.KBLOCKS_OUTPUTS, JSON.stringify({
+  myOutput: \`create \${object.myValue}\`,
+}));
+",
+  "src/delete": "#!/usr/bin/env node
+const fs = require("fs");
+
+const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+
+console.log("deleting resource", object);
+",
+  "src/update": "#!/usr/bin/env node
+const fs = require("fs");
+
+const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+
+console.log("updating resource with value:", object.myValue);
+
+fs.writeFileSync(process.env.KBLOCKS_OUTPUTS, JSON.stringify({
+  myOutput: \`update \${object.myValue}\`,
+}));
+",
+  "src/values.schema.json": "{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "myValue": {
+      "type": "string",
+      "description": "An example of an input variable that will be used in the block"
+    }
+  }
+}",
+}
+`;
+
+exports[`helm template 1`] = `
+{
+  "README.md": "# Bang Block
+
+This project is an example block backed by a Helm chart. You can expose any [Helm](https://helm.sh/) chart as a kblock.
+
+When a resource is created/updated, Kblocks will call \`helm upgrade\` and populate the \`{{ Values }}\`
+object based on the Kubernetes object desired state.
+
+## Manifest
+
+The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
+such as names, icons and description as well as optional operator environment settings.
+
+## Inputs
+
+The file \`src/values.schema.json\` is where the input JSON schema of the block is defined. The schema
+fields are mapped to [Helm Values](https://helm.sh/docs/chart_template_guide/values_files/).  For
+example, if the schema contains a field called \`myValue\`, it can be refereced through \`{{
+.Values.myValue }}\` in your Helm templates.
+
+Inputs will be validated against the schem with [helm lint](https://helm.sh/docs/helm/helm_lint/)
+which will be executed before \`upgrade\`.
+
+## Implementation
+
+The file \`src/Chart.yaml\` is a standard [Helm chart
+manifest](https://helm.sh/docs/topics/charts/#the-chartyaml-file) and should define the name,
+version and dependencies of the chart.
+
+The \`src/templates\` directory is where you can put your YAML templates.
+
+## Outputs
+
+The set of outputs is defined in your \`kblock.yaml\` under \`outputs\`, and Kblocks expects to read
+them by parsing the \`src/templates/NOTES.txt\` output as a \`JSON\` object.
+
+> Yes, it's a bit of a hack.
+
+For example, if our \`kblocks.yaml\` defines \`outputs: ["myOutput"]\` then the \`NOTES.txt\` file should
+look like this:
+
+\`\`\`txt
+{
+  "myOutput": "{{ .Release.Name }}-is-the-awesome-output"
+}
+\`\`\`
+",
+  "kblock.yaml": "apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: helm
+  definition:
+    outputs:
+      - myOutput
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: the bang bang description
+    group: bang.com
+    version: v99
+    kind: Bang
+    plural: bangs
+    icon: 🔥
+    color: red
+    listKind: BangList
+    shortNames:
+      - b
+      - ba
+    categories:
+      - cat1
+      - cat2
+    singular: bang
+metadata:
+  name: bangs.bang.com
+",
+  "src/.gitignore": "charts/",
+  "src/Chart.yaml": "apiVersion: v2
+name: bang-block
+description: the bang bang description
+type: application
+version: 0.1.0
+
+# dependencies:
+#   - name: postgresql
+#     repository: https://charts.bitnami.com/bitnami
+#     version: 15.5.20
+",
+  "src/templates/NOTES.txt": "{
+  "myOutput": "{{ .Release.Name }}-is-the-awesome-output-for-bang"
+}",
+  "src/values.schema.json": "{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "myValue": {
+      "type": "string",
+      "description": "An example of an input variable that will be used in the block"
+    }
+  }
+}",
+}
+`;
+
+exports[`terraform template 1`] = `
+{
+  "README.md": "# Bang Block
+
+This project is an example of a block backed by the [Terraform](https://www.terraform.io/) engine.
+
+## Manifest
+
+The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
+such as names, icons and description as well as optional operator environment settings.
+
+## Inputs
+
+The file \`src/values.schema.json\` is where the input JSON schema of the block is defined. The schema
+fields are mapped to [Terraform Variables](https://developer.hashicorp.com/terraform/language/values/variables) defined under \`src/variables.tf\`.
+
+## Implementation
+
+The \`src/main.tf\` is the entrypoint of the Terraform configuration. This is a completely standard
+Terraform HCL config.
+
+## Outputs
+
+The set of outputs is defined in your \`kblock.yaml\` under \`outputs\`, and Kblocks expects to read
+them as [Terraform Outputs](https://developer.hashicorp.com/terraform/language/values/outputs).
+",
+  "kblock.yaml": "apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: tofu
+  definition:
+    description: the bang bang description
+    icon: 🔥
+    readme: ./README.md
+    schema: src/values.schema.json
+    outputs:
+      - myOutput
+    group: bang.com
+    version: v99
+    kind: Bang
+    plural: bangs
+    color: red
+    listKind: BangList
+    shortNames:
+      - b
+      - ba
+    categories:
+      - cat1
+      - cat2
+    singular: bang
+  operator:
+    envConfigMaps:
+      AWS_DEFAULT_REGION: tf-backend-config
+      TF_BACKEND_BUCKET: tf-backend-config
+      TF_BACKEND_REGION: tf-backend-config
+      TF_BACKEND_KEY: tf-backend-config
+      TF_BACKEND_DYNAMODB: tf-backend-config
+    envSecrets:
+      AWS_ACCESS_KEY_ID: aws-credentials
+      AWS_SECRET_ACCESS_KEY: aws-credentials
+metadata:
+  name: bangs.bang.com
+",
+  "src/main.tf": "# This is an example of an AWS SNS topic resource which will be created by the block
+resource "aws_sns_topic" "my_topic" {
+  name = var.myValue
+}
+
+# This is an example of an output value that will be returned by the block
+output "myOutput" {
+  value       = aws_sns_topic.my_topic.arn
+  description = "An output value for my block"
+}
+",
+  "src/values.schema.json": "{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "myValue": {
+      "type": "string",
+      "description": "An example of an input variable that will be used in the block"
+    }
+  }
+}",
+  "src/variables.tf": "variable "myValue" {
+  description = "An example of an input variable that will be used in the block"
+  type        = string
+  default     = "my-default-value"
+}
+",
+}
+`;
+
+exports[`tofu template 1`] = `
+{
+  "README.md": "# Bang Block
+
+This project is an example of a block backed by the [OpenTofu](https://opentofu.org/) engine.
+
+## Manifest
+
+The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
+such as names, icons and description as well as optional operator environment settings.
+
+## Inputs
+
+The file \`src/values.schema.json\` is where the input JSON schema of the block is defined. The schema
+fields are mapped to [Terraform
+Variables](https://developer.hashicorp.com/terraform/language/values/variables) defined under
+\`src/variables.tf\`.
+
+## Implementation
+
+The \`src/main.tf\` is the entrypoint of the Terraform configuration. This is a completely standard
+Terraform HCL config.
+
+## Outputs
+
+The set of outputs is defined in your \`kblock.yaml\` under \`outputs\`, and Kblocks expects to read
+them as [Terraform Outputs](https://developer.hashicorp.com/terraform/language/values/outputs).
+",
+  "kblock.yaml": "apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: tofu
+  definition:
+    description: the bang bang description
+    icon: 🔥
+    readme: ./README.md
+    schema: src/values.schema.json
+    outputs:
+      - myOutput
+    group: bang.com
+    version: v99
+    kind: Bang
+    plural: bangs
+    color: red
+    listKind: BangList
+    shortNames:
+      - b
+      - ba
+    categories:
+      - cat1
+      - cat2
+    singular: bang
+  operator:
+    envConfigMaps:
+      AWS_DEFAULT_REGION: tf-backend-config
+      TF_BACKEND_BUCKET: tf-backend-config
+      TF_BACKEND_REGION: tf-backend-config
+      TF_BACKEND_KEY: tf-backend-config
+      TF_BACKEND_DYNAMODB: tf-backend-config
+    envSecrets:
+      AWS_ACCESS_KEY_ID: aws-credentials
+      AWS_SECRET_ACCESS_KEY: aws-credentials
+metadata:
+  name: bangs.bang.com
+",
+  "src/main.tf": "# This is an example of an AWS SNS topic resource which will be created by the block
+resource "aws_sns_topic" "my_topic" {
+  name = var.myValue
+}
+
+# This is an example of an output value that will be returned by the block
+output "myOutput" {
+  value       = aws_sns_topic.my_topic.arn
+  description = "An output value for my block"
+}
+",
+  "src/values.schema.json": "{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "myValue": {
+      "type": "string",
+      "description": "An example of an input variable that will be used in the block"
+    }
+  }
+}",
+  "src/variables.tf": "variable "myValue" {
+  description = "An example of an input variable that will be used in the block"
+  type        = string
+  default     = "my-default-value"
+}
+",
+}
+`;
+
+exports[`wing-k8s template 1`] = `
+{
+  "README.md": "# Bang Block
+
+This is a block backed by a [Wing for Kubernetes](https://winglang.io) program which uses
+[CDK8s](https://cdk8s.io) to synthesize Kubernets manifests from Wing classes.
+
+## Block Manifest
+
+The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
+such as names, icons and description as well as optional operator environment settings.
+
+## Inputs
+
+The input schema for your block is automatically dervied from the Wing struct by the name of
+\`<Kind>Spec\`. For example, if your resource kind is \`Bing\`, then the CLI will look for a struct
+named \`BingSpec\` and create a JSON schema from it.
+
+## Implementation
+
+Wing source code (\`.w\`) is expected under \`src/\`, and must include a public class named after the
+"kind" of the resource.
+
+\`\`\`js
+pub struct BingSpec {
+  myInput: str;
+}
+
+pub class Bing {
+  new(spec: BingSpec) {
+    // implementation goes here...
+  }
+}
+\`\`\`
+
+## Dependencies
+
+The engine will run npm install from \`src/\`. You can install any Wing-compatible dependencies using
+npm (the \`@winglibs/k8s\` dependency is required by the engine, so keep it).
+
+## Outputs
+
+The outputs specified in your \`kblock.yaml\` must have a corresponding pub fields in your class.
+
+\`\`\`js
+pub class Bing {
+  pub myOutput: str;
+
+  new() {
+    this.myOutput = "hello"
+  }
+}
+\`\`\`
+",
+  "kblock.yaml": "apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: wing/k8s
+  definition:
+    outputs:
+      - myOutput
+    readme: ./README.md
+    schema: ./src/block.w
+    description: the bang bang description
+    group: bang.com
+    version: v99
+    kind: Bang
+    plural: bangs
+    icon: 🔥
+    color: red
+    listKind: BangList
+    shortNames:
+      - b
+      - ba
+    categories:
+      - cat1
+      - cat2
+    singular: bang
+metadata:
+  name: bangs.bang.com
+",
+  "src/block.w": "bring "cdk8s-plus-30" as k8s;
+
+pub struct BangSpec {
+  myInput: str;
+}
+
+pub class Bang {
+  pub myOutput: str;
+
+  new(spec: BangSpec) {
+
+    let configMap = new k8s.ConfigMap(
+      data: {
+        "my-key": spec.myInput,
+      }
+    );
+
+    this.myOutput = configMap.name;
+  }
+}",
+  "src/package.json": "{
+  "dependencies": {
+    "@winglibs/k8s": "^0.0.8",
+    "cdk8s-plus-30": "^2.0.6"
+  }
+}
+",
+}
+`;

@@ -49,3 +49,18 @@ export async function hashAll(dirs: string[], exclude?: string[]) {
   return hash.digest("hex");
 }
 
+
+
+export async function chdir<T>(dir: string | undefined, fn: () => Promise<T>): Promise<T> {
+  if (!dir) {
+    return await fn();
+  }
+
+  const old = process.cwd();
+  process.chdir(dir);
+  try {
+    return await fn();
+  } finally {
+    process.chdir(old);
+  }
+}
