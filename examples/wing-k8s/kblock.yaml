@@ -1,0 +1,10 @@
+apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: wing/k8s
+  definition:
+    outputs:
+      - myOutput
+    readme: ./README.md
+    schema: ./src/block.w
+    description: An example block implemented using Wing for Kubernetes

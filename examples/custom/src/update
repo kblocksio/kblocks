@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+const fs = require("fs");
+
+const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+
+console.log("updating resource with value:", object.myValue);
+
+fs.writeFileSync(process.env.KBLOCKS_OUTPUTS, JSON.stringify({
+  myOutput: `update ${object.myValue}`,
+}));

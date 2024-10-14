@@ -1,0 +1,3 @@
+{
+  "myOutput": "{{ .Release.Name }}-is-the-awesome-output-for-<%= spec.definition.singular %>"
+}

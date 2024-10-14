@@ -14,8 +14,9 @@ import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
 import { updateLastStateHash, saveLastStateHash } from "./state.js";
 import { applyCustom } from "./custom.js";
+import { ENGINES } from "./api/engine.js";
 
-export async function synth(sourcedir: string | undefined, engine: string, plural: string, ctx: BindingContext) {
+export async function synth(sourcedir: string | undefined, engine: keyof typeof ENGINES, plural: string, ctx: BindingContext) {
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
   if (!KBLOCKS_SYSTEM_ID) {
     throw new Error("KBLOCKS_SYSTEM_ID is not set");

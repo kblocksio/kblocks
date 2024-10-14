@@ -1,0 +1,10 @@
+apiVersion: v2
+name: <%= spec.definition.singular %>-block
+description: <%= spec.definition.description %>
+type: application
+version: 0.1.0
+
+# dependencies:
+#   - name: postgresql
+#     repository: https://charts.bitnami.com/bitnami
+#     version: 15.5.20

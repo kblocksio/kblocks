@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "myValue": {
+      "type": "string",
+      "description": "An example of an input variable that will be used in the block"
+    }
+  }
+}

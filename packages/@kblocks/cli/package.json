@@ -10,10 +10,12 @@
   "main": "./src/index.js",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^11.7.0",
+    "@types/ejs": "^3.1.5",
     "cdk8s": "^2.68.93",
     "cdk8s-plus-30": "^2.0.10",
     "constructs": "^10.3.0",
     "deepmerge": "^4.3.1",
+    "ejs": "^3.1.10",
     "openai": "^4.61.1",
     "tar": "^7.4.3",
     "winglang": "^0.85.20",

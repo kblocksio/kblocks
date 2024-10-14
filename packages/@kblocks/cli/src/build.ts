@@ -12,6 +12,62 @@ import { Control } from "./control";
 import { Manifest } from "./api";
 import { Construct } from "constructs";
 import yaml from 'yaml';
+import { readManifest, resolveExternalAssets } from "./manifest-util";
+import { chdir } from "./util";
+
+export const buildCommand = async (opts: {
+  DIR?: string;
+  manifest: string;
+  output: string;
+}) => {
+  return chdir(opts.DIR, async () => {
+    const { manifest, outdir } = await build(opts);
+
+    console.log();
+    console.log("-------------------------------------------------------------------------------------------------------------------");
+    console.log(`Block '${manifest.definition.group}/${manifest.definition.version}.${manifest.definition.kind}' is ready. To install:`);
+    console.log();
+    console.log(`  helm upgrade --install ${manifest.definition.kind.toLowerCase()}-block ${outdir}`);
+    console.log();
+  });
+};
+
+export async function build(opts: {
+  manifest: string;
+  output: string;
+  silent?: boolean;
+}) {
+  const manifestPath = path.resolve(opts.manifest);
+  const outdir = path.resolve(opts.output);
+
+  // read the manifest file and extract the block manifest
+  var { blockObject, additionalObjects } = readManifest(manifestPath);
+  if (!blockObject) {
+    throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
+  }
+
+  const manifest: Manifest = await resolveExternalAssets(blockObject.spec);
+
+  // create the output directory
+  fs.mkdirSync(outdir, { recursive: true });
+
+  // Check if Chart.yaml exists in the manifest directory
+  const manifestDir = path.dirname(manifestPath);
+  const chartPath = path.join(manifestDir, 'Chart.yaml');
+  if (fs.existsSync(chartPath)) {
+    fs.copyFileSync(chartPath, path.join(outdir, 'Chart.yaml'));
+  }
+
+  synth({ block: manifest, source: process.cwd(), output: outdir });
+
+  // write any additional objects to the templates directory
+  if (additionalObjects.length > 0) {
+    const additionalObjectsManifest = path.join(outdir, "templates", "additional-objects.yaml");
+    fs.writeFileSync(additionalObjectsManifest, yaml.stringify(additionalObjects));
+  }
+
+  return { outdir, manifest };
+}
 
 export interface BlockProps {
   block: Manifest;
@@ -33,6 +89,8 @@ export class Block extends Chart {
 
     const namespace = block.operator?.namespace ?? "{{ .Release.Namespace }}";
     const workers = block.operator?.workers ?? 1;
+
+    addSystemIfNotSet(block);
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       block,
@@ -182,7 +240,6 @@ function calculateImageName(serviceName: string) {
   const versionOverride = process.env[versionOverrideEnv];
   if (versionOverride) {
     const image = `${imagePrefix}${serviceName}:${versionOverride}`;
-    console.log(`Docker image for ${serviceName}: ${image}`);
     return image;
   }
 
@@ -192,4 +249,20 @@ function calculateImageName(serviceName: string) {
   }
 
   return `${imagePrefix}${serviceName}:${packageJson.version}`;
+}
+
+function addSystemIfNotSet(block: Manifest) {
+  const key = "KBLOCKS_SYSTEM_ID";
+  block.operator = block.operator ?? {};
+
+  // check if one of the "env" is KBLOCKS_SYSTEM_ID
+  if (key in (block.operator.env ?? {}) ||
+      key in (block.operator.envSecrets ?? {}) ||
+      key in (block.operator.envConfigMaps ?? {})) {
+    return;
+  }
+
+  // if KBLOCKS_SYSTEM_ID is not set, read it from the "kblocks-system" ConfigMap by default.
+  block.operator.envConfigMaps = block.operator.envConfigMaps ?? {};
+  block.operator.envConfigMaps[key] = "kblocks-system";
 }
