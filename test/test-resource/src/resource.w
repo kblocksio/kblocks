@@ -1,6 +1,7 @@
 bring k8s;
 
 pub struct TestResourceSpec {
+  /// The message to to display
   hello: str;
 }
 
