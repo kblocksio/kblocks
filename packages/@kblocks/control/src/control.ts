@@ -30,8 +30,8 @@ export function start(controlUrl: string, system: string, manifest: Manifest) {
     flush(system, manifest);
   });
 
-  connection.on("message", (event) => {
-    const { command, blockUri } = parseCommand(ctx, event.data);
+  connection.on("message", (message) => {
+    const { command, blockUri } = parseCommand(ctx, message);
 
     handleCommandMessage(ctx, command)
       .then(() => console.log(`Command ${command.type} for ${blockUri} succeeded`))
