@@ -1,21 +1,19 @@
 import * as k8s from "@kubernetes/client-node";
-import ReconnectingWebSocket from "reconnecting-websocket";
-import WebSocket from "ws";
-import { ControlCommand, Manifest } from "./api";
+import { blockTypeFromUri, ControlCommand, emitEvent, ErrorEvent, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "./api";
 import { flush } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
 import { Context } from "./context";
 import { refreshObject } from "./refresh";
 import { patchObject } from "./patch";
+import { connect } from "./socket";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 const client = kc.makeApiClient(k8s.CustomObjectsApi);
 
-export function connect(controlUrl: string, system: string, manifest: Manifest) {
+export function start(controlUrl: string, system: string, manifest: Manifest) {
   const params = new URLSearchParams({ system }).toString();
-
   const group = manifest.definition.group;
   const version = manifest.definition.version;
   const plural = manifest.definition.plural;
@@ -23,62 +21,52 @@ export function connect(controlUrl: string, system: string, manifest: Manifest) 
 
   const ctx: Context = { system, group, version, plural };
 
-  console.log(`Connecting to control channel: ${url}`);
+  const connection = connect(url);
 
-  const ws = new ReconnectingWebSocket(url, [], {
-    WebSocket,
-    maxRetries: Infinity,       // never give up
-    minReconnectionDelay: 0,    // try to reconnect as fast as possible
-    maxReconnectionDelay: 5000, // dont wait more than 5 seconds between reconnections
-    connectionTimeout: 10000,    // wait 10 seconds for the connection to open before timing out
-  });
-
-  ws.addEventListener("open", () => {
+  connection.on("open", () => {
     console.log("Control connection opened");
 
     // flush the current state of the system to the control plane
     flush(system, manifest);
   });
 
-  ws.addEventListener("message", (event) => {
-    handleCommandMessage(ctx, event.data).catch((error) => {
-      console.error(`Error handling control message: ${event.data}`);
-      console.error(error);
-    });
+  connection.on("message", (event) => {
+    const { command, blockUri } = parseCommand(ctx, event.data);
+
+    handleCommandMessage(ctx, command)
+      .then(() => console.log(`Command ${command.type} for ${blockUri} succeeded`))
+      .catch((error) => handleError(blockUri, command, error))
   });
 
-  ws.addEventListener("close", (event) => {
-    console.log(`Control connection closed: ${JSON.stringify({ code: event.code, reason: event.reason, type: event.type })}`);
-  });
-
-  keepalive(ws);
-
-  return ws;
+  return connection;
 }
 
-function keepalive(ws: ReconnectingWebSocket) {
-  let interval: NodeJS.Timeout;
+function handleError(blockUri: string, command: ControlCommand, error: any) {
+  const blockType = blockTypeFromUri(blockUri);
 
-  const ping = () => {
-    try {
-      ws.send(JSON.stringify({ type: "PING" }));
-    } catch (error: any) {
-      console.error("Error sending keepalive:", error.message);
-    }
-  };
+  if (error.statusCode === 404) {
+    console.log(`Object ${blockUri} not found, sending a synthetic empty OBJECT event to delete it`);
+    return emitEvent({
+      type: "OBJECT",
+      objType: blockType,
+      objUri: blockUri,
+      object: {},
+    } as ObjectEvent);
+  }
 
-  ws.addEventListener("open", () => {
-    interval = setInterval(ping, 10000);
-    console.log("Control connection opened. Starting keepalive.");
-  });
-
-  ws.addEventListener("close", () => {
-    console.log("Control connection closed. Stopping keepalive.");
-    clearInterval(interval);
-  });
+  const msg = (error.body as any)?.message ?? "unknown error";
+  const message = `Error handling command ${JSON.stringify(command.type)} for ${blockUri}: ${msg}`;
+  console.error(message);
+  emitEvent({
+    type: "ERROR",
+    objType: blockType,
+    objUri: blockUri,
+    message,
+    body: command,
+  } as ErrorEvent);
 }
 
-async function handleCommandMessage(ctx: Context, message: string) {
+function parseCommand(ctx: Context, message: string) {
   let command: ControlCommand;
 
   try {
@@ -86,14 +74,38 @@ async function handleCommandMessage(ctx: Context, message: string) {
   } catch (error: any) {
     throw new Error(`Error parsing control command '${message}': ${error.message}`);
   }
-
+  
   const type = command.type;
-
   if (!type) {
     throw new Error(`Invalid control command. Missing 'type' field: ${JSON.stringify(command)}`);
   }
 
-  switch (type) {
+  const blockUri = blockUriFromCommand(ctx, command);
+  const { system: targetSystem } = parseBlockUri(blockUri);
+
+  if (ctx.system !== targetSystem) {
+    throw new Error(`Control message sent to wrong system. My system is ${ctx.system} but the message is for ${targetSystem}`);
+  }
+
+  return { command, blockUri };
+}
+
+function blockUriFromCommand(ctx: Context, command: ControlCommand): string {
+  if (command.type === "APPLY") {
+    const obj = command.object;
+    const { group, version, plural, system } = ctx;
+    const namespace = obj?.metadata?.namespace ?? "default";
+    const name = obj?.metadata?.name;
+    return formatBlockUri({ group, system, name, namespace, plural, version });
+  }
+
+  return command.objUri;
+}
+
+async function handleCommandMessage(ctx: Context, command: ControlCommand) {
+  console.log(`Received control request: ${JSON.stringify(command)}`);
+
+  switch (command.type) {
     case "APPLY":
       return await applyObject(client, ctx, command.object);
 
@@ -107,6 +119,6 @@ async function handleCommandMessage(ctx: Context, message: string) {
       return await refreshObject(client, ctx, command.objUri);
 
     default:
-      throw new Error(`Unsupported control command type: '${type}'`);
+      throw new Error(`Unsupported control command: '${JSON.stringify(command)}'`);
   }
 }

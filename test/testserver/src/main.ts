@@ -90,7 +90,7 @@ wss.on('connection', (ws) => {
   });
 
   ws.on("message", (message) => {
-    console.log(`Control message: ${message}`);
+    console.log(`Message from control client: ${message}`);
   });
 
   ws.on('close', () => {

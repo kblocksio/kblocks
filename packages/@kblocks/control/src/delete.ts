@@ -1,39 +1,12 @@
 import * as k8s from "@kubernetes/client-node";
-import { type ErrorEvent, ObjectEvent, emitEvent, formatBlockType, parseBlockUri } from "./api";
+import { parseBlockUri } from "./api";
 import { Context } from "./context";
 
 export async function deleteObject(client: k8s.CustomObjectsApi, ctx: Context, objUri: string) {
-  const { group, version, plural, system } = ctx;
+  console.log(`DELETE: ${objUri}`);
 
-  const blockUri = parseBlockUri(objUri);
-  const blockType = formatBlockType(blockUri);
+  const { group, version, plural } = ctx;
+  const { namespace, name } = parseBlockUri(objUri);
 
-  if (system !== blockUri.system) {
-    throw new Error(`Control message sent to wrong system. My system is ${system} but the message is for ${blockUri.system}`);
-  }
-
-  try {
-    await client.deleteNamespacedCustomObject(group, version, blockUri.namespace, plural, blockUri.name);
-  } catch (error: any) {
-
-    if (error.statusCode === 404) {
-      console.log(`Object ${objUri} not found, sending an empty OBJECT event`);
-      return emitEvent({
-        type: "OBJECT",
-        objType: blockType,
-        objUri,
-        object: {},
-      } as ObjectEvent);
-    }
-
-    const msg = (error.body as any)?.message ?? "unknown error";
-    const message = `Error deleting object ${objUri}: ${msg}`;
-    console.error(message);
-    emitEvent({
-      type: "ERROR",
-      objType: blockType,
-      objUri,
-      message,
-    } as ErrorEvent);
-  }
+  await client.deleteNamespacedCustomObject(group, version, namespace, plural, name);
 }
