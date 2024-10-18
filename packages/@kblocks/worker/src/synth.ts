@@ -84,15 +84,18 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       break;
   }
 
-  if (!isDeletion) {
-    host.emitEvent({
-      type: "OBJECT",
-      timestamp: new Date(),
-      objUri,
-      objType,
-      object: ctx.object,
-      reason: eventAction,
-    });
+  // for new objects, save the initial state hash for future comparison
+  // for modified objects, only save if the state has actually changed
+  try {
+    if (ctx.watchEvent === "Added") {
+      await saveLastStateHash(host, ctx.object);
+    } else if (ctx.watchEvent === "Modified") {
+      if (!(await updateLastStateHash(host, ctx.object))) {
+        return;
+      }
+    }
+  } catch (err: any) {
+    console.warn(`Error while saving initial state: ${err.message}`);
   }
 
   const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
@@ -100,17 +103,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
 
   try {
-    // for new objects, save the initial state hash for future comparison
-    // for modified objects, only save if the state has actually changed
-    if (ctx.watchEvent === "Added") {
-      await saveLastStateHash(host, ctx.object);
-    } else if (ctx.watchEvent === "Modified") {
-      if (!(await updateLastStateHash(host, ctx.object))) {
-        console.log("skipping status update");
-        return;
-      }
-    }
-
     await publishNotification(host, {
       type: EventType.Normal,
       action: eventAction,
@@ -158,6 +150,16 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       await patchObjectState(host, outputs);
     }
 
+    // we are complete, so we can now emit the new object state (if this is a deletion, we emit an empty object)
+    host.emitEvent({
+      type: "OBJECT",
+      timestamp: new Date(),
+      objUri,
+      objType,
+      object: isDeletion ? {} : ctx.object,
+      reason: eventAction,
+    });
+    
     await publishNotification(host, {
       type: EventType.Normal,
       action: eventAction,
@@ -167,17 +169,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
     if (isDeletion) {
       await slack.update(slackStatus("⚪", "Deleted"));
-      
-      // only emit when we are done because this will cause the object to be emptied.
-      host.emitEvent({
-        type: "OBJECT",
-        timestamp: new Date(),
-        objUri,
-        objType,
-        object: {},
-        reason: eventAction,
-      });
-
     } else {
       await updateReadyCondition(true, StatusReason.Completed);
 
@@ -190,12 +181,14 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     }
   } catch (err: any) {
     console.error(err.stack);
+
     await publishNotification(host, {
       type: EventType.Warning,
       action: eventAction,
       reason: EventReason.Failed,
       message: err.stack,
     });
+
     await slack.update(slackStatus("🔴", "Failure"));
     await slack.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
     await slack.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
