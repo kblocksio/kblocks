@@ -103,6 +103,20 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
 
   try {
+    // send the new object state (if this is a deletion, we do that only after we are complete
+    // because it will cause the deletion of the object from the portal). this must be done before
+    // we start updating the object, because the portal needs to know about the object.
+    if (!isDeletion) {
+      host.emitEvent({
+        type: "OBJECT",
+        timestamp: new Date(),
+        objUri,
+        objType,
+        object: ctx.object,
+        reason: eventAction,
+      });
+    }
+
     await publishNotification(host, {
       type: EventType.Normal,
       action: eventAction,
@@ -150,16 +164,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       await patchObjectState(host, outputs);
     }
 
-    // we are complete, so we can now emit the new object state (if this is a deletion, we emit an empty object)
-    host.emitEvent({
-      type: "OBJECT",
-      timestamp: new Date(),
-      objUri,
-      objType,
-      object: isDeletion ? {} : ctx.object,
-      reason: eventAction,
-    });
-    
     await publishNotification(host, {
       type: EventType.Normal,
       action: eventAction,
@@ -168,6 +172,15 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     });
 
     if (isDeletion) {
+      host.emitEvent({
+        type: "OBJECT",
+        timestamp: new Date(),
+        objUri,
+        objType,
+        object: {},
+        reason: eventAction,
+      });
+
       await slack.update(slackStatus("⚪", "Deleted"));
     } else {
       await updateReadyCondition(true, StatusReason.Completed);
