@@ -142,6 +142,11 @@ export function readBlockJson(block: Manifest) {
     engine: block.engine,
     config: {
       configVersion: "v1",
+      schedule: [{
+        name: "read",
+        crontab: "* * * * *",
+        allowFailure: true,
+      }],
       kubernetes: [
         {
           apiVersion: `${block.definition.group}/${block.definition.version}`,

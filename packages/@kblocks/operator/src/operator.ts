@@ -2,9 +2,11 @@ import fs from "fs";
 import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
+import { listAllResources } from "./resources";
+import { KConfig } from "./api";
 
 async function main() {
-  const kblock = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
+  const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
   if (!kblock.config) {
     throw new Error("kblock.json must contain a 'config' field");
   }
@@ -43,15 +45,27 @@ async function main() {
 
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {
-    if ("objects" in ctx) {
-      for (const ctx2 of ctx.objects) {
-        // copy from parent so we can reason about it.
-        ctx2.type = ctx.type;
-        ctx2.watchEvent = ctx.watchEvent;
-        await sendContextToStream(redisClient, workers, ctx2);
+    if (ctx.binding === "read") {
+      const resources = await listAllResources(kblock.manifest);
+      for (const resource of resources) {
+        await sendContextToStream(redisClient, workers, {
+          ...ctx,
+          object: resource,
+          type: "schedule",
+          watchEvent: "Read",
+        });
       }
-    } else if ("object" in ctx) {
-      await sendContextToStream(redisClient, workers, ctx);
+    } else {
+      if ("objects" in ctx) {
+        for (const ctx2 of ctx.objects) {
+          // copy from parent so we can reason about it.
+          ctx2.type = ctx.type;
+          ctx2.watchEvent = ctx.watchEvent;
+          await sendContextToStream(redisClient, workers, ctx2);
+        }
+      } else if ("object" in ctx) {
+        await sendContextToStream(redisClient, workers, ctx);
+      }
     }
   }
 

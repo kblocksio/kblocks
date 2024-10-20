@@ -1,8 +1,9 @@
 import crypto from "crypto";
+import deepmerge from "deepmerge";
 import { patchObjectState, RuntimeContext } from "./host.js";
-import { ApiObject } from "./api/index.js";
+import { ApiObject, Condition } from "./api/index.js";
 
-export async function updateLastStateHash(host: RuntimeContext, obj: ApiObject) {
+export async function updateLastStateHash(statusUpdate: ReturnType<typeof statusUpdater>, obj: ApiObject) {
   const oldValue = obj.status?.lastStateHash;
   const newValue = createHashFromObject(obj);
 
@@ -10,20 +11,14 @@ export async function updateLastStateHash(host: RuntimeContext, obj: ApiObject) 
     return false;
   }
 
-  await patchObjectState(host, {
-    "lastStateHash": newValue,
+  await statusUpdate({
+    lastStateHash: newValue,
   });
 
   return true;
 }
 
-export async function saveLastStateHash(host: RuntimeContext, obj: ApiObject) {
-  return patchObjectState(host, {
-    "lastStateHash": createHashFromObject(obj),
-  });
-}
-
-export function createHashFromObject(obj: ApiObject) {
+function createHashFromObject(obj: ApiObject) {
   const hash = createHashFromData({
     ...obj.metadata.labels ?? {},
     generation: `${obj.metadata?.generation ?? 0}`,
@@ -32,10 +27,38 @@ export function createHashFromObject(obj: ApiObject) {
   return hash;
 }
 
-export function createHashFromData(data: Record<string, string>) {
+function createHashFromData(data: Record<string, string>) {
   const sortedKeys = Object.keys(data).sort();
   const sortedValues = sortedKeys.map(key => data[key]);
 
   const sortedData = sortedValues.join("\n");
   return crypto.createHash("sha256").update(sortedData).digest("hex").substring(0, 62);
+}
+
+export function statusUpdater(host: RuntimeContext, api: ApiObject) {
+  const mergeConditions = (current: Condition[], newConditions: Condition[]) => {
+    const conditions = [...current];
+    newConditions.forEach(newCondition => {
+      const conditionIndex = conditions.findIndex(c => c.type === newCondition.type);
+      if (conditionIndex !== -1) {
+        conditions[conditionIndex] = newCondition;
+      } else {
+        conditions.push(newCondition);
+      }
+    });
+    return conditions;
+  };
+
+  let currentStatus = api.status ?? {};
+  return async (status: Record<string, any>) => {
+    currentStatus = deepmerge(currentStatus, status, {
+      customMerge: (key: string) => {
+        if (key === "conditions") {
+          return mergeConditions;
+        }
+      },
+    });
+
+    return patchObjectState(host, currentStatus);
+  };
 }
