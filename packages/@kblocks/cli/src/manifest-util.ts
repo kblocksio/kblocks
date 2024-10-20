@@ -74,12 +74,20 @@ async function resolveSchema(schema: string | undefined, kind: string) {
       let currentIndex = startIndex;
       for (const [key, value] of Object.entries(properties)) {
         if (typeof value === 'object' && value !== null) {
-          const typedValue = value as { type?: string, properties?: any, items?: any, description?: string };
+          const typedValue = value as { 
+            type?: string, 
+            properties?: any, 
+            items?: any, 
+            description?: string,
+            additionalProperties?: any  // Add this line
+          };
           typedValue.description = `${typedValue.description || ''}\n@order ${currentIndex}`;
           
           if (typedValue.type === 'object' && typedValue.properties) {
             addOrderAnnotations(typedValue.properties, 1);
-          } else if (typedValue.type === 'array' && typedValue.items && typeof typedValue.items === 'object' && 'properties' in typedValue.items) {
+          } if (typedValue.type === 'object' && typedValue.additionalProperties) {
+            addOrderAnnotations(typedValue.additionalProperties, 1);
+          }else if (typedValue.type === 'array' && typedValue.items && typeof typedValue.items === 'object' && 'properties' in typedValue.items) {
             addOrderAnnotations(typedValue.items.properties, 1);
           }
           currentIndex++;
