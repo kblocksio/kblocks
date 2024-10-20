@@ -5,7 +5,6 @@
     "@kubernetes/client-node": "^0.22.0",
     "@types/ws": "^8.5.12",
     "express": "^4.21.0",
-    "reconnecting-websocket": "^4.4.0",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
   },

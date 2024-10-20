@@ -1,4 +1,4 @@
-import { connect } from "./control";
+import { start } from "./control";
 import { getEndpoints } from "./api";
 import fs from "fs";
 
@@ -19,7 +19,7 @@ async function main() {
 
   const manifest = kblock.manifest;
   const controlEndpoint = getEndpoints().control;
-  const connection = connect(controlEndpoint, KBLOCKS_SYSTEM_ID, manifest);
+  const connection = start(controlEndpoint, KBLOCKS_SYSTEM_ID, manifest);
 
   // Add shutdown signal handlers
   const shutdownHandler = () => {

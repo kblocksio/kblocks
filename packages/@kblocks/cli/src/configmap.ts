@@ -29,6 +29,11 @@ export class ConfigMapFromDirectory extends Construct {
     super(scope, id);
 
     this.configMaps = {};
+
+    // TODO (shaib): copy the source directory to a temporary location
+    // override the file under `values.schema.json` with the materialized schema
+    // which should be available `props.block.definition.schema`.
+
     if (props.source) {
       this.configMaps["kblock"] = new ConfigMap(this, "archive-tgz", {
         metadata: {

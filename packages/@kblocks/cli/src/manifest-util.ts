@@ -69,11 +69,37 @@ async function resolveSchema(schema: string | undefined, kind: string) {
 
     delete dereferencedSchema["$schema"];
     delete dereferencedSchema["$id"];
+    // Add order annotations to properties
+    function addOrderAnnotations(properties: any, startIndex: number = 1, isAdditionalProperties: boolean = false  ): number {
+      let currentIndex = startIndex;
+      for (const [key, value] of Object.entries(properties)) {
+        if (typeof value === 'object' && value !== null) {
+          const typedValue = value as { 
+            type?: string, 
+            properties?: any, 
+            items?: any, 
+            description?: string,
+            additionalProperties?: any  // Add this line
+          };
+          if (!isAdditionalProperties) {
+            typedValue.description = `${typedValue.description || ''}\n@order ${currentIndex}`;
+          }
+          
+          if ((typedValue.type === 'object' || isAdditionalProperties) && typedValue.properties) {
+            addOrderAnnotations(typedValue.properties, 1);
+          } if (typedValue.type === 'object' && typedValue.additionalProperties) {
+            addOrderAnnotations(typedValue.additionalProperties, 1, true);
+          }else if (typedValue.type === 'array' && typedValue.items && typeof typedValue.items === 'object' && 'properties' in typedValue.items) {
+            addOrderAnnotations(typedValue.items.properties, 1);
+          }
+          currentIndex++;
+        }
+      }
+      return currentIndex;
+    }
+
     if (dereferencedSchema.properties) {
-      dereferencedSchema.properties.orderedJson = {
-        type: "string",
-        description: JSON.stringify(dereferencedSchema)
-      };
+      addOrderAnnotations(dereferencedSchema.properties);
     }
     return dereferencedSchema;
   }
