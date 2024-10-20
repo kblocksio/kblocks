@@ -1,7 +1,7 @@
 import { Manifest } from "./manifest.js";
 
 export type BindingContext = {
-  watchEvent: "Deleted" | "Modified" | "Added";
+  watchEvent: "Deleted" | "Modified" | "Added" | "Read";
   object: ApiObject;
 };
 
@@ -78,6 +78,7 @@ export enum EventAction {
   Update = "UPDATE",
   Delete = "DELETE",
   Sync = "SYNC",
+  Read = "READ",
 }
 
 export enum StatusReason {

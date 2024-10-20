@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+const fs = require("fs");
+const child_process = require("child_process");
+
+const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+const ownedObjects = JSON.parse(process.env.KBLOCKS_OWNED_OBJECTS);
+const status = process.env.KBLOCKS_STATUS;
+
+console.log("ownedObjects", ownedObjects);
+const time = new Date().toISOString();
+fs.writeFileSync(status, JSON.stringify({
+  conditions: [{
+    type: "Healthy",
+    status: "True",
+    message: "ok",
+    reason: "ok",
+    lastTransitionTime: time,
+    lastProbeTime: time,
+  }]
+}));

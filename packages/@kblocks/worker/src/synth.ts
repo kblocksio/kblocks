@@ -7,14 +7,15 @@ import { applyWing } from "./wing.js";
 import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
-import { patchObjectState, publishNotification, RuntimeContext } from "./host.js";
-import { BindingContext, InvolvedObject, EventReason, StatusReason, emitEvent, EventType, EventAction } from "./api/index.js";
+import { publishNotification, RuntimeContext } from "./host.js";
+import { BindingContext, InvolvedObject, EventReason, StatusReason, emitEvent, EventType, EventAction, Condition } from "./api/index.js";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
-import { updateLastStateHash, saveLastStateHash } from "./state.js";
+import { statusUpdater, updateLastStateHash } from "./state.js";
 import { applyCustom } from "./custom.js";
 import { ENGINES } from "./api/engine.js";
+import { execRead } from "./read.js";
 
 export async function synth(sourcedir: string | undefined, engine: keyof typeof ENGINES, plural: string, ctx: BindingContext) {
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
@@ -48,6 +49,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     exec: (command, args, options) => exec(logger, command, args, options),
   };
 
+  const statusUpdate = statusUpdater(host, ctx.object);
+
   // create a temporary directory to work in, which we will clean up at the end
   const workdir = tempdir();
   if (sourcedir) {
@@ -56,18 +59,19 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
   console.log("-------------------------------------------------------------------------------------------");
   const lastProbeTime = new Date().toISOString();
-  const updateReadyCondition = async (ready: boolean, reason: StatusReason) => patchObjectState(host, {
-    conditions: [{
+  const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
+    return statusUpdate({ conditions: [{
       type: "Ready",
       status: ready ? "True" : "False",
       lastTransitionTime: new Date().toISOString(),
       lastProbeTime,
       message: reason,
       reason,
-    }]
-  });
+    }] });
+  }
 
   const isDeletion = ctx.watchEvent === "Deleted";
+  const isReading = ctx.watchEvent === "Read";
   let eventAction: EventAction;
   switch (ctx.watchEvent) {
     case "Deleted":
@@ -78,6 +82,9 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       break;
     case "Added":
       eventAction = EventAction.Create;
+      break;
+    case "Read":
+      eventAction = EventAction.Read;
       break;
     default:
       eventAction = EventAction.Sync;
@@ -102,10 +109,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   try {
     // for new objects, save the initial state hash for future comparison
     // for modified objects, only save if the state has actually changed
-    if (ctx.watchEvent === "Added") {
-      await saveLastStateHash(host, ctx.object);
-    } else if (ctx.watchEvent === "Modified") {
-      if (!(await updateLastStateHash(host, ctx.object))) {
+    if (ctx.watchEvent === "Added" || ctx.watchEvent === "Modified"){
+      if (!(await updateLastStateHash(statusUpdate, ctx.object))) {
         console.log("skipping status update");
         return;
       }
@@ -115,8 +120,16 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       type: EventType.Normal,
       action: eventAction,
       reason: EventReason.Started,
-      message: isDeletion ? "Deleting resource" : "Updating resource",
+      message: isReading ? "Reading resource" : isDeletion ? "Deleting resource" : "Updating resource",
     });
+    [
+      {
+        type: "Ready",
+      },
+      {
+        type: "not",
+      }
+    ]
 
     // resolve references by waiting for the referenced objects to be ready
     await updateReadyCondition(false, StatusReason.ResolvingReferences);
@@ -128,34 +141,49 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     const values = path.join(workdir, "values.json");
     await fs.writeFile(values, JSON.stringify(ctx.object));
 
-    const first = engine.split("/")[0];
-    let outputs: Record<string, any> = {};
+    let successString = "";
+    if (!isReading) {
+      const first = engine.split("/")[0];
+      let outputs: Record<string, any> = {};
+    
+      switch (first) {
+        case "helm":
+          outputs = await applyHelm(workdir, host, ctx, values);
+          break;
+        case "wing":
+          outputs = await applyWing(workdir, host, engine, ctx, values);
+          break;
+        case "tofu":
+          outputs = await applyTofu(workdir, host, ctx, values);
+          break;
+        case "cdk8s":
+          outputs = await applyCdk8s(workdir, host, engine, ctx, values);
+          break;
+        case "noop":
+          outputs = {};
+          break;
+        case "custom":
+          outputs = await applyCustom(workdir, host, ctx, values);
+          break;
+        default:
+          throw new Error(`unsupported engine: ${engine}`);
+      }
   
-    switch (first) {
-      case "helm":
-        outputs = await applyHelm(workdir, host, ctx, values);
-        break;
-      case "wing":
-        outputs = await applyWing(workdir, host, engine, ctx, values);
-        break;
-      case "tofu":
-        outputs = await applyTofu(workdir, host, ctx, values);
-        break;
-      case "cdk8s":
-        outputs = await applyCdk8s(workdir, host, engine, ctx, values);
-        break;
-      case "noop":
-        outputs = {};
-        break;
-      case "custom":
-        outputs = await applyCustom(workdir, host, ctx, values);
-        break;
-      default:
-        throw new Error(`unsupported engine: ${engine}`);
-    }
+      if (Object.keys(outputs).length > 0) {
+        await statusUpdate(outputs);
+      }
 
-    if (Object.keys(outputs).length > 0) {
-      await patchObjectState(host, outputs);
+      const outputDesc = [];
+      for (const [key, value] of Object.entries(outputs)) {
+        outputDesc.push(`*${key}:* ${value}`);
+      }
+      successString = outputDesc.join("\n");
+    } else {
+      const status = await execRead(workdir, host, ctx, values);
+      if (status) {
+        await statusUpdate(status);
+      }
+      successString = "*Read operation completed*";
     }
 
     await publishNotification(host, {
@@ -177,16 +205,9 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         object: {},
         reason: eventAction,
       });
-
     } else {
       await updateReadyCondition(true, StatusReason.Completed);
-
-      const outputDesc = [];
-      for (const [key, value] of Object.entries(outputs)) {
-        outputDesc.push(`*${key}:* ${value}`);
-      }
-
-      await slack.update(slackStatus("🟢", `Success 🚀\n${outputDesc.join("\n")}`));
+      await slack.update(slackStatus("🟢", `Success 🚀\n${successString}`));
     }
   } catch (err: any) {
     console.error(err.stack);
