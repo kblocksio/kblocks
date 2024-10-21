@@ -3,14 +3,23 @@ kind: Config
 build:
   artifacts:
   - image: wingcloudbot/kblocks-operator
+    docker:
+      cacheFrom:
+        - wingcloudbot/kblocks-operator:latest
     context: ./packages/@kblocks/operator
     sync:
       infer: ["src/**/*.ts"]
   - image: wingcloudbot/kblocks-worker
+    docker:
+      cacheFrom:
+        - wingcloudbot/kblocks-worker:latest
     context: ./packages/@kblocks/worker
     sync:
       infer: ["src/**/*.ts"]
   - image: wingcloudbot/kblocks-control
+    docker:
+      cacheFrom:
+        - wingcloudbot/kblocks-control:latest
     context: ./packages/@kblocks/control
     sync:
       infer: ["src/**/*.ts"]
