@@ -47,7 +47,10 @@ async function createResource(name: string, { kind = "TestResource", plural = "t
   await waitUntil(async () => {
     const resources = await getResources();
     obj = resources[objUri];
-    return obj;
+    if (obj && obj.apiVersion) {
+      return true;
+    }
+    return false;
   });
 
   console.log("object created", obj);
