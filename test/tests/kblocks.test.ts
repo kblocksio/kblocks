@@ -115,7 +115,7 @@ async function patchResource(objUri: string, name: string) {
   return obj;
 }
 
-test("create resource", opts, async () => {
+test.only("create resource", opts, async () => {
   const name = `my-resource-${crypto.randomUUID()}`;
 
   // send a request to create the resource and wait for it to be created
