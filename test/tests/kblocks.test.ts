@@ -172,7 +172,14 @@ test("refresh resource that does not exist", opts, async () => {
   });
 
   // we expect the last event to be an empty OBJECT to represent the deleted resource
-  await waitUntilLastEvent(e => e.type === "OBJECT" && Object.keys(e.object ?? {}).length === 0);
+  await waitUntilLastEvent((e, events) => {
+    for (const event of (events ?? []).reverse()) {
+      if (event.objUri === objUri && event.type === "OBJECT" && Object.keys(event.object ?? {}).length === 0) {
+        return true;
+      }
+    }
+    return false;
+  });
 });
 
 test("refresh resource that exists", opts, async () => {
