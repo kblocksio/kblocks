@@ -45,7 +45,14 @@ export const Manifest = z.object({
       resources: z.array(z.string()),
       verbs: z.array(z.string()),
     }))),
-    envSecrets: z.optional(z.record(z.string())),
+    envSecrets: z.optional(z.union([
+      z.record(z.string()),
+      z.record(z.object({
+          key: z.string(),
+          secret: z.string(),
+        }),
+      ),
+    ])),
     envConfigMaps: z.optional(z.record(z.string())),
     env: z.optional(z.record(z.string())),
     workers: z.optional(z.number().default(1)),

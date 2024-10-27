@@ -78,6 +78,7 @@ export enum EventAction {
   Update = "UPDATE",
   Delete = "DELETE",
   Sync = "SYNC",
+  Read = "READ",
 }
 
 export enum StatusReason {
