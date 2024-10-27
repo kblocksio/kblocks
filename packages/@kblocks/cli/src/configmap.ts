@@ -10,7 +10,7 @@ import fs from "fs";
 
 export interface PodEnvironment {
   namespace: string;
-  envSecrets?: Record<string, string>;
+  envSecrets?: Record<string, string> | Record<string, { key: string, secret: string }>;
   envConfigMaps?: Record<string, string>;
   env?: Record<string, string>;
   configMaps: Record<string, k8s.ConfigMap>;
@@ -68,8 +68,13 @@ export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Contain
   }
 
   for (const [key, value] of Object.entries(podEnv.envSecrets ?? {})) {
-    const secret = k8s.Secret.fromSecretName(pod, `credentials-${key}-${value}`, value);
-    container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key }));
+    if (typeof value === "string") {
+      const secret = k8s.Secret.fromSecretName(pod, `credentials-${key}-${value}`, value);
+      container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key }));
+    } else {
+      const secret = k8s.Secret.fromSecretName(pod, `credentials-${key}-${value.secret}`, value.secret);
+      container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key: value.key }));
+    }
   }
 
   for (const [key, value] of Object.entries(podEnv.envConfigMaps ?? {})) {

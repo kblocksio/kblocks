@@ -10,7 +10,7 @@ export interface EventBase {
 export interface ObjectEvent extends EventBase {
   type: "OBJECT";
   object: ApiObject | {};
-  reason: "CREATE" | "UPDATE" | "DELETE" | "SYNC";
+  reason: "CREATE" | "UPDATE" | "DELETE" | "SYNC" | "READ";
 }
 
 export interface PatchEvent extends EventBase {

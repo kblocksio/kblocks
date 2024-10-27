@@ -136,10 +136,7 @@
               }
             },
             "envSecrets": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
+              "x-kubernetes-preserve-unknown-fields": true
             },
             "envConfigMaps": {
               "type": "object",
