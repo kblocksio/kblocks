@@ -95,6 +95,12 @@ function filterAdditionalProperties(obj: any): any {
       return result;
     }
 
+    if (Object.keys(obj).length === 1 && "anyOf" in obj) {
+      obj["x-kubernetes-preserve-unknown-fields"] = true;
+      delete obj.anyOf;
+      return obj;
+    }
+
     if (obj.additionalProperties === false) {
       delete obj.additionalProperties;
     }
