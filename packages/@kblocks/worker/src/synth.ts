@@ -97,6 +97,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     if (ctx.watchEvent === "Added" || ctx.watchEvent === "Modified"){
       if (!(await updateLastStateHash(statusUpdate, ctx.object))) {
         console.log("skipping status update");
+        await deleteWorkdir(workdir);
         return;
       }
     }
@@ -253,10 +254,14 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
     await updateReadyCondition(false, StatusReason.Error);
   } finally {
-    if (process.env.DEBUG) {
-      console.warn("DEBUG: skipped cleanup of", workdir);
-    } else {
-      await fs.rm(workdir, { recursive: true, force: true });
-    }
+    await deleteWorkdir(workdir);
+  }
+}
+
+async function deleteWorkdir(workdir: string) {
+  if (process.env.DEBUG) {
+    console.warn("DEBUG: skipped cleanup of", workdir);
+  } else {
+    await fs.rm(workdir, { recursive: true, force: true });
   }
 }
