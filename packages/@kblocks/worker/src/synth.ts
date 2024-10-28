@@ -60,16 +60,16 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       await fs.cp(sourcedir, workdir, { recursive: true });
     }
 
+    // if we are reading but there is no read script, we should just skip the read
+    if (isReading && !hasReadScript(workdir)) {
+      console.log("No read script found, skipping read request");
+      return;
+    }
 
     console.log("-------------------------------------------------------------------------------------------");
     const lastProbeTime = new Date().toISOString();
     const statusUpdate = statusUpdater(host, ctx.object);
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
-      // skip updating the ready condition if we are just reading to avoid unnecessary updates
-      if (isReading) {
-        return;
-      }
-
       return statusUpdate({ conditions: [{
         type: "Ready",
         status: ready ? "True" : "False",
@@ -78,13 +78,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         message: reason,
         reason,
       }] });
-    }
-
-
-    // if we are reading but there is no read script, we should just skip the read
-    if (isReading && !hasReadScript(workdir)) {
-      console.log("No read script found, skipping read request");
-      return;
     }
 
     let eventAction: EventAction;
