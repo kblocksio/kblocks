@@ -16,6 +16,8 @@ export function flush(system: string, manifest: Manifest) {
     console.log("flushed");
   }).catch((error) => {
     console.error("Error flushing resources:", error);
+    console.error("Restarting pod...");
+    process.exit(1);
   });
 }
 
