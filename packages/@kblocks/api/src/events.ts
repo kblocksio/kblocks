@@ -59,9 +59,9 @@ export type WorkerEvent =
 
 // -------------------------------------------------------------------------------------------------
 
-const MAX_TRIES = 20;
+const MAX_TRIES = 5;
 const INITIAL_DELAY = 250;
-const EXPONENTIAL_BACKOFF = 1.4;
+const EXPONENTIAL_BACKOFF = 1.5;
 
 export function emitEvent(event: WorkerEvent) {
   emitEventAsync(event).catch(err => {
