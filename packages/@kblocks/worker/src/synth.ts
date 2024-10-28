@@ -30,10 +30,14 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     name: ctx.object.metadata.name,
     uid: ctx.object.metadata.uid,
   };
-
+  
+  const isDeletion = ctx.watchEvent === "Deleted";
+  const isReading = ctx.watchEvent === "Read";
   const objType = `${objRef.apiVersion}/${plural}`;
   const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
-  const logger = createLogger(objUri, objType);
+
+  // do not emit logs for read requests (if there will be an error, we will include the info there)
+  const logger = createLogger(objUri, objType, { emitEvent: !isReading });
 
   const host: RuntimeContext = {
     getenv,
@@ -56,8 +60,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       await fs.cp(sourcedir, workdir, { recursive: true });
     }
 
-    const isDeletion = ctx.watchEvent === "Deleted";
-    const isReading = ctx.watchEvent === "Read";
 
     console.log("-------------------------------------------------------------------------------------------");
     const lastProbeTime = new Date().toISOString();

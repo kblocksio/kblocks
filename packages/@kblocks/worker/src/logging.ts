@@ -8,14 +8,16 @@ const toLogFunction = {
   [LogLevel.ERROR]: console.error,
 };
 
-export function createLogger(objUri: string, objType: string) {
+export function createLogger(objUri: string, objType: string, options: { emitEvent?: boolean } = {}) {
   function log(message: string, level: LogLevel = LogLevel.INFO, parentLogId?: string) {
     const consoleFunction = toLogFunction[level];
     consoleFunction(">>", message);
 
     const logId = generateGroupId();
 
-    emitEvent({
+    const shouldEmitEvent = options.emitEvent ?? true;
+    if (shouldEmitEvent) {
+      emitEvent({
       type: "LOG",
       objUri,
       objType,
@@ -23,8 +25,9 @@ export function createLogger(objUri: string, objType: string) {
       level,
       timestamp: new Date(),
       logId,
-      parentLogId,
-    });
+        parentLogId,
+      });
+    }
 
     return {
       debug: (message: string) => log(message, LogLevel.DEBUG, logId),
