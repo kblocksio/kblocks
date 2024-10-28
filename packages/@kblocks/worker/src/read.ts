@@ -5,9 +5,17 @@ import type { BindingContext } from "./api/index.js";
 import { tempdir } from './util.js';
 import { findOwnedObjects } from "./ownedObjects.js";
 
+function resolveReadPath(dir: string): string {
+  return join(dir, "read");
+}
+
+export function hasReadScript(dir: string): boolean {
+  return existsSync(resolveReadPath(dir));
+}
+
 export async function execRead(dir: string, host: RuntimeContext, ctx: BindingContext, values: string): Promise<Record<string, any> | undefined> {
   const statusfile = `${tempdir()}/status.json`;
-  const script = join(dir, "read");
+  const script = resolveReadPath(dir);
   if (!existsSync(script)) {
     console.log(`Read script not found,`);
     return undefined;
