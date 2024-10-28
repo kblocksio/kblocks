@@ -56,10 +56,18 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       await fs.cp(sourcedir, workdir, { recursive: true });
     }
 
+    const isDeletion = ctx.watchEvent === "Deleted";
+    const isReading = ctx.watchEvent === "Read";
+
     console.log("-------------------------------------------------------------------------------------------");
     const lastProbeTime = new Date().toISOString();
     const statusUpdate = statusUpdater(host, ctx.object);
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
+      // skip updating the ready condition if we are just reading to avoid unnecessary updates
+      if (isReading) {
+        return;
+      }
+
       return statusUpdate({ conditions: [{
         type: "Ready",
         status: ready ? "True" : "False",
@@ -70,8 +78,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       }] });
     }
 
-    const isDeletion = ctx.watchEvent === "Deleted";
-    const isReading = ctx.watchEvent === "Read";
 
     // if we are reading but there is no read script, we should just skip the read
     if (isReading && !hasReadScript(workdir)) {
@@ -114,7 +120,11 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
     const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
     const slackStatus = (icon: string, reason: string) => `${icon} _${objRef.kind}_ *${objRef.namespace}/${objRef.name}*: ${reason}`;
-    const slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
+
+    let slack: Awaited<ReturnType<typeof host.newSlackThread>> | undefined = undefined;
+    if (!isReading) {
+      slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
+    }
 
     try {
       // send the new object state (if this is a deletion, we do that only after we are complete
@@ -131,12 +141,15 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         });
       }
 
-      await publishNotification(host, {
-        type: EventType.Normal,
-        action: eventAction,
-        reason: EventReason.Started,
-        message: isReading ? "Reading resource" : isDeletion ? "Deleting resource" : "Updating resource",
-      });
+      // reduce verbosity of the notification if we are just reading. otherwise we are doomed
+      if (!isReading) {
+        await publishNotification(host, {
+          type: EventType.Normal,
+          action: eventAction,
+          reason: EventReason.Started,
+          message: isDeletion ? "Deleting resource" : "Updating resource",
+        });
+      }
 
       // resolve references by waiting for the referenced objects to be ready
       await updateReadyCondition(false, StatusReason.ResolvingReferences);
@@ -193,12 +206,15 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         successString = "*Read operation completed*";
       }
 
-      await publishNotification(host, {
-        type: EventType.Normal,
-        action: eventAction,
-        reason: EventReason.Succeeded,
-        message: "Completed successfully",
-      });
+      // reduce verbosity of the notification if we are just reading.
+      if (!isReading) {
+        await publishNotification(host, {
+          type: EventType.Normal,
+          action: eventAction,
+          reason: EventReason.Succeeded,
+          message: "Completed successfully",
+        });
+      }
 
       if (isDeletion) {
         host.emitEvent({
@@ -210,10 +226,10 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
           reason: eventAction,
         });
 
-        await slack.update(slackStatus("⚪", "Deleted"));
+        await slack?.update(slackStatus("⚪", "Deleted"));
       } else {
         await updateReadyCondition(true, StatusReason.Completed);
-        await slack.update(slackStatus("🟢", `Success 🚀\n${successString}`));
+        await slack?.update(slackStatus("🟢", `Success 🚀\n${successString}`));
       }
     } catch (err: any) {
       console.error(err.stack);
@@ -225,9 +241,9 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         message: err.stack,
       });
 
-      await slack.update(slackStatus("🔴", "Failure"));
-      await slack.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
-      await slack.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
+      await slack?.update(slackStatus("🔴", "Failure"));
+      await slack?.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
+      await slack?.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
       const explanation = await explainError(host, ctx, err.message);
 
       host.emitEvent({
@@ -248,7 +264,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
             text: "✨ _Powered by AI_",
           },
         });
-        await slack.postBlocks(explanation.blocks);
+        
+        await slack?.postBlocks(explanation.blocks);
       }
 
       await updateReadyCondition(false, StatusReason.Error);
