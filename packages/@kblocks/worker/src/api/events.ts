@@ -64,7 +64,12 @@ const INITIAL_DELAY = 250;
 const EXPONENTIAL_BACKOFF = 1.4;
 
 export function emitEvent(event: WorkerEvent) {
-  emitEventAsync(event).catch(err => console.error(err));
+  emitEventAsync(event).catch(err => {
+    console.error(err);
+
+    // restart the pod to give it a chance to recover
+    process.exit(1);
+  });
 }
 
 export async function emitEventAsync(event: WorkerEvent) {
