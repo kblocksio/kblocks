@@ -59,7 +59,19 @@ export type WorkerEvent =
 
 // -------------------------------------------------------------------------------------------------
 
+const MAX_TRIES = 20;
+const INITIAL_DELAY = 250;
+const EXPONENTIAL_BACKOFF = 1.4;
+
 export function emitEvent(event: WorkerEvent) {
+  emitEventAsync(event).catch(err => console.error(err));
+}
+
+export async function emitEventAsync(event: WorkerEvent) {
+  const sleep = async (ms: number) => {
+    return new Promise(ok => setTimeout(ok, ms));
+  };
+
   const req = {
     method: "POST",
     body: JSON.stringify(event),
@@ -69,11 +81,28 @@ export function emitEvent(event: WorkerEvent) {
   };
 
   const eventsEndpoint = getEndpoints().events;
-  fetch(eventsEndpoint, req).then(res => {
-    if (!res.ok) {
-      console.warn(`${eventsEndpoint}: ${res.status} body: ${res.statusText}`);
+  let tries = MAX_TRIES;
+  let delay = INITIAL_DELAY;
+
+  while (true) {
+    try {
+      const res = await fetch(eventsEndpoint, req);
+      if (res.ok) {
+        return;
+      }
+
+      throw new Error(`${res.status} ${res.statusText}`);
+    } catch (err: any) {
+
+      if (tries === 0) {
+        throw new Error(`Failed to emit event to ${eventsEndpoint} after ${MAX_TRIES} tries: ${err.cause?.message ?? err.message}`);
+      }
+
+      console.warn(`Error sending event to ${eventsEndpoint}: ${err.cause?.message ?? err.message}`);
+      console.warn(`Retrying in ${delay}ms... (${tries} tries left)`);
+      await sleep(delay);
+      delay = Math.floor(delay * EXPONENTIAL_BACKOFF);
+      tries--;
     }
-  }).catch(err => {
-    console.warn(`${eventsEndpoint}: ${err.cause?.message ?? err.message}`);
-  });
+  }
 }
