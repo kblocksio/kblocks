@@ -5,9 +5,13 @@ import yaml from "yaml";
 import fs from "fs";
 import path from "path";
 
-const version = process.env.KBLOCKS_VERSION;
+let version = process.env.KBLOCKS_VERSION;
 if (!version) {
-  throw new Error("KBLOCKS_VERSION is not set");
+  if (process.env.CI) {
+    throw new Error("KBLOCKS_VERSION is not set");
+  }
+
+  version = "dev";
 }
 
 const specSchema = filterAdditionalProperties(zodToJsonSchema(Manifest));
@@ -58,7 +62,12 @@ const schema = {
 
 fs.writeFileSync(path.join(__dirname, "../manifest.schema.json"), JSON.stringify(schema, null, 2));
 fs.mkdirSync(path.join(__dirname, "../templates"), { recursive: true });
-fs.writeFileSync(path.join(__dirname, "../Chart.yaml"), yaml.stringify(chart));
+
+// only write the Chart.yaml if we are in CI
+if (version !== "dev") {
+  fs.writeFileSync(path.join(__dirname, "../Chart.yaml"), yaml.stringify(chart));
+}
+
 fs.writeFileSync(path.join(__dirname, "../kblock.yaml"), yaml.stringify(manifest));
 
 function filterAdditionalProperties(obj: any): any {

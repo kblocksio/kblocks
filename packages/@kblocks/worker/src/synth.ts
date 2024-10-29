@@ -68,7 +68,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
     console.log("-------------------------------------------------------------------------------------------");
     const lastProbeTime = new Date().toISOString();
-    const statusUpdate = statusUpdater(host, ctx.object);
+    const statusUpdate = statusUpdater(host, ctx.object, { emitEvent: !isReading });
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
       return statusUpdate({ conditions: [{
         type: "Ready",
@@ -99,7 +99,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         break;
     }
 
-
     try {
       // for new objects, save the initial state hash for future comparison
       // for modified objects, only save if the state has actually changed
@@ -125,7 +124,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       // send the new object state (if this is a deletion, we do that only after we are complete
       // because it will cause the deletion of the object from the portal). this must be done before
       // we start updating the object, because the portal needs to know about the object.
-      if (!isDeletion) {
+      // do not send an update if we are just reading.
+      if (!isDeletion && !isReading) {
         host.emitEvent({
           type: "OBJECT",
           timestamp: new Date(),
@@ -196,8 +196,9 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       } else {
         const status = await execRead(workdir, host, ctx, values);
         if (status) {
-          await statusUpdate(status);
+          await statusUpdate(status, { emitEvent: true }); // <-- send a PATCH event to make sure the object state is updated
         }
+
         successString = "*Read operation completed*";
       }
 

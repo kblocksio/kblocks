@@ -35,7 +35,7 @@ function createHashFromData(data: Record<string, string>) {
   return crypto.createHash("sha256").update(sortedData).digest("hex").substring(0, 62);
 }
 
-export function statusUpdater(host: RuntimeContext, api: ApiObject) {
+export function statusUpdater(host: RuntimeContext, api: ApiObject, defaultOptions: { emitEvent: boolean }) {
   const mergeConditions = (current: Condition[], newConditions: Condition[]) => {
     const conditions = [...current];
     newConditions.forEach(newCondition => {
@@ -50,7 +50,7 @@ export function statusUpdater(host: RuntimeContext, api: ApiObject) {
   };
 
   let currentStatus = api.status ?? {};
-  return async (status: Record<string, any>) => {
+  return async (status: Record<string, any>, options: { emitEvent?: boolean } = {}) => {
     currentStatus = deepmerge(currentStatus, status, {
       customMerge: (key: string) => {
         if (key === "conditions") {
@@ -59,6 +59,8 @@ export function statusUpdater(host: RuntimeContext, api: ApiObject) {
       },
     });
 
-    return patchObjectState(host, currentStatus);
+    return patchObjectState(host, currentStatus, {
+      emitEvent: options.emitEvent ?? defaultOptions.emitEvent,
+    });
   };
 }

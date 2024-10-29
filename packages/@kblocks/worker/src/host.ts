@@ -24,18 +24,20 @@ export function kblockOutputs(host: RuntimeContext) {
   return (host.tryGetenv("KBLOCK_OUTPUTS") ?? "").split(",").filter(x => x);
 }
 
-export async function patchObjectState(host: RuntimeContext, patch: any) {
+export async function patchObjectState(host: RuntimeContext, patch: any, options: { emitEvent?: boolean } = {}) {
   try {
     const group = host.objRef.apiVersion.split("/")[0];
     const type = `${host.objRef.kind.toLowerCase()}.${group}`;
 
-    host.emitEvent({
-      type: "PATCH",
-      timestamp: new Date(),
-      objUri: host.objUri,
-      objType: host.objType,
-      patch: { status: patch },
-    });
+    if (options.emitEvent ?? true) {
+      host.emitEvent({
+        type: "PATCH",
+        timestamp: new Date(),
+        objUri: host.objUri,
+        objType: host.objType,
+        patch: { status: patch },
+      });
+    }
 
     // do not share the logs of ths command because it's not interesting
     await exec(undefined, "kubectl", [
