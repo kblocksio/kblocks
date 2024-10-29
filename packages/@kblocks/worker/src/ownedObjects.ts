@@ -78,7 +78,7 @@ async function listNamespacedCustomObject(group: string, version: string, namesp
     const resources = await client.listNamespacedCustomObject(group, version, namespace, plural);
     return (resources.body as any).items.map((i: any) => ({ ...i, group, version, plural }));
   } catch (error) {
-    console.error(`Error listing resources for ${group}/${version}/${plural}`);
+    // ignore
     return null;
   }
 }
