@@ -69,16 +69,18 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
     console.log("-------------------------------------------------------------------------------------------");
     const lastProbeTime = new Date().toISOString();
-    const statusUpdate = statusUpdater(host, ctx.object, { emitEvent: !isReading });
+    const statusUpdate = statusUpdater(host, ctx.object);
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
-      return statusUpdate({ conditions: [{
-        type: "Ready",
-        status: ready ? "True" : "False",
-        lastTransitionTime: new Date().toISOString(),
-        lastProbeTime,
-        message: reason,
-        reason,
-      }] });
+      if (!isReading) {
+        return statusUpdate({ conditions: [{
+          type: "Ready",
+          status: ready ? "True" : "False",
+          lastTransitionTime: new Date().toISOString(),
+          lastProbeTime,
+          message: reason,
+          reason,
+        }] });
+      }
     }
 
     let eventAction: EventAction;
@@ -232,8 +234,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       }
 
       if (updatedStatus && !isDeletion) {
-        // always emit an event for new statuses
-        await statusUpdate(updatedStatus, { emitEvent: true });
+        // emit an event for new statuses
+        await statusUpdate(updatedStatus);
       }
     } catch (err: any) {
       console.error(err.stack);
