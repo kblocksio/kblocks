@@ -158,6 +158,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       await fs.writeFile(values, JSON.stringify(ctx.object));
 
       let successString = "";
+      let updatedStatus: Record<string, any> | undefined = undefined;
+
       if (!isReading) {
         const first = engine.split("/")[0];
         let outputs: Record<string, any> = {};
@@ -186,7 +188,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         }
     
         if (Object.keys(outputs).length > 0) {
-          await statusUpdate(outputs);
+          updatedStatus = outputs;
         }
 
         const outputDesc = [];
@@ -197,7 +199,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       } else {
         const status = await execRead(workdir, host, ctx, values);
         if (status) {
-          await statusUpdate(status, { emitEvent: true }); // <-- send a PATCH event to make sure the object state is updated
+          updatedStatus = status;
         }
 
         successString = "*Read operation completed*";
@@ -227,6 +229,11 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       } else {
         await updateReadyCondition(true, StatusReason.Completed);
         await slack?.update(slackStatus("🟢", `Success 🚀\n${successString}`));
+      }
+
+      if (updatedStatus && !isDeletion) {
+        // always emit an event for new statuses
+        await statusUpdate(updatedStatus, { emitEvent: true });
       }
     } catch (err: any) {
       console.error(err.stack);
