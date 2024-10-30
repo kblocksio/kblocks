@@ -17,6 +17,7 @@ export interface RuntimeContext {
   objUri: string;
   objRef: InvolvedObject;
   objType: string;
+  system: string;
   logger: ReturnType<typeof createLogger>;
 }
 

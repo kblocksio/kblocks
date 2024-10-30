@@ -6,6 +6,7 @@ import { applyTerraform } from "./tf.js";
 import { addOwnerReferences } from "./ownership.js";
 import type { BindingContext } from "./api/index.js";
 import { kblockOutputs, RuntimeContext } from "./host.js";
+import { renderTerraformStateKey } from "./tofu.js";
 
 export async function applyWing(workdir: string, host: RuntimeContext, engine: string, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const [_, target] = engine.split("/");
@@ -31,7 +32,7 @@ async function applyWingTerraform(workdir: string, host: RuntimeContext, values:
     s3: {
       bucket: host.getenv("TF_BACKEND_BUCKET"),
       region: host.getenv("TF_BACKEND_REGION"),
-      key: `${host.getenv("TF_BACKEND_KEY")}-${ctx.object.metadata.namespace}-${ctx.object.metadata.name}`,
+      key: renderTerraformStateKey(host, ctx),
       dynamodb_table: host.tryGetenv("TF_BACKEND_DYNAMODB"),
     }
   };

@@ -49,6 +49,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     objType,
     objRef,
     logger,
+    system: KBLOCKS_SYSTEM_ID,
     exec: (command, args, options) => exec(logger, command, args, options),
   };
 
