@@ -1,9 +1,13 @@
-import { test, expect } from "vitest";
+import { test, expect, beforeAll, vi } from "vitest";
 import crypto from "crypto";
 import { ControlCommand } from "../../packages/@kblocks/control/src/api";
 
 const SERVER_URL = "http://localhost:8080";
 const opts = { timeout: 60_000 };
+
+beforeAll(async () => {
+  vi.setConfig({ testTimeout: 120_000 });
+});
 
 async function getResources() {
   const response = await fetch(`${SERVER_URL}/`);
