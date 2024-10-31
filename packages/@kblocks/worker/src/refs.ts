@@ -74,7 +74,7 @@ export async function resolveReferencesInternal(originalObj: ApiObject, resolver
 
     for (const match of value.matchAll(refRegex)) {
       const [ _, apiGroup, name, field, timeout ] = match;
-      refs[match[0]] = { apiGroup, name, field: field.trim(), timeout: timeout ? parseInt(timeout) : undefined };
+      refs[match[0]] = { apiGroup, name, field: field.trim(), timeout };
     }
 
     return value;
