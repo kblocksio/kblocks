@@ -13,7 +13,7 @@ interface ResolveContext {
   name: string;
   namespace: string;
   field: string;
-  timeout?: number;
+  timeout?: string;
 }
 
 export async function resolveReferences(action: EventAction, cwd: string, host: RuntimeContext, obj: ApiObject) {
