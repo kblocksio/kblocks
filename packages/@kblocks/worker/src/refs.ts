@@ -65,7 +65,7 @@ export async function resolveReferencesInternal(originalObj: ApiObject, resolver
   };
 
   
-  const refs: Record<string, { apiGroup: string, name: string, field: string, timeout?: number }> = {};
+  const refs: Record<string, { apiGroup: string, name: string, field: string, timeout?: string }> = {};
   
   const finder = (_: string, value: any) => {
     if (typeof value !== "string") {
