@@ -1,8 +1,9 @@
 import { RuntimeContext, publishNotification } from "./host.js";
 import { EventAction, EventReason, EventType, type ApiObject } from "./api/index.js";
 
-// regular expression that matches `${ref://apigroup/name/field}`, for example: `${ref://queues.acme.com/my-queue/queueUrl}`
-const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^}]+)\s*\}/g;
+// regular expression that matches `${ref://apigroup/name/field}` or `${ref://apigroup/name/field?timeout=value}`, 
+// for example: `${ref://queues.acme.com/my-queue/queueUrl}` or `${ref://queues.acme.com/my-queue/queueUrl?timeout=10m}`
+const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^?}]+)(?:\?timeout=(\d+[a-z]{1,2}))?\s*\}/g;
 
 type Resolver = (context: ResolveContext) => Promise<string>;
 
@@ -12,11 +13,12 @@ interface ResolveContext {
   name: string;
   namespace: string;
   field: string;
+  timeout?: string;
 }
 
 export async function resolveReferences(action: EventAction, cwd: string, host: RuntimeContext, obj: ApiObject) {
 
-  return await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field }: ResolveContext) => {
+  return await resolveReferencesInternal(obj, async ({ ref, apiGroup, name, namespace, field, timeout }: ResolveContext) => {
     const kubectl = (...args: string[]) => host.exec("kubectl", args, { cwd });
 
     await publishNotification(host, {
@@ -30,7 +32,7 @@ export async function resolveReferences(action: EventAction, cwd: string, host: 
       "wait",
       "--for=condition=Ready",
       `${apiGroup}/${name}`,
-      "--timeout=5m",
+      `--timeout=${timeout ?? "5m"}`,
       "-n", namespace
     );
 
@@ -63,7 +65,7 @@ export async function resolveReferencesInternal(originalObj: ApiObject, resolver
   };
 
   
-  const refs: Record<string, { apiGroup: string, name: string, field: string }> = {};
+  const refs: Record<string, { apiGroup: string, name: string, field: string, timeout?: string }> = {};
   
   const finder = (_: string, value: any) => {
     if (typeof value !== "string") {
@@ -71,8 +73,8 @@ export async function resolveReferencesInternal(originalObj: ApiObject, resolver
     }
 
     for (const match of value.matchAll(refRegex)) {
-      const [ _, apiGroup, name, field ] = match;
-      refs[match[0]] = { apiGroup, name, field: field.trim() };
+      const [ _, apiGroup, name, field, timeout ] = match;
+      refs[match[0]] = { apiGroup, name, field: field.trim(), timeout };
     }
 
     return value;
@@ -83,14 +85,15 @@ export async function resolveReferencesInternal(originalObj: ApiObject, resolver
 
   const resolved: Record<string, string> = {};
 
-  for (const [ ref, { apiGroup, name, field } ] of Object.entries(refs)) {
+  for (const [ ref, { apiGroup, name, field, timeout } ] of Object.entries(refs)) {
     try {
       resolved[ref] = await resolver({
         ref,
         apiGroup,
         name,
         namespace,
-        field
+        field,
+        timeout
       });
     } catch (e: any) {
       throw new Error(`Error resolving ${ref}: ${e.message}`);
