@@ -552,6 +552,14 @@ exports[`minimal block snapshot 1`] = `
                     },
                   },
                 },
+                {
+                  "name": "REDIS_URL",
+                  "value": "redis://boom-redis.{{ .Release.Namespace }}.svc.cluster.local:6379",
+                },
+                {
+                  "name": "WORKERS",
+                  "value": "1",
+                },
               ],
               "image": "dummy/test-control-image:latest",
               "imagePullPolicy": "Always",
@@ -1367,12 +1375,20 @@ exports[`operator configuration 1`] = `
                   },
                 },
                 {
+                  "name": "REDIS_URL",
+                  "value": "redis://boom-redis.my-namespace.svc.cluster.local:6379",
+                },
+                {
                   "name": "ENV1",
                   "value": "env-1",
                 },
                 {
                   "name": "ENV2",
                   "value": "env-2",
+                },
+                {
+                  "name": "WORKERS",
+                  "value": "2",
                 },
               ],
               "image": "dummy/test-control-image:latest",

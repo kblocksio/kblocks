@@ -5,6 +5,7 @@ import { PodEnvironment, setupPodEnvironment } from "./configmap";
 export interface ControlProps extends PodEnvironment {
   image: string;
   kind: string
+  workers: number;
 }
 
 export class Control extends Construct {
@@ -67,5 +68,7 @@ export class Control extends Construct {
     });
 
     setupPodEnvironment(controlDeployment, container, props);
+
+    container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
   }
 }

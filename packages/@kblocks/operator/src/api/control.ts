@@ -36,4 +36,12 @@ export type RefreshCommand = {
   objUri: string;
 };
 
-export type ControlCommand = ApplyCommand | PatchCommand | DeleteCommand | RefreshCommand;
+/**
+ * Read command is used to trigger a read command on the given resource.
+ */
+export type ReadCommand = {
+  type: "READ";
+  objUri: string;
+};
+
+export type ControlCommand = ApplyCommand | PatchCommand | DeleteCommand | RefreshCommand | ReadCommand;

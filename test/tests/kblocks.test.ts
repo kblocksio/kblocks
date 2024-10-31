@@ -1,13 +1,9 @@
-import { test, expect, beforeAll, vi } from "vitest";
+import { test, expect } from "vitest";
 import crypto from "crypto";
 import { ControlCommand } from "../../packages/@kblocks/control/src/api";
 
 const SERVER_URL = "http://localhost:8080";
-const opts = { timeout: 60_000 };
-
-beforeAll(async () => {
-  vi.setConfig({ testTimeout: 120_000 });
-});
+const opts = { timeout: 120_000 };
 
 async function getResources() {
   const response = await fetch(`${SERVER_URL}/`);
@@ -253,6 +249,26 @@ test("custom resource", opts, async () => {
 
   await deleteResource(objUri);
   await waitForResourceToBeDeleted(objUri);
+});
+
+test("read resource", opts, async () => {
+  const name = `my-read-resource-${crypto.randomUUID()}`;
+
+  const { objUri } = await createResource(name);
+
+  await sendControlCommand({
+    type: "READ",
+    objUri
+  });
+
+  await waitForResourceToMatch(objUri, { status: { conditions: [{
+    type: "Healthy",
+    status: "True",
+    message: "ok",
+    reason: "ok",
+    lastTransitionTime: expect.any(String),
+    lastProbeTime: expect.any(String)
+  }] } });
 });
 
 async function waitUntilLastEvent(predicate: (event: any, events?: any[]) => boolean, timeout: number = 60_000) {

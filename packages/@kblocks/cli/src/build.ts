@@ -140,7 +140,13 @@ export class Block extends Chart {
       configMaps: configmap.configMaps,
       ...block.operator,
       ...block.definition,
+      workers,
       namespace,
+      env: {
+        // redis url should be the url of the redis instance in the operator
+        REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
+        ...block.operator?.env,
+      }
     });
   
     const schema = resolveSchema(block);
