@@ -28,6 +28,7 @@ export type ApiObject =  {
     uid?: string;
     annotations?: Record<string, string>;
     labels?: Record<string, string>;
+    ownerReferences?: OwnerReference[];
     managedFields?: any[];
   };
 
@@ -40,6 +41,16 @@ export type ApiObject =  {
   // desired state
   [key: string]: any;
 };
+
+export type OwnerReference = {
+  apiVersion: string;
+  kind: string;
+  name: string;
+  uid?: string;
+  blockOwnerDeletion?: boolean;
+  controller?: boolean;
+};
+
 
 export type InvolvedObject = {
   apiVersion: string;
