@@ -32,7 +32,7 @@ export async function resolveReferences(action: EventAction, cwd: string, host: 
       "wait",
       "--for=condition=Ready",
       `${apiGroup}/${name}`,
-      "--timeout=" + (timeout ?? "5") + "m",
+      `--timeout=${timeout ?? "5m"}`,
       "-n", namespace
     );
 
