@@ -2,8 +2,8 @@ import { RuntimeContext, publishNotification } from "./host.js";
 import { EventAction, EventReason, EventType, type ApiObject } from "./api/index.js";
 
 // regular expression that matches `${ref://apigroup/name/field}` or `${ref://apigroup/name/field?timeout=value}`, 
-// for example: `${ref://queues.acme.com/my-queue/queueUrl}` or `${ref://queues.acme.com/my-queue/queueUrl?timeout=10}`
-const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^?}]+)(?:\?timeout=(\d+))?\s*\}/g;
+// for example: `${ref://queues.acme.com/my-queue/queueUrl}` or `${ref://queues.acme.com/my-queue/queueUrl?timeout=10m}`
+const refRegex = /\$\{\s*ref:\/\/([^\/]+)\/([^\/]+)\/([^?}]+)(?:\?timeout=(\d+[a-z]{1,2}))?\s*\}/g;
 
 type Resolver = (context: ResolveContext) => Promise<string>;
 
