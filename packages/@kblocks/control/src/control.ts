@@ -7,6 +7,7 @@ import { Context } from "./context";
 import { refreshObject } from "./refresh";
 import { patchObject } from "./patch";
 import { connect } from "./socket";
+import { readObject } from "./read";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -117,6 +118,9 @@ async function handleCommandMessage(ctx: Context, command: ControlCommand) {
 
     case "REFRESH":
       return await refreshObject(client, ctx, command.objUri);
+
+    case "READ":
+      return await readObject(client, ctx, command.objUri);
 
     default:
       throw new Error(`Unsupported control command: '${JSON.stringify(command)}'`);
