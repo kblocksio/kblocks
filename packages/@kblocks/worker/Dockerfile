@@ -19,7 +19,7 @@ RUN ARCH=$(uname -m); \
     mv kubectl /usr/local/bin/
 
     
-RUN npm install -g typescript winglang@^0.85.27 cdk8s-cli tsx
+RUN npm install -g typescript winglang@^0.85.29 cdk8s-cli tsx
 
 RUN mkdir /terraform-cache
 ENV TF_PLUGIN_CACHE_DIR="/terraform-cache"
