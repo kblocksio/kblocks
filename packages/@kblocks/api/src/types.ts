@@ -93,6 +93,7 @@ export enum EventAction {
 }
 
 export enum StatusReason {
+  Pending = "Pending",
   ResolvingReferences = "ResolvingReferences",
   InProgress = "InProgress",
   Completed = "Completed",
