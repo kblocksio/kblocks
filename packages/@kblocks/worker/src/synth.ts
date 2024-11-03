@@ -16,6 +16,7 @@ import { statusUpdater, updateLastStateHash } from "./state.js";
 import { applyCustom } from "./custom.js";
 import { ENGINES } from "./api/engine.js";
 import { execRead, hasReadScript } from "./read.js";
+import { getResource } from "./resources.js";
 
 export async function synth(sourcedir: string | undefined, engine: keyof typeof ENGINES, plural: string, ctx: BindingContext) {
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
@@ -59,6 +60,11 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   try {
     if (sourcedir) {
       await fs.cp(sourcedir, workdir, { recursive: true });
+    }
+
+    if (!isDeletion) {
+      // fetch the latest object since the message was queued
+      ctx.object = await getResource(host);
     }
 
     // if we are reading but there is no read script, we should just skip the read
