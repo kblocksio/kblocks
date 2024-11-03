@@ -1,5 +1,6 @@
 import http from "http";
 import { WebSocketServer } from 'ws';
+import { execSync } from 'child_process';
 
 const map: Record<string, any> = {};
 const events: Array<any> = [];
@@ -73,6 +74,16 @@ server.on("request", (req, res) => {
           client.send(bodyString);
         }
 
+        return res.end();
+      }
+
+      if (req.url === "/reset") {
+        execSync('kubectl delete testresources --all --all-namespaces');
+        execSync('kubectl delete customresources --all --all-namespaces');
+        for (const key of Object.keys(map)) {
+          delete map[key];
+        }
+        events.splice(0, events.length);
         return res.end();
       }
     });

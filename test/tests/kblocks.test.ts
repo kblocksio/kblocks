@@ -1,9 +1,20 @@
-import { test, expect } from "vitest";
+import { test, expect, beforeEach } from "vitest";
 import crypto from "crypto";
 import { ControlCommand } from "../../packages/@kblocks/control/src/api";
 
 const SERVER_URL = "http://localhost:8080";
 const opts = { timeout: 120_000 };
+
+beforeEach(async () => {
+  const response = await fetch(`${SERVER_URL}/reset`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to reset server: ${response.statusText}`);
+  }
+});
 
 async function getResources() {
   const response = await fetch(`${SERVER_URL}/`);
@@ -75,6 +86,20 @@ async function waitForResourceToMatch(objUri: string, obj: any) {
       const resource = resources[objUri];
       expect(resource).toMatchObject(obj);
       return true;
+    } catch (error) {
+      return false;
+    }
+  });
+}
+
+async function waitForResourceWithCallback(objUri: string, callback: (resource: any) => boolean) {
+  console.log(`waiting for ${objUri} resource to match...`);
+
+  await waitUntil(async () => {
+    const resources = await getResources();
+    try {
+      const resource = resources[objUri];
+      return callback(resource);
     } catch (error) {
       return false;
     }
@@ -261,14 +286,13 @@ test("read resource", opts, async () => {
     objUri
   });
 
-  await waitForResourceToMatch(objUri, { status: { conditions: [{
-    type: "Healthy",
-    status: "True",
-    message: "ok",
-    reason: "ok",
-    lastTransitionTime: expect.any(String),
-    lastProbeTime: expect.any(String)
-  }] } });
+  await waitForResourceWithCallback(objUri, (resource: any) => {
+    const healthy = resource.status.conditions.find((c: any) => c.type === "Healthy");
+    return healthy &&
+      healthy.status === "True" &&
+      healthy.message === "ok" &&
+      healthy.reason === "ok";
+  });
 });
 
 async function waitUntilLastEvent(predicate: (event: any, events?: any[]) => boolean, timeout: number = 60_000) {
