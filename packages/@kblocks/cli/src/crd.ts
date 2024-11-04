@@ -74,7 +74,7 @@ export class CustomResourceDefinition extends Construct {
       jsonPath: ".status.conditions[0].message",
     });
 
-    for (const [k, v] of Object.entries(props.schema.properties?.status ?? {})) {
+    for (const k of Object.keys(props.schema.properties?.status?.properties ?? {})) {
       if (!props.outputs?.includes(k)) {
         throw new Error(`output ${k} is defined in the schema's status but not in kblocks outputs`);
       }
