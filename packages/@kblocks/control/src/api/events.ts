@@ -100,7 +100,7 @@ export async function emitEventAsync(event: WorkerEvent) {
     } catch (err: any) {
 
       if (tries === 0) {
-        throw new Error(`Failed to emit event to ${eventsEndpoint} after ${MAX_TRIES} tries: ${err.cause?.message ?? err.message}`);
+        console.error(`Failed to emit event to ${eventsEndpoint} after ${MAX_TRIES} tries: ${err.cause?.message ?? err.message}`);
       }
 
       console.warn(`Error sending event to ${eventsEndpoint}: ${err.cause?.message ?? err.message}`);
