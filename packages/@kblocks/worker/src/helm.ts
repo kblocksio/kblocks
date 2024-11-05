@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+import { existsSync } from "fs";
 import { RuntimeContext } from "./host.js";
 import type { BindingContext } from "./api/index.js";
 
@@ -7,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const postRenderPath = resolve(__dirname, "./helm-add-ownership");
 
-export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingContext, values: string): Promise<Record<string, any>> {
+export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
   const obj = ctx.object;
 
   const namespace = obj.metadata.namespace ?? "default";
@@ -22,11 +23,23 @@ export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingC
     return {};
   }
 
+  const values: string[] = [];
+  const addValues = (path: string) => {
+    if (existsSync(path)) {
+      values.push("--values", path);
+    }
+  };
+
+  // if there's a local values.yaml or values.json file, add it to the args
+  addValues(resolve(dir, "values.yaml"));
+  addValues(resolve(dir, "values.json"));
+  addValues(valuesFile);
+
   // verify schema
   await host.exec("helm", [
     "lint", 
     ".", 
-    "--values", values
+    ...values
   ], { cwd: dir });
 
   const args = [
@@ -36,9 +49,9 @@ export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingC
     "--create-namespace",
     "--install",
     "--reset-values",
-    "--values", values,
     "--output", "json",
-    "--post-renderer", postRenderPath
+    "--post-renderer", postRenderPath,
+    ...values
   ];
 
   // install/upgrade
