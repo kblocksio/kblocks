@@ -58,13 +58,15 @@ function handleError(blockUri: string, command: ControlCommand, error: any) {
   const msg = (error.body as any)?.message ?? "unknown error";
   const message = `Error handling command ${JSON.stringify(command.type)} for ${blockUri}: ${msg}`;
   console.error(message);
+  
   emitEvent({
     type: "ERROR",
     objType: blockType,
     objUri: blockUri,
     message,
+    timestamp: new Date(),
     body: command,
-  } as ErrorEvent);
+  });
 }
 
 function parseCommand(ctx: Context, message: string) {
