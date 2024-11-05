@@ -28,6 +28,6 @@ if (!output) {
   process.exit(1);
 }
 
-synth({ block: manifest, source: archiveSource, output });
+synth({ block: manifest, source: archiveSource, output, env: {} });
 console.log("Block built successfully");
 

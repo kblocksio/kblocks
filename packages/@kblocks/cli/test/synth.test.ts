@@ -98,6 +98,9 @@ function synthBlock(block: Manifest) {
   synth({
     block,
     output: tempDir,
+    env: {
+      ADDITIONAL_ENV: "additional-env",
+    }
   });
 
   const templates = fs.readdirSync(path.join(tempDir, "templates"));

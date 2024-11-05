@@ -127,6 +127,10 @@ exports[`minimal block snapshot 1`] = `
                   },
                 },
                 {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
+                },
+                {
                   "name": "KBLOCK_OUTPUTS",
                   "value": "",
                 },
@@ -362,6 +366,10 @@ exports[`minimal block snapshot 1`] = `
                   "value": "redis://boom-redis.{{ .Release.Namespace }}.svc.cluster.local:6379",
                 },
                 {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
+                },
+                {
                   "name": "KBLOCKS_WORKER_IMAGE",
                   "value": "dummy/test-worker-image:latest",
                 },
@@ -555,6 +563,10 @@ exports[`minimal block snapshot 1`] = `
                 {
                   "name": "REDIS_URL",
                   "value": "redis://boom-redis.{{ .Release.Namespace }}.svc.cluster.local:6379",
+                },
+                {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
                 },
                 {
                   "name": "WORKERS",
@@ -879,6 +891,10 @@ exports[`operator configuration 1`] = `
                   },
                 },
                 {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
+                },
+                {
                   "name": "ENV1",
                   "value": "env-1",
                 },
@@ -1149,6 +1165,10 @@ exports[`operator configuration 1`] = `
                   "value": "redis://boom-redis.my-namespace.svc.cluster.local:6379",
                 },
                 {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
+                },
+                {
                   "name": "ENV1",
                   "value": "env-1",
                 },
@@ -1377,6 +1397,10 @@ exports[`operator configuration 1`] = `
                 {
                   "name": "REDIS_URL",
                   "value": "redis://boom-redis.my-namespace.svc.cluster.local:6379",
+                },
+                {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
                 },
                 {
                   "name": "ENV1",

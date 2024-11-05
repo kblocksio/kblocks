@@ -31,6 +31,29 @@ export async function cli() {
         type: "string",
         required: false,
         default: "kblock.yaml",
+      })
+      .option("env", {
+        alias: "e",
+        description: "Environment variables to set in the build environment",
+        type: "string",
+        array: true,
+        coerce: (values: string[]) => {
+          if (!values || values.length === 0) {
+            return {};
+          }
+
+          return values.reduce((acc: Record<string, string>, curr: string | undefined) => {
+            if (!curr) {
+              return acc;
+            }
+
+            const [key, value] = curr.split('=');
+            acc[key] = value ?? key;
+            return acc;
+          }, {});
+        },
+        required: false,
+        default: "",
       }), argv => buildCommand(argv))
 
     .command("enrich [DIR]", "Enrich the kblock manifest with docs, description, icon and other good stuff (using AI)", yargs => yargs
@@ -158,6 +181,29 @@ export async function cli() {
         alias: "n",
         type: "string",
         required: false,
+      })
+      .option("env", {
+        alias: "e",
+        description: "Environment variables to set in the build environment",
+        type: "string",
+        array: true,
+        coerce: (values: string[]) => {
+          if (!values || values.length === 0) {
+            return {};
+          }
+
+          return values.reduce((acc: Record<string, string>, curr: string | undefined) => {
+            if (!curr) {
+              return acc;
+            }
+
+            const [key, value] = curr.split('=');
+            acc[key] = value ?? key;
+            return acc;
+          }, {});
+        },
+        required: false,
+        default: "",
       }), argv => installCommand(argv))
 
     .showHelpOnFail(false)

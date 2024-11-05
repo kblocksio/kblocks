@@ -19,6 +19,7 @@ export const buildCommand = async (opts: {
   DIR?: string;
   manifest: string;
   output: string;
+  env: Record<string, string>;
 }) => {
   return chdir(opts.DIR, async () => {
     const { manifest, outdir } = await build(opts);
@@ -36,6 +37,7 @@ export async function build(opts: {
   manifest: string;
   output: string;
   silent?: boolean;
+  env: Record<string, string>;
 }) {
   const manifestPath = path.resolve(opts.manifest);
   const outdir = path.resolve(opts.output);
@@ -58,7 +60,7 @@ export async function build(opts: {
     fs.copyFileSync(chartPath, path.join(outdir, 'Chart.yaml'));
   }
 
-  synth({ block: manifest, source: process.cwd(), output: outdir });
+  synth({ block: manifest, source: process.cwd(), output: outdir, env: opts.env });
 
   // write any additional objects to the templates directory
   if (additionalObjects.length > 0) {
@@ -72,6 +74,7 @@ export async function build(opts: {
 export interface BlockProps {
   block: Manifest;
   source?: string;
+  env: Record<string, string>;
 }
 
 interface Options extends BlockProps {
@@ -83,7 +86,7 @@ export class Block extends Chart {
   constructor(scope: Construct, id: string, props: BlockProps) {
     super(scope, id);
 
-    const { block, source } = props;
+    const { block, source, env } = props;
 
     this.validateManifest(block);
 
@@ -113,7 +116,11 @@ export class Block extends Chart {
       workers,
       namespace,
       ...block.operator,
-      ...block.definition
+      ...block.definition,
+      env: {
+        ...env,
+        ...block.operator?.env,
+      }
     });
   
     new Worker(this, "Worker", {
@@ -126,6 +133,7 @@ export class Block extends Chart {
       env: {
         // redis url should be the url of the redis instance in the operator
         REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
+        ...env,
         ...block.operator?.env,
 
         // this can be used to spawn new blocks (e.g. byt the `Block` block).
@@ -145,6 +153,7 @@ export class Block extends Chart {
       env: {
         // redis url should be the url of the redis instance in the operator
         REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
+        ...env,
         ...block.operator?.env,
       }
     });

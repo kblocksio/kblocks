@@ -7,6 +7,7 @@ export interface InstallOptions {
   manifest: string;
   output: string;
   releaseName?: string;
+  env: Record<string, string>;
 }
 
 export async function installCommand(argv: InstallOptions) {
@@ -16,6 +17,7 @@ export async function installCommand(argv: InstallOptions) {
       manifest: argv.manifest,
       output: argv.output,
       silent: true,
+      env: argv.env,
     });
 
     const command = [];
