@@ -59,16 +59,13 @@ export type WorkerEvent =
 
 // -------------------------------------------------------------------------------------------------
 
-const MAX_TRIES = 5;
+const MAX_TRIES = 3;
 const INITIAL_DELAY = 250;
 const EXPONENTIAL_BACKOFF = 1.5;
 
 export function emitEvent(event: WorkerEvent) {
   emitEventAsync(event).catch(err => {
     console.error(err);
-
-    // restart the pod to give it a chance to recover
-    process.exit(1);
   });
 }
 
@@ -104,8 +101,6 @@ export async function emitEventAsync(event: WorkerEvent) {
         break;
       }
 
-      console.warn(`Error sending event to ${eventsEndpoint}: ${err.cause?.message ?? err.message}`);
-      console.warn(`Retrying in ${delay}ms... (${tries} tries left)`);
       await sleep(delay);
       delay = Math.floor(delay * EXPONENTIAL_BACKOFF);
       tries--;
