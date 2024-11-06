@@ -136,6 +136,8 @@ example, if the schema contains a field called \`myValue\`, it can be refereced 
 Inputs will be validated against the schem with [helm lint](https://helm.sh/docs/helm/helm_lint/)
 which will be executed before \`upgrade\`.
 
+The \`{{ .Values.kblocks.system }}\` value will be set to include the kblocks system identity.
+
 ## Implementation
 
 The file \`src/Chart.yaml\` is a standard [Helm chart
@@ -420,6 +422,8 @@ such as names, icons and description as well as optional operator environment se
 The input schema for your block is automatically dervied from the Wing struct by the name of
 \`<Kind>Spec\`. For example, if your resource kind is \`Bing\`, then the CLI will look for a struct
 named \`BingSpec\` and create a JSON schema from it.
+
+The \`KBLOCKS_SYSTEM_ID\` environment variable includes the name of the kblocks system.
 
 ## Implementation
 
