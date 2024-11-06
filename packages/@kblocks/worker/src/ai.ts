@@ -24,27 +24,26 @@ export async function chatCompletion(input: openai.ChatCompletionCreateParamsNon
  * @returns A slack "blocks" JSON object that explains the error and provides instructions on how to fix it.
  */
 export async function explainError(host: RuntimeContext, context: BindingContext, error: string): Promise<{ blocks: Blocks } | undefined> {
-
   console.error("Analyzing error with AI...");
 
-  const content = await host.chatCompletion({
-    model: "gpt-4o",
-    max_tokens: 1024,
-    messages: [
-      { role: "system", content: prompt },
-      { role: "user", content: JSON.stringify({ context, error }) },
-    ],
-  })
-
-  if (!content) {
-    console.error("WARNING: Did not receive a response from the AI");
-    return undefined;
-  }
-
   try {
+    const content = await host.chatCompletion({
+      model: "gpt-4o",
+      max_tokens: 1024,
+      messages: [
+        { role: "system", content: prompt },
+        { role: "user", content: JSON.stringify({ context, error }) },
+      ],
+    })
+  
+    if (!content) {
+      console.error("WARNING: Did not receive a response from the AI");
+      return undefined;
+    }
+  
     return JSON.parse(content);
   } catch (e) {
-    console.error("WARNING: Could not parse AI response", e);
+    console.error("WARNING: Could not analyze error with AI:", e);
     return undefined;
   }
 }
