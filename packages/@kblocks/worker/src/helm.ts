@@ -35,6 +35,8 @@ export async function applyHelm(dir: string, host: RuntimeContext, ctx: BindingC
   addValues(resolve(dir, "values.json"));
   addValues(valuesFile);
 
+  values.push("--set", `kblocks.system="${host.system}"`);
+
   // verify schema
   await host.exec("helm", [
     "lint", 

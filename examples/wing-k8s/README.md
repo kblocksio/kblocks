@@ -14,6 +14,8 @@ The input schema for your block is automatically dervied from the Wing struct by
 `<Kind>Spec`. For example, if your resource kind is `Bing`, then the CLI will look for a struct
 named `BingSpec` and create a JSON schema from it.
 
+The `KBLOCKS_SYSTEM_ID` environment variable includes the name of the kblocks system.
+
 ## Implementation
 
 Wing source code (`.w`) is expected under `src/`, and must include a public class named after the

@@ -20,6 +20,8 @@ example, if the schema contains a field called `myValue`, it can be refereced th
 Inputs will be validated against the schem with [helm lint](https://helm.sh/docs/helm/helm_lint/)
 which will be executed before `upgrade`.
 
+The `{{ .Values.kblocks.system }}` value will be set to include the kblocks system identity.
+
 ## Implementation
 
 The file `src/Chart.yaml` is a standard [Helm chart
