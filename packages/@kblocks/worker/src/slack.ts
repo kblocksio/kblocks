@@ -126,17 +126,3 @@ export const newSlackThread = async (channel: string, initialMessage: string) =>
     postBlocks,
   }
 };
-
-// exports.newSlackThread = newSlackThread;
-
-// (async () => {
-
-//   const thread = await newSlackThread('monadaco-platform', "hello, slack! thread!");
-//   thread.update("hello, slack! thread! <-- updated");
-
-//   // thread.post("another message");
-
-//   // const ctx = await sendSlackMessage('monadaco-platform', "hello, slack! thread!");
-//   // console.log(ctx);
-//   // await editSlackMessage(ctx, "hello, slack! thread! <-- updated");
-// })().catch(e => console.error(e));
