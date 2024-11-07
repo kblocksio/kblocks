@@ -62,8 +62,7 @@ function handleError(ctx: Context, blockUri: string, command: ControlCommand, er
     return emitEvent(obj);
   }
 
-  const msg = (error.body as any)?.message ?? "unknown error";
-  const message = `Error handling command ${JSON.stringify(command.type)} for ${blockUri}: ${msg}`;
+  const message = (error.body as any)?.message ?? `unknown error while handling ${command.type} for ${blockUri}`;
   console.error(message);
   
   emitEvent({
