@@ -27,5 +27,6 @@ test("emitEvent", async () => {
     objUri: "kblocks://kblocks.io/v1/blocks/test",
     objType: "test",
     timestamp: new Date(),
+    requestId: "123",
   });
 });

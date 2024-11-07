@@ -67,3 +67,7 @@ export function tryGetenv(k: string) {
 export function tempdir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "kblocks-"));
 }
+
+export function generateRandomId() {
+  return crypto.randomUUID();
+}

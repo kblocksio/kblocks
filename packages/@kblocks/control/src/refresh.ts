@@ -1,5 +1,5 @@
 import * as k8s from "@kubernetes/client-node";
-import { ObjectEvent, blockTypeFromUri, emitEvent, parseBlockUri } from "./api";
+import { blockTypeFromUri, emitEvent, parseBlockUri } from "./api";
 import { Context } from "./context";
 
 export async function refreshObject(client: k8s.CustomObjectsApi, ctx: Context, objUri: string) {
@@ -14,5 +14,8 @@ export async function refreshObject(client: k8s.CustomObjectsApi, ctx: Context, 
     objType: blockTypeFromUri(objUri),
     objUri,
     object: obj.body,
-  } as ObjectEvent);
+    reason: "SYNC",
+    timestamp: new Date(),
+    requestId: ctx.requestId,
+  });
 }

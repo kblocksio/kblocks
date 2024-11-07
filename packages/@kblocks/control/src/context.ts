@@ -3,4 +3,5 @@ export type Context = {
   group: string;
   version: string;
   plural: string;
+  requestId: string;
 }

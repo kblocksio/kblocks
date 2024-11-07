@@ -1,5 +1,5 @@
-import crypto from "crypto";
 import { LogLevel, emitEvent } from "./api/index.js";
+import { generateRandomId } from "./util.js";
 
 const toLogFunction = {
   [LogLevel.DEBUG]: console.debug,
@@ -8,17 +8,18 @@ const toLogFunction = {
   [LogLevel.ERROR]: console.error,
 };
 
-export function createLogger(objUri: string, objType: string, options: { emitEvent?: boolean } = {}) {
+export function createLogger(objUri: string, objType: string, requestId: string, options: { emitEvent?: boolean } = {}) {
   function log(message: string, level: LogLevel = LogLevel.INFO, parentLogId?: string) {
     const consoleFunction = toLogFunction[level];
     consoleFunction(">>", message);
 
-    const logId = generateGroupId();
+    const logId = generateRandomId();
 
     const shouldEmitEvent = options.emitEvent ?? true;
     if (shouldEmitEvent) {
       emitEvent({
       type: "LOG",
+      requestId,
       objUri,
       objType,
       message,
@@ -45,6 +46,3 @@ export function createLogger(objUri: string, objType: string, options: { emitEve
 };
 }
 
-function generateGroupId() {
-  return crypto.randomUUID();
-}

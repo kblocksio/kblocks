@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 
 import { applyHelm } from "./helm.js";
-import { exec, getenv, tempdir, tryGetenv } from "./util.js";
+import { exec, getenv, tempdir, tryGetenv, generateRandomId } from "./util.js";
 import { applyWing } from "./wing.js";
 import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
@@ -38,7 +38,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
 
   // do not emit logs for read requests (if there will be an error, we will include the info there)
-  const logger = createLogger(objUri, objType, { emitEvent: !isReading });
+  const requestId = generateRandomId();
+  const logger = createLogger(objUri, objType, requestId, { emitEvent: !isReading });
 
   const host: RuntimeContext = {
     getenv,
@@ -46,6 +47,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     newSlackThread,
     chatCompletion,
     emitEvent,
+    requestId,
     objUri,
     objType,
     objRef,
@@ -137,6 +139,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       if (!isDeletion && !isReading) {
         host.emitEvent({
           type: "OBJECT",
+          requestId,
           timestamp: new Date(),
           objUri,
           objType,
@@ -225,6 +228,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       if (isDeletion) {
         host.emitEvent({
           type: "OBJECT",
+          requestId,
           timestamp: new Date(),
           objUri,
           objType,
@@ -254,6 +258,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
       host.emitEvent({
         objUri,
+        requestId,
         objType,
         timestamp: new Date(),
         type: "ERROR",

@@ -1,5 +1,6 @@
 import { ApiObject, Manifest, emitEvent } from "./api";
 import * as k8s from "@kubernetes/client-node";
+import { Context } from "./context";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -7,11 +8,11 @@ kc.loadFromDefault();
 const k8sCoreClient = kc.makeApiClient(k8s.CoreV1Api);
 const k8sCustomClient = kc.makeApiClient(k8s.CustomObjectsApi);
 
-export function flush(system: string, manifest: Manifest) {
+export function flush(ctx: Context, manifest: Manifest) {
   console.log("flushing resources and resource types...");
   Promise.all([
-    flushType(system, manifest),
-    flushAllResources(system, manifest),
+    flushType(ctx, manifest),
+    flushAllResources(ctx, manifest),
   ]).then(() => {
     console.log("flushed");
   }).catch((error) => {
@@ -21,16 +22,16 @@ export function flush(system: string, manifest: Manifest) {
   });
 }
 
-async function flushAllResources(system: string, manifest: Manifest) {
+async function flushAllResources(ctx: Context, manifest: Manifest) {
   const resources = await listAllResources(manifest);
 
   for (const resource of resources) {
     const objType = `${manifest.definition.group}/${manifest.definition.version}/${manifest.definition.plural}`;
-    flushResource(system, objType, resource);
+    flushResource(ctx, objType, resource);
   }
 }
 
-async function flushType(system: string, manifest: Manifest) {
+async function flushType(ctx: Context, manifest: Manifest) {
   const name = `${manifest.definition.plural}.${manifest.definition.group}`;
 
   console.log("flushing resource type", name);
@@ -39,7 +40,7 @@ async function flushType(system: string, manifest: Manifest) {
   // we emulate a CRD here that represents the block (in the future it will actually be a CRD)
   const objType = `kblocks.io/v1/blocks`;
 
-  await flushResource(system, objType, {
+  await flushResource(ctx, objType, {
     apiVersion: "kblocks.io/v1",
     kind: "Block",
     metadata: { name },
@@ -57,8 +58,8 @@ async function flushType(system: string, manifest: Manifest) {
   });
 }
 
-async function flushResource(system: string, objType: string, resource: ApiObject) {
-  const objUri = `kblocks://${objType}/${system}/${resource.metadata.namespace ?? "default"}/${resource.metadata.name}`;
+async function flushResource(ctx: Context, objType: string, resource: ApiObject) {
+  const objUri = `kblocks://${objType}/${ctx.system}/${resource.metadata.namespace ?? "default"}/${resource.metadata.name}`;
 
   console.log(`flushing resource: ${objUri}`);
 
@@ -69,6 +70,7 @@ async function flushResource(system: string, objType: string, resource: ApiObjec
     objType,
     object: resource,
     timestamp: new Date(),
+    requestId: ctx.requestId,
   });
 }
 

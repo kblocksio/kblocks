@@ -5,6 +5,7 @@ export interface EventBase {
   objUri: string;
   objType: string;
   timestamp: Date;
+  requestId: string;
 }
 
 export interface ObjectEvent extends EventBase {

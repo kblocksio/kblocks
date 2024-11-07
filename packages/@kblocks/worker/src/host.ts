@@ -19,6 +19,7 @@ export interface RuntimeContext {
   objType: string;
   system: string;
   logger: ReturnType<typeof createLogger>;
+  requestId: string;
 }
 
 export function kblockOutputs(host: RuntimeContext) {
@@ -33,6 +34,7 @@ export async function patchObjectState(host: RuntimeContext, patch: any, options
     if (options.emitEvent ?? true) {
       host.emitEvent({
         type: "PATCH",
+        requestId: host.requestId,
         timestamp: new Date(),
         objUri: host.objUri,
         objType: host.objType,
@@ -62,6 +64,7 @@ export async function publishNotification(host: RuntimeContext, event: Event) {
     const eventJson = path.join(workdir, "event.json");
 
     host.emitEvent({
+      requestId: host.requestId,
       type: "LIFECYCLE",
       objUri: host.objUri,
       objType: host.objType,

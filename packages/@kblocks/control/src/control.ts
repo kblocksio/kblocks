@@ -1,5 +1,6 @@
 import * as k8s from "@kubernetes/client-node";
-import { blockTypeFromUri, ControlCommand, emitEvent, ErrorEvent, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "./api";
+import crypto from "crypto";
+import { blockTypeFromUri, ControlCommand, emitEvent, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "./api";
 import { flush } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
@@ -20,7 +21,7 @@ export function start(controlUrl: string, system: string, manifest: Manifest) {
   const plural = manifest.definition.plural;
   const url = `${controlUrl}/${group}/${version}/${plural}?${params}`;
 
-  const ctx: Context = { system, group, version, plural };
+  const ctx: Context = { system, group, version, plural, requestId: generateRandomId() };
 
   const connection = connect(url);
 
@@ -28,7 +29,7 @@ export function start(controlUrl: string, system: string, manifest: Manifest) {
     console.log("Control connection opened");
 
     // flush the current state of the system to the control plane
-    flush(system, manifest);
+    flush(ctx, manifest);
   });
 
   connection.on("message", (message) => {
@@ -36,23 +37,29 @@ export function start(controlUrl: string, system: string, manifest: Manifest) {
 
     handleCommandMessage(ctx, command)
       .then(() => console.log(`Command ${command.type} for ${blockUri} succeeded`))
-      .catch((error) => handleError(blockUri, command, error))
+      .catch((error) => handleError(ctx, blockUri, command, error))
   });
 
   return connection;
 }
 
-function handleError(blockUri: string, command: ControlCommand, error: any) {
+function handleError(ctx: Context, blockUri: string, command: ControlCommand, error: any) {
   const blockType = blockTypeFromUri(blockUri);
 
   if (error.statusCode === 404) {
     console.log(`Object ${blockUri} not found, sending a synthetic empty OBJECT event to delete it`);
-    return emitEvent({
+    
+    const obj: ObjectEvent = {
+      requestId: ctx.requestId,
       type: "OBJECT",
       objType: blockType,
       objUri: blockUri,
       object: {},
-    } as ObjectEvent);
+      timestamp: new Date(),
+      reason: typeToReason(command.type),
+    };
+
+    return emitEvent(obj);
   }
 
   const msg = (error.body as any)?.message ?? "unknown error";
@@ -60,6 +67,7 @@ function handleError(blockUri: string, command: ControlCommand, error: any) {
   console.error(message);
   
   emitEvent({
+    requestId: ctx.requestId,
     type: "ERROR",
     objType: blockType,
     objUri: blockUri,
@@ -126,5 +134,21 @@ async function handleCommandMessage(ctx: Context, command: ControlCommand) {
 
     default:
       throw new Error(`Unsupported control command: '${JSON.stringify(command)}'`);
+  }
+}
+
+function generateRandomId() {
+  return crypto.randomUUID();
+}
+
+function typeToReason(type: ControlCommand["type"]) {
+  switch (type) {
+    case "APPLY": return "CREATE";
+    case "PATCH": return "UPDATE";
+    case "DELETE": return "DELETE";
+    case "REFRESH": return "SYNC";
+    case "READ": return "READ";
+    default:
+      return "SYNC";
   }
 }
