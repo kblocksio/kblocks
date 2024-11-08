@@ -51,7 +51,7 @@ export async function patchObjectState(host: RuntimeContext, patch: any, options
       "--type", "merge",
       "--subresource", "status",
       "--patch", JSON.stringify({ status: patch }),
-    ], { stdio: "ignore" });
+    ]);
   } catch (err) {
     // just ignore errors
   }
