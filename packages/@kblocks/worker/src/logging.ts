@@ -37,14 +37,14 @@ export function createLogger(objUri: string, objType: string, requestId: string,
     const shouldEmitEvent = options.emitEvent ?? true;
     if (shouldEmitEvent) {
       emitEvent({
-      type: "LOG",
-      requestId,
-      objUri,
-      objType,
-      message,
-      level,
-      timestamp: new Date(),
-      logId,
+        type: "LOG",
+        requestId,
+        objUri,
+        objType,
+        message,
+        level,
+        timestamp: new Date(),
+        logId,
         parentLogId,
       });
     }
@@ -62,6 +62,6 @@ export function createLogger(objUri: string, objType: string, requestId: string,
     info: (message: string) => log(message, LogLevel.INFO),
     warn: (message: string) => log(message, LogLevel.WARNING),
     error: (message: string) => log(message, LogLevel.ERROR),
-};
+  };
 }
 

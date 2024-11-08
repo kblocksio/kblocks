@@ -244,6 +244,9 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     } catch (err: any) {
       console.error(err.stack);
 
+      // first off, set the ready condition to and indicate that we are in error
+      await updateReadyCondition(false, StatusReason.Error);
+
       await publishNotification(host, {
         type: EventType.Warning,
         action: eventAction,
@@ -251,11 +254,12 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         message: err.stack,
       });
 
-      await slack?.update(slackStatus("🔴", "Failure"));
-      await slack?.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
-      await slack?.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
-      const explanation = await explainError(host, ctx, err.message);
+      // try to explain the error with AI
+      const explanation = await explainError(host, ctx, err.message, {
+        request: ctx,
+      });
 
+      // send the explanation as an ERROR event to the backend
       host.emitEvent({
         objUri,
         requestId,
@@ -266,6 +270,12 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         stack: err.stack,
         explanation,
       });
+
+      // slack
+
+      await slack?.update(slackStatus("🔴", "Failure"));
+      await slack?.post(`Requested state:\n\`\`\`${JSON.stringify(ctx.object, undefined, 2).substring(0, 2500)}\`\`\``);
+      await slack?.post(`Update failed with the following error:\n\`\`\`${err.message}\`\`\``);
 
       if (explanation?.blocks) {
         explanation?.blocks.push({
@@ -278,8 +288,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         
         await slack?.postBlocks(explanation.blocks);
       }
-
-      await updateReadyCondition(false, StatusReason.Error);
     }
   } finally {
     await deleteWorkdir(workdir);

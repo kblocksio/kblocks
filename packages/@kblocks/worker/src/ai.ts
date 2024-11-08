@@ -23,7 +23,7 @@ export async function chatCompletion(input: openai.ChatCompletionCreateParamsNon
  * @param {string} error 
  * @returns A slack "blocks" JSON object that explains the error and provides instructions on how to fix it.
  */
-export async function explainError(host: RuntimeContext, context: BindingContext, error: string): Promise<{ blocks: Blocks } | undefined> {
+export async function explainError(host: RuntimeContext, context: BindingContext, error: string, additionalContext?: Record<string, any>): Promise<{ blocks: Blocks } | undefined> {
   console.error("Analyzing error with AI...");
 
   try {
@@ -32,7 +32,7 @@ export async function explainError(host: RuntimeContext, context: BindingContext
       max_tokens: 1024,
       messages: [
         { role: "system", content: prompt },
-        { role: "user", content: JSON.stringify({ context, error }) },
+        { role: "user", content: JSON.stringify({ context, error, additionalContext }) },
       ],
     })
   
