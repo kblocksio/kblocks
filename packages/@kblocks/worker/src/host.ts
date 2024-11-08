@@ -27,44 +27,30 @@ export function kblockOutputs(host: RuntimeContext) {
 }
 
 export async function patchObjectState(host: RuntimeContext, patch: any, options: { emitEvent?: boolean } = {}) {
-  try {
-    const group = host.objRef.apiVersion.split("/")[0];
-    const type = `${host.objRef.kind.toLowerCase()}.${group}`;
+  const group = host.objRef.apiVersion.split("/")[0];
+  const type = `${host.objRef.kind.toLowerCase()}.${group}`;
 
 
-    // do not share the logs of ths command because it's not interesting
-    await exec(undefined, "kubectl", [
-      "patch",
-      type,
-      host.objRef.name,
-      "-n", host.objRef.namespace,
-      "--type", "merge",
-      "--subresource", "status",
-      "--patch", JSON.stringify({ status: patch }),
-    ]);
+  // do not share the logs of ths command because it's not interesting
+  await exec(undefined, "kubectl", [
+    "patch",
+    type,
+    host.objRef.name,
+    "-n", host.objRef.namespace,
+    "--type", "merge",
+    "--subresource", "status",
+    "--patch", JSON.stringify({ status: patch }),
+  ]);
 
-    // if the previous command failed, do not emit the event, otherwise we'll have inconsistent state
-    if (options.emitEvent ?? true) {
-      host.emitEvent({
-        type: "PATCH",
-        requestId: host.requestId,
-        timestamp: new Date(),
-        objUri: host.objUri,
-        objType: host.objType,
-        patch: { status: patch },
-      });
-    }
-  
-  } catch (err: any) {
+  // if the previous command failed, do not emit the event, otherwise we'll have inconsistent state
+  if (options.emitEvent ?? true) {
     host.emitEvent({
-      type: "ERROR",
-      message: `Error patching object state: ${err.message}`,
-      body: { patch },
-      stack: err.stack,
+      type: "PATCH",
+      requestId: host.requestId,
+      timestamp: new Date(),
       objUri: host.objUri,
       objType: host.objType,
-      timestamp: new Date(),
-      requestId: host.requestId,
+      patch: { status: patch },
     });
   }
 }
