@@ -31,16 +31,6 @@ export async function patchObjectState(host: RuntimeContext, patch: any, options
     const group = host.objRef.apiVersion.split("/")[0];
     const type = `${host.objRef.kind.toLowerCase()}.${group}`;
 
-    if (options.emitEvent ?? true) {
-      host.emitEvent({
-        type: "PATCH",
-        requestId: host.requestId,
-        timestamp: new Date(),
-        objUri: host.objUri,
-        objType: host.objType,
-        patch: { status: patch },
-      });
-    }
 
     // do not share the logs of ths command because it's not interesting
     await exec(undefined, "kubectl", [
@@ -52,6 +42,19 @@ export async function patchObjectState(host: RuntimeContext, patch: any, options
       "--subresource", "status",
       "--patch", JSON.stringify({ status: patch }),
     ]);
+
+    // if the previous command failed, do not emit the event, otherwise we'll have inconsistent state
+    if (options.emitEvent ?? true) {
+      host.emitEvent({
+        type: "PATCH",
+        requestId: host.requestId,
+        timestamp: new Date(),
+        objUri: host.objUri,
+        objType: host.objType,
+        patch: { status: patch },
+      });
+    }
+  
   } catch (err: any) {
     host.emitEvent({
       type: "ERROR",
@@ -65,6 +68,7 @@ export async function patchObjectState(host: RuntimeContext, patch: any, options
     });
   }
 }
+
 export async function publishNotification(host: RuntimeContext, event: Event) {
   const workdir = tempdir();
   try {
