@@ -52,8 +52,17 @@ export async function patchObjectState(host: RuntimeContext, patch: any, options
       "--subresource", "status",
       "--patch", JSON.stringify({ status: patch }),
     ]);
-  } catch (err) {
-    // just ignore errors
+  } catch (err: any) {
+    host.emitEvent({
+      type: "ERROR",
+      message: `Error patching object state: ${err.message}`,
+      body: { patch },
+      stack: err.stack,
+      objUri: host.objUri,
+      objType: host.objType,
+      timestamp: new Date(),
+      requestId: host.requestId,
+    });
   }
 }
 export async function publishNotification(host: RuntimeContext, event: Event) {
