@@ -8,6 +8,25 @@ const toLogFunction = {
   [LogLevel.ERROR]: console.error,
 };
 
+export const LOCAL_LOGGER: ReturnType<typeof createLogger> = {
+  info: (message: string) => {
+    process.stdout.write(message);
+    return LOCAL_LOGGER;
+  },
+  error: (message: string) => {
+    process.stderr.write(message);
+    return LOCAL_LOGGER;
+  },
+  debug: (message: string) => {
+    process.stdout.write(message);
+    return LOCAL_LOGGER;
+  },
+  warn: (message: string) => {
+    process.stdout.write(message);
+    return LOCAL_LOGGER;
+  },
+};
+
 export function createLogger(objUri: string, objType: string, requestId: string, options: { emitEvent?: boolean } = {}) {
   function log(message: string, level: LogLevel = LogLevel.INFO, parentLogId?: string) {
     const consoleFunction = toLogFunction[level];
