@@ -49,9 +49,13 @@ export function statusUpdater(host: RuntimeContext, api: ApiObject) {
     return conditions;
   };
 
-  let currentStatus = api.status ?? {};
+  // only "inherit" the conditions from the previous status (the rest we don't want to send to the patch)
+  const prev: any = {
+    conditions: api.status?.conditions ?? [],
+  };
+
   return async (status: Record<string, any>) => {
-    currentStatus = deepmerge(currentStatus, status, {
+    const patch = deepmerge(prev, status, {
       customMerge: (key: string) => {
         if (key === "conditions") {
           return mergeConditions;
@@ -59,6 +63,6 @@ export function statusUpdater(host: RuntimeContext, api: ApiObject) {
       },
     });
 
-    return patchObjectState(host, currentStatus);
+    return patchObjectState(host, patch);
   };
 }

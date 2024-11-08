@@ -32,7 +32,7 @@ export async function patchObjectState(host: RuntimeContext, patch: any, options
 
 
   // do not share the logs of ths command because it's not interesting
-  await exec(undefined, "kubectl", [
+  await host.exec("kubectl", [
     "patch",
     type,
     host.objRef.name,

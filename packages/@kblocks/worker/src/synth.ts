@@ -244,15 +244,19 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     } catch (err: any) {
       console.error(err.stack);
 
-      // first off, set the ready condition to and indicate that we are in error
-      await updateReadyCondition(false, StatusReason.Error);
-
       await publishNotification(host, {
         type: EventType.Warning,
         action: eventAction,
         reason: EventReason.Failed,
         message: err.stack,
       });
+
+      // set the ready condition to and indicate that we are in error
+      try {
+        await updateReadyCondition(false, StatusReason.Error);
+      } catch (err: any) {
+        console.error(`Error updating ready condition when error occurred: ${err.message}`);
+      }
 
       // try to explain the error with AI
       const explanation = await explainError(host, ctx, err.message, {
