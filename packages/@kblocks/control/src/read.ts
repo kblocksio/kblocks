@@ -13,13 +13,7 @@ if (!process.env.WORKERS) {
 }
 
 const workers = parseInt(process.env.WORKERS, 10);
-const redisClient = new Redis(process.env.REDIS_URL, {
-  retryStrategy: (times: number) => {
-    console.log(`Retrying Redis connection attempt ${times}`);
-    return times * 1000;
-  },
-  maxRetriesPerRequest: null,
-});
+
 
 export async function readObject(client: k8s.CustomObjectsApi, ctx: Context, objUri: string) {
   console.log(`READ: ${objUri}`);
@@ -28,14 +22,21 @@ export async function readObject(client: k8s.CustomObjectsApi, ctx: Context, obj
   const { namespace, name } = parseBlockUri(objUri);
 
   const obj = await client.getNamespacedCustomObject(group, version, namespace, plural, name);
-  await sendContextToStream(redisClient, workers, {
-    object: obj.body as any,
-    type: "request",
-    watchEvent: "Read",
-  });
+  
+  try {
+    await sendContextToStream(redisClient, workers, {
+      object: obj.body as any,
+      type: "request",
+      watchEvent: "Read",
+    });
+  } catch (e) {
+    console.error("error sending to redis stream:", e);
+  }
 }
 
 async function sendContextToStream(redisClient: Redis, workers: number, context: BindingContext & { type: string}) {
+  const redisClient = new Redis(process.env.REDIS_URL);
+
   try {
     const key = `${context.object.metadata.namespace}/${context.object.metadata.name}`;
     const hash = createHash('sha256').update(key).digest('hex');
@@ -44,7 +45,7 @@ async function sendContextToStream(redisClient: Redis, workers: number, context:
 
     console.log("PARTITION:", JSON.stringify({ key, hash, workerIndex, workers, streamName }));   
     await redisClient.xadd(streamName, '*', 'context', JSON.stringify(context));
-  } catch (error) {
-    console.error('Error sending context to Redis stream:', error);
+  } finally {
+    redisClient.quit();
   }
 }
