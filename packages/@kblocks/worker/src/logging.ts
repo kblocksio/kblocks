@@ -8,22 +8,22 @@ const toLogFunction = {
   [LogLevel.ERROR]: console.error,
 };
 
-export const LOCAL_LOGGER: ReturnType<typeof createLogger> = {
+export const CONSOLE_LOGGER: ReturnType<typeof createLogger> = {
   info: (message: string) => {
-    process.stdout.write(message);
-    return LOCAL_LOGGER;
+    console.info(message);
+    return CONSOLE_LOGGER;
   },
   error: (message: string) => {
-    process.stderr.write(message);
-    return LOCAL_LOGGER;
+    console.error(message);
+    return CONSOLE_LOGGER;
   },
   debug: (message: string) => {
-    process.stdout.write(message);
-    return LOCAL_LOGGER;
+    console.debug(message);
+    return CONSOLE_LOGGER;
   },
   warn: (message: string) => {
-    process.stdout.write(message);
-    return LOCAL_LOGGER;
+    console.warn(message);
+    return CONSOLE_LOGGER;
   },
 };
 

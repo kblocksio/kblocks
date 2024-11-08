@@ -3,14 +3,14 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import util from "util";
-import { createLogger, LOCAL_LOGGER } from "./logging.js";
+import { createLogger, CONSOLE_LOGGER } from "./logging.js";
 
 export function exec(xlogger: ReturnType<typeof createLogger> | undefined, command: string, args: string[], options: child_process.SpawnOptions = {}): Promise<string> {
   args = args || [];
   options = options || {};
 
   return new Promise((resolve, reject) => {
-    const logger = xlogger ?? LOCAL_LOGGER;
+    const logger = xlogger ?? CONSOLE_LOGGER;
     const log = logger.info(util.format("$", command, args.join(" ")));
 
     const proc = child_process.spawn(command, args, { 
