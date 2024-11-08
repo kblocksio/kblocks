@@ -56,7 +56,13 @@ server.on("request", (req, res) => {
         }
 
         if (body.type === "PATCH") {
-          throw new Error("PATCH has been deprecated");
+          const key = body.objUri;
+          map[key] = {
+            ...map[key] ?? {},
+            ...body.patch,
+          };
+
+          return res.end();
         }
   
         return res.end();

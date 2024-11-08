@@ -110,26 +110,10 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         break;
     }
 
-    // send the new object state (if this is a deletion, we do that only after we are complete
-    // because it will cause the deletion of the object from the portal). this must be done before
-    // we start updating the object, because the portal needs to know about the object.
-    // do not send an update if we are just reading.
-    if (!isDeletion && !isReading) {
-      host.emitEvent({
-        type: "OBJECT",
-        requestId,
-        timestamp: new Date(),
-        objUri,
-        objType,
-        object: ctx.object,
-        reason: eventAction,
-      });
-    }
-
     try {
       // for new objects, save the initial state hash for future comparison
       // for modified objects, only save if the state has actually changed
-      if (ctx.watchEvent === "Added" || ctx.watchEvent === "Modified") {
+      if (ctx.watchEvent === "Added" || ctx.watchEvent === "Modified"){
         if (!(await updateLastStateHash(statusUpdate, ctx.object))) {
           console.log("skipping status update");
           return;
@@ -148,6 +132,22 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     }
 
     try {
+      // send the new object state (if this is a deletion, we do that only after we are complete
+      // because it will cause the deletion of the object from the portal). this must be done before
+      // we start updating the object, because the portal needs to know about the object.
+      // do not send an update if we are just reading.
+      if (!isDeletion && !isReading) {
+        host.emitEvent({
+          type: "OBJECT",
+          requestId,
+          timestamp: new Date(),
+          objUri,
+          objType,
+          object: ctx.object,
+          reason: eventAction,
+        });
+      }
+
       // reduce verbosity of the notification if we are just reading. otherwise we are doomed
       if (!isReading) {
         await publishNotification(host, {

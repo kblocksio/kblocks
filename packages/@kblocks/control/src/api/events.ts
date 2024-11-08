@@ -14,6 +14,11 @@ export interface ObjectEvent extends EventBase {
   reason: "CREATE" | "UPDATE" | "DELETE" | "SYNC" | "READ";
 }
 
+export interface PatchEvent extends EventBase {
+  type: "PATCH";
+  patch: any;
+}
+
 export interface LifecycleEvent extends EventBase {
   type: "LIFECYCLE";
   event: Event;
@@ -48,6 +53,7 @@ export interface ErrorEvent extends EventBase {
 
 export type WorkerEvent = 
   ObjectEvent 
+  | PatchEvent
   | LogEvent
   | LifecycleEvent
   | ErrorEvent;
