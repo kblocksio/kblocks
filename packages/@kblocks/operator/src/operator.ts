@@ -3,7 +3,7 @@ import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
 import { listAllResources } from "./resources";
-import { KConfig } from "./api";
+import { EventAction, KConfig, blockTypeFromUri, emitEvent, formatBlockUri } from "./api";
 
 async function main() {
   const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
@@ -15,7 +15,9 @@ async function main() {
     throw new Error("kblock.json must contain an 'engine' field");
   }
 
-  const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
+  const plural = kblock.manifest.definition.plural;
+
+  const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID!;
   if (!KBLOCKS_SYSTEM_ID) {
     throw new Error("KBLOCKS_SYSTEM_ID is not set");
   }
@@ -48,6 +50,7 @@ async function main() {
     if (ctx.binding === "read") {
       const resources = await listAllResources(kblock.manifest);
       for (const resource of resources) {
+        // we don't go through processEvent because we don't want to emit the READ event to the backend
         await sendContextToStream(redisClient, workers, {
           ...ctx,
           object: resource,
@@ -61,21 +64,67 @@ async function main() {
           // copy from parent so we can reason about it.
           ctx2.type = ctx.type;
           ctx2.watchEvent = ctx.watchEvent;
-          await sendContextToStream(redisClient, workers, ctx2);
+          await processEvent(redisClient, workers, ctx2);
         }
       } else if ("object" in ctx) {
-        await sendContextToStream(redisClient, workers, ctx);
+        await processEvent(redisClient, workers, ctx);
       }
     }
   }
 
   redisClient.quit();
+
+  async function processEvent(redisClient: Redis, workers: number, context: BindingContext) {
+    const object = context.object;
+  
+    const objUri = formatBlockUri({
+      group: kblock.manifest.definition.group,
+      version: kblock.manifest.definition.version,
+      plural: plural,
+      system: KBLOCKS_SYSTEM_ID,
+      namespace: object.metadata.namespace ?? "default",
+      name: object.metadata.name,
+    })
+
+    if (object.apiVersion !== `${kblock.manifest.definition.group}/${kblock.manifest.definition.version}`) {
+      console.warn(`Object ${object.metadata.name} has apiVersion ${object.apiVersion}, but expected ${kblock.manifest.definition.group}/${kblock.manifest.definition.version}`);
+    }
+
+    if (object.kind !== kblock.manifest.definition.kind) {
+      console.warn(`Object ${object.metadata.name} has kind ${object.kind}, but expected ${kblock.manifest.definition.kind}`);
+    }
+
+    const objType = blockTypeFromUri(objUri);
+
+    emitEvent({
+      type: "OBJECT",
+      object: context.object,
+      reason: renderReason(context.watchEvent),
+      objUri,
+      objType,
+      timestamp: new Date(),
+      requestId: "<object>",
+    });
+  
+    await sendContextToStream(redisClient, workers, context);
+  }  
 }
 
 main().catch(err => {
   console.error(err.stack);
   process.exit(1);
 });
+
+
+function renderReason(watchEvent: BindingContext["watchEvent"]): EventAction {
+  switch (watchEvent) {
+    case "Added": return EventAction.Create;
+    case "Modified": return EventAction.Update;
+    case "Deleted": return EventAction.Delete;
+    case "Read": return EventAction.Read;
+    default: return EventAction.Sync;
+  }
+}
 
 async function sendContextToStream(redisClient: Redis, workers: number, context: BindingContext) {
   try {

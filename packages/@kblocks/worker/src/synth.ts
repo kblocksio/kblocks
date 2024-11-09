@@ -132,22 +132,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     }
 
     try {
-      // send the new object state (if this is a deletion, we do that only after we are complete
-      // because it will cause the deletion of the object from the portal). this must be done before
-      // we start updating the object, because the portal needs to know about the object.
-      // do not send an update if we are just reading.
-      if (!isDeletion && !isReading) {
-        host.emitEvent({
-          type: "OBJECT",
-          requestId,
-          timestamp: new Date(),
-          objUri,
-          objType,
-          object: ctx.object,
-          reason: eventAction,
-        });
-      }
-
       // reduce verbosity of the notification if we are just reading. otherwise we are doomed
       if (!isReading) {
         await publishNotification(host, {
