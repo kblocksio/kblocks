@@ -79,7 +79,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     const lastProbeTime = new Date().toISOString();
 
     // if we are deleting, we can't update the status at all because the object will be gone
-    const statusUpdate = !isDeletion ? statusUpdater(host, ctx.object) : () => {};
+    const statusUpdate = !isDeletion ? statusUpdater(host, ctx.object) : async () => {};
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
       // do not update the ready condition for read to reduce spam
       if (isReading) {
