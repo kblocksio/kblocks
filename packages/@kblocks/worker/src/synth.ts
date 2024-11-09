@@ -86,6 +86,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
         return;
       }
 
+      // we use "quiet: true" to avoid logging the status update
       return statusUpdate({
         conditions: [{
           type: "Ready",
@@ -95,7 +96,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
           message: reason,
           reason,
         }]
-      });
+      }, { quiet: true });
     }
 
     let eventAction: EventAction;

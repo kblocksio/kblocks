@@ -54,7 +54,7 @@ export function statusUpdater(host: RuntimeContext, api: ApiObject) {
     conditions: api.status?.conditions ?? [],
   };
 
-  return async (status: Record<string, any>) => {
+  return async (status: Record<string, any>, { quiet = false }: { quiet?: boolean } = {}) => {
     const patch = deepmerge(prev, status, {
       customMerge: (key: string) => {
         if (key === "conditions") {
@@ -63,6 +63,6 @@ export function statusUpdater(host: RuntimeContext, api: ApiObject) {
       },
     });
 
-    return patchObjectState(host, patch);
+    return patchObjectState(host, patch, { quiet });
   };
 }

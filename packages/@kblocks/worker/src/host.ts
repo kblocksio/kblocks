@@ -26,11 +26,11 @@ export function kblockOutputs(host: RuntimeContext) {
   return (host.tryGetenv("KBLOCK_OUTPUTS") ?? "").split(",").filter(x => x);
 }
 
-export async function patchObjectState(host: RuntimeContext, patch: any) {
+export async function patchObjectState(host: RuntimeContext, patch: any, { quiet = false }: { quiet?: boolean } = {}) {
   const group = host.objRef.apiVersion.split("/")[0];
   const type = `${host.objRef.kind.toLowerCase()}.${group}`;
 
-  await host.exec("kubectl", [
+  const command = [
     "patch",
     type,
     host.objRef.name,
@@ -38,7 +38,13 @@ export async function patchObjectState(host: RuntimeContext, patch: any) {
     "--type", "merge",
     "--subresource", "status",
     "--patch", JSON.stringify({ status: patch }),
-  ]);
+  ];
+
+  if (quiet) {
+    await exec(undefined, "kubectl", command);
+  } else {
+    await host.exec("kubectl", command);
+  }
 }
 
 export async function publishNotification(host: RuntimeContext, event: Event) {
