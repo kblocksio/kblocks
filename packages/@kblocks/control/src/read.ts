@@ -24,7 +24,7 @@ export async function readObject(client: k8s.CustomObjectsApi, ctx: Context, obj
   const obj = await client.getNamespacedCustomObject(group, version, namespace, plural, name);
   
   try {
-    await sendContextToStream(redisClient, workers, {
+    await sendContextToStream(workers, {
       object: obj.body as any,
       type: "request",
       watchEvent: "Read",
@@ -34,7 +34,7 @@ export async function readObject(client: k8s.CustomObjectsApi, ctx: Context, obj
   }
 }
 
-async function sendContextToStream(redisClient: Redis, workers: number, context: BindingContext & { type: string}) {
+async function sendContextToStream(workers: number, context: BindingContext & { type: string }) {
   const redisClient = new Redis(process.env.REDIS_URL);
 
   try {
