@@ -77,10 +77,12 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
     console.log("-------------------------------------------------------------------------------------------");
     const lastProbeTime = new Date().toISOString();
-    const statusUpdate = statusUpdater(host, ctx.object);
+
+    // if we are deleting, we can't update the status at all because the object will be gone
+    const statusUpdate = !isDeletion ? statusUpdater(host, ctx.object) : () => {};
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
-      // do not update the ready condition for read or delete requests
-      if (isReading || isDeletion) {
+      // do not update the ready condition for read to reduce spam
+      if (isReading) {
         return;
       }
 
@@ -148,7 +150,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       }
 
       // resolve references by waiting for the referenced objects to be ready
-      await updateReadyCondition(false, StatusReason.ResolvingReferences);
       ctx.object = await resolveReferences(eventAction, workdir, host, ctx.object);
       console.log(JSON.stringify(ctx)); // one line per object
 
