@@ -30,12 +30,17 @@ export async function readObject(client: k8s.CustomObjectsApi, ctx: Context, obj
       watchEvent: "Read",
     });
   } catch (e) {
-    console.error("error sending to redis stream:", e);
+    console.error("error sending READ request to stream:", e);
   }
 }
 
 async function sendContextToStream(workers: number, context: BindingContext & { type: string }) {
-  const redisClient = new Redis(process.env.REDIS_URL);
+  const url = process.env.REDIS_URL!;
+  if (!url) {
+    throw new Error("REDIS_URL is not set");
+  }
+
+  const redisClient = new Redis(url);
 
   try {
     const key = `${context.object.metadata.namespace}/${context.object.metadata.name}`;
