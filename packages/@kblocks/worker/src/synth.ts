@@ -31,7 +31,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     name: ctx.object.metadata.name,
     uid: ctx.object.metadata.uid,
   };
-  
+
   const isDeletion = ctx.watchEvent === "Deleted";
   const isReading = ctx.watchEvent === "Read";
   const objType = `${objRef.apiVersion}/${plural}`;
@@ -79,16 +79,21 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     const lastProbeTime = new Date().toISOString();
     const statusUpdate = statusUpdater(host, ctx.object);
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
-      if (!isReading) {
-        return statusUpdate({ conditions: [{
+      // do not update the ready condition for read or delete requests
+      if (isReading || isDeletion) {
+        return;
+      }
+
+      return statusUpdate({
+        conditions: [{
           type: "Ready",
           status: ready ? "True" : "False",
           lastTransitionTime: new Date().toISOString(),
           lastProbeTime,
           message: reason,
           reason,
-        }] });
-      }
+        }]
+      });
     }
 
     let eventAction: EventAction;
@@ -113,7 +118,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     try {
       // for new objects, save the initial state hash for future comparison
       // for modified objects, only save if the state has actually changed
-      if (ctx.watchEvent === "Added" || ctx.watchEvent === "Modified"){
+      if (ctx.watchEvent === "Added" || ctx.watchEvent === "Modified") {
         if (!(await updateLastStateHash(statusUpdate, ctx.object))) {
           console.log("skipping status update");
           return;
@@ -144,7 +149,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
       // resolve references by waiting for the referenced objects to be ready
       await updateReadyCondition(false, StatusReason.ResolvingReferences);
-      ctx.object = await resolveReferences(eventAction,workdir, host, ctx.object);
+      ctx.object = await resolveReferences(eventAction, workdir, host, ctx.object);
       console.log(JSON.stringify(ctx)); // one line per object
 
       await updateReadyCondition(false, StatusReason.InProgress);
@@ -157,7 +162,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       if (!isReading) {
         const first = engine.split("/")[0];
         let outputs: Record<string, any> = {};
-      
+
         switch (first) {
           case "helm":
             outputs = await applyHelm(workdir, host, ctx, values);
@@ -180,7 +185,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
           default:
             throw new Error(`unsupported engine: ${engine}`);
         }
-    
+
         if (Object.keys(outputs).length > 0) {
           await statusUpdate(outputs);
         }
@@ -249,11 +254,11 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
       // send the explanation as an ERROR event to the backend
       host.emitEvent({
+        type: "ERROR",
         objUri,
         requestId,
         objType,
         timestamp: new Date(),
-        type: "ERROR",
         message: err.message,
         stack: err.stack,
         explanation,
@@ -273,7 +278,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
             text: "✨ _Powered by AI_",
           },
         });
-        
+
         await slack?.postBlocks(explanation.blocks);
       }
     }
