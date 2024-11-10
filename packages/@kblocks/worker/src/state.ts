@@ -38,15 +38,17 @@ function createHashFromData(data: Record<string, string>) {
 }
 
 export function statusUpdater(host: RuntimeContext, current: ApiObject) {
+  let currentStatus = current.status ?? {};
+
   return async (update: Record<string, any>, { quiet = false }: { quiet?: boolean } = {}) => {
-    const patch = _renderPatch(current, update);
-    return patchObjectState(host, patch, { quiet });
+    currentStatus = _renderPatch(currentStatus, update);
+    return patchObjectState(host, currentStatus, { quiet });
   };
 }
 
-export const _renderPatch = (current: ApiObject, update: Record<string, any>) => {
+export const _renderPatch = (currentStatus: Record<string, any>, update: Record<string, any>) => {
   // if the update doesn't include conditions, just send it as is
-  if (!update.status?.conditions) {
+  if (!update.conditions) {
     return update;
   }
 
@@ -63,16 +65,7 @@ export const _renderPatch = (current: ApiObject, update: Record<string, any>) =>
     return conditions;
   };
 
-  const prev: any = {};
-  
-  // if the update has conditions, we want to "inherit" the conditions from the current status and
-  // merge the new conditions with the existing ones so we don't lose other conditions
-  if (update.status?.conditions) {
-    prev.status = prev.status ?? {};
-    prev.status.conditions = current.status?.conditions ?? [];
-  }
-
-  const patch = deepmerge(prev, update, {
+  const patch = deepmerge(currentStatus, update, {
     customMerge: (key: string) => {
       if (key === "conditions") {
         return mergeConditions;
