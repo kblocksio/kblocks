@@ -12,8 +12,10 @@ export async function updateLastStateHash(statusUpdate: ReturnType<typeof status
   }
 
   await statusUpdate({
-    lastStateHash: newValue,
-  });
+      lastStateHash: newValue,
+    },
+    { quiet: true },
+  );
 
   return true;
 }
