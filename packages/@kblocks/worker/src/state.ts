@@ -37,7 +37,19 @@ function createHashFromData(data: Record<string, string>) {
   return crypto.createHash("sha256").update(sortedData).digest("hex").substring(0, 62);
 }
 
-export function statusUpdater(host: RuntimeContext, api: ApiObject) {
+export function statusUpdater(host: RuntimeContext, current: ApiObject) {
+  return async (update: Record<string, any>, { quiet = false }: { quiet?: boolean } = {}) => {
+    const patch = _renderPatch(current, update);
+    return patchObjectState(host, patch, { quiet });
+  };
+}
+
+export const _renderPatch = (current: ApiObject, update: Record<string, any>) => {
+  // if the update doesn't include conditions, just send it as is
+  if (!update.status?.conditions) {
+    return update;
+  }
+
   const mergeConditions = (current: Condition[], newConditions: Condition[]) => {
     const conditions = [...current];
     newConditions.forEach(newCondition => {
@@ -51,20 +63,22 @@ export function statusUpdater(host: RuntimeContext, api: ApiObject) {
     return conditions;
   };
 
-  // only "inherit" the conditions from the previous status (the rest we don't want to send to the patch)
-  const prev: any = {
-    conditions: api.status?.conditions ?? [],
-  };
+  const prev: any = {};
+  
+  // if the update has conditions, we want to "inherit" the conditions from the current status and
+  // merge the new conditions with the existing ones so we don't lose other conditions
+  if (update.status?.conditions) {
+    prev.status = prev.status ?? {};
+    prev.status.conditions = current.status?.conditions ?? [];
+  }
 
-  return async (status: Record<string, any>, { quiet = false }: { quiet?: boolean } = {}) => {
-    const patch = deepmerge(prev, status, {
-      customMerge: (key: string) => {
-        if (key === "conditions") {
-          return mergeConditions;
-        }
-      },
-    });
+  const patch = deepmerge(prev, update, {
+    customMerge: (key: string) => {
+      if (key === "conditions") {
+        return mergeConditions;
+      }
+    },
+  });
 
-    return patchObjectState(host, patch, { quiet });
-  };
+  return patch;
 }
