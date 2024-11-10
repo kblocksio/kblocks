@@ -73,7 +73,6 @@ test("update a field and also a condition", async () => {
   const patch = _renderPatch(current, update);
   expect(patch).toEqual({
     new_field: "new_value",
-    foo: "bar",
     conditions: [{ type: "foo", status: "new_baz" }, { type: "baz", status: "qux" }],
   });
 });
