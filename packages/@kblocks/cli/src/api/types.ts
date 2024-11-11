@@ -104,4 +104,5 @@ export type KConfig = {
   manifest: Manifest;
   engine: string;
   config: Record<string, any>;
+  flushOnly: boolean;
 }

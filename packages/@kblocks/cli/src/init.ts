@@ -3,10 +3,12 @@ import path from "path";
 import yaml from "yaml";
 import ejs from "ejs";
 import { ApiObject, Manifest } from "./api";
+import { importCommand } from "./import";
 
 export interface InitOptions {
   TEMPLATE?: string;
   DIR?: string;
+  import?: boolean;
 
   group?: string;
   kind?: string;
@@ -59,7 +61,7 @@ export async function initCommand(argv: InitOptions) {
   const options = ["group", "apiVersion", "kind", "plural", "icon", "description", "color", "listKind", "shortNames", "categories", "singular"];
   for (const option of options) {
     const arg = (argv as any)[option];
-    if (arg) {
+    if (arg !== undefined) {
       const targetOptions = option === "apiVersion" ? "version" : option;
       (manifest.spec.definition as any)[targetOptions] = arg;
     }
@@ -67,19 +69,19 @@ export async function initCommand(argv: InitOptions) {
 
   const errors = [];
 
-  if (!manifest.spec.definition.group) {
+  if (manifest.spec.definition.group === undefined) {
     errors.push("--group is required");
   }
 
-  if (!manifest.spec.definition.plural) {
+  if (manifest.spec.definition.plural === undefined) {
     errors.push("--plural is required");
   }
 
-  if (!manifest.spec.definition.kind) {
+  if (manifest.spec.definition.kind === undefined) {
     errors.push("--kind is required");
   }
 
-  if (!manifest.spec.definition.version) {
+  if (manifest.spec.definition.version === undefined) {
     errors.push("--apiVersion is required");
   }
 
@@ -90,7 +92,7 @@ export async function initCommand(argv: InitOptions) {
   manifest.spec.definition.singular = manifest.spec.definition.singular ?? manifest.spec.definition.kind.toLowerCase();
 
   manifest.metadata = manifest.metadata ?? {};
-  manifest.metadata.name = `${manifest.spec.definition.plural}.${manifest.spec.definition.group}`;
+  manifest.metadata.name = manifest.spec.definition.group ? `${manifest.spec.definition.plural}.${manifest.spec.definition.group}` : manifest.spec.definition.plural;
 
 
   fs.mkdirSync(targetDir, { recursive: true });
@@ -98,6 +100,15 @@ export async function initCommand(argv: InitOptions) {
 
   // write the kblock.yaml file
   fs.writeFileSync(path.join(targetDir, "kblock.yaml"), yaml.stringify(manifest));
+
+  if (argv.import) {
+    await importCommand({
+      DIR: path.join(targetDir, "src"),
+      group: manifest.spec.definition.group,
+      apiVersion: manifest.spec.definition.version,
+      kind: manifest.spec.definition.kind,
+    });
+  }
 
   const kb = path.basename(process.argv[1]);
 

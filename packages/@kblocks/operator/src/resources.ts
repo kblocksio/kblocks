@@ -25,7 +25,11 @@ export async function listAllResources(manifest: Manifest) {
     );
 
     for (const resource of (resourceList as any).items) {
-      result.push(resource);
+      result.push({
+        ...resource,
+        apiVersion: `${manifest.definition.group}/${manifest.definition.version}`,
+        kind: manifest.definition.kind,
+      });
     }
   }
 

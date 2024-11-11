@@ -58,23 +58,34 @@ async function main() {
           watchEvent: "Read",
         });
       }
-    } else {
+    } else if (ctx.binding === "flush") {
+      const resources = await listAllResources(kblock.manifest);
+      for (const resource of resources) {
+        await processEvent({
+          ...ctx,
+          object: resource,
+          type: "schedule",
+          watchEvent: "Flush",
+        });
+      }
+    } else if (!kblock.flushOnly) {
       if ("objects" in ctx) {
         for (const ctx2 of ctx.objects) {
           // copy from parent so we can reason about it.
           ctx2.type = ctx.type;
           ctx2.watchEvent = ctx.watchEvent;
-          await processEvent(redisClient, workers, ctx2);
+          await processEvent(ctx2, { redisClient, workers });
         }
       } else if ("object" in ctx) {
-        await processEvent(redisClient, workers, ctx);
+        await processEvent(ctx, { redisClient, workers });
       }
     }
   }
 
   redisClient.quit();
 
-  async function processEvent(redisClient: Redis, workers: number, context: BindingContext) {
+  async function processEvent(context: BindingContext, 
+      redis?: { redisClient: Redis, workers: number }) {
     const object = context.object;
   
     const objUri = formatBlockUri({
@@ -106,7 +117,9 @@ async function main() {
       requestId: "<object>",
     });
   
-    await sendContextToStream(redisClient, workers, context);
+    if (redis) {
+      await sendContextToStream(redis.redisClient, redis.workers, context);
+    }
   }  
 }
 
