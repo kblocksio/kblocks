@@ -64,10 +64,10 @@ export type Manifest = z.infer<typeof Manifest>;
 export const isCoreGroup = (group: string) => group === "core";
 
 export const systemApiVersion = (manifest: Manifest) => 
-  systemApiVersionFromComponents({ version: manifest.definition.version });
+  systemApiVersionFromComponents({ group: manifest.definition.group, version: manifest.definition.version });
 
-export const systemApiVersionFromComponents = ({ version }: { version: string }) => 
-  `core.${version}`;
+export const systemApiVersionFromComponents = ({ group, version }: { group?: string, version: string }) => 
+  group ? `${group}/${version}` : `core/${version}`;
 
 export const displayApiVersion = (manifest: Manifest) => 
   displayApiVersionFromComponents({ group: manifest.definition.group, version: manifest.definition.version });
