@@ -1,6 +1,6 @@
 import * as k8s from '@kubernetes/client-node';
 import { fetch, Agent } from 'undici';
-import { ApiObject } from './api';
+import { ApiObject } from './api/index.js';
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();

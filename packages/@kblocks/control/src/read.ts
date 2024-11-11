@@ -1,8 +1,9 @@
 import * as k8s from "@kubernetes/client-node";
 import Redis from "ioredis";
 import { createHash } from "crypto";
-import { BindingContext, parseBlockUri } from "./api";
+import { BindingContext, isCoreGroup, parseBlockUri } from "./api";
 import { Context } from "./context";
+import { getCoreResource } from "./client";
 
 if (!process.env.REDIS_URL) {
   throw new Error("REDIS_URL is not set");
@@ -21,11 +22,21 @@ export async function readObject(client: k8s.CustomObjectsApi, ctx: Context, obj
   const { group, version, plural } = ctx;
   const { namespace, name } = parseBlockUri(objUri);
 
-  const obj = await client.getNamespacedCustomObject(group, version, namespace, plural, name);
-  
+  let obj;
+  if (!isCoreGroup(group)) {
+    const res = await client.getNamespacedCustomObject(group, version, namespace, plural, name);
+    obj = res.body;
+  } else {
+    obj = await getCoreResource({
+      ...ctx,
+      name,
+      namespace,
+    });
+  }
+
   try {
     await sendContextToStream(workers, {
-      object: obj.body as any,
+      object: obj as any,
       type: "request",
       watchEvent: "Read",
     });

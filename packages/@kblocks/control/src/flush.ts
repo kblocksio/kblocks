@@ -1,6 +1,7 @@
-import { ApiObject, Manifest, emitEvent } from "./api";
+import { ApiObject, Manifest, emitEvent, isCoreGroup } from "./api";
 import * as k8s from "@kubernetes/client-node";
 import { Context } from "./context";
+import { listAllCoreResources } from "./client";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -23,7 +24,12 @@ export function flush(ctx: Context, manifest: Manifest) {
 }
 
 async function flushAllResources(ctx: Context, manifest: Manifest) {
-  const resources = await listAllResources(manifest);
+  let resources = [];
+  if (!isCoreGroup(manifest.definition.group)) {
+    resources = await listAllResources(manifest);
+  } else {
+    resources = await listAllCoreResources(manifest);
+  }
 
   for (const resource of resources) {
     const objType = `${manifest.definition.group}/${manifest.definition.version}/${manifest.definition.plural}`;

@@ -61,7 +61,7 @@ export async function initCommand(argv: InitOptions) {
   const options = ["group", "apiVersion", "kind", "plural", "icon", "description", "color", "listKind", "shortNames", "categories", "singular"];
   for (const option of options) {
     const arg = (argv as any)[option];
-    if (arg !== undefined) {
+    if (arg) {
       const targetOptions = option === "apiVersion" ? "version" : option;
       (manifest.spec.definition as any)[targetOptions] = arg;
     }
@@ -69,19 +69,19 @@ export async function initCommand(argv: InitOptions) {
 
   const errors = [];
 
-  if (manifest.spec.definition.group === undefined) {
+  if (!manifest.spec.definition.group) {
     errors.push("--group is required");
   }
 
-  if (manifest.spec.definition.plural === undefined) {
+  if (!manifest.spec.definition.plural) {
     errors.push("--plural is required");
   }
 
-  if (manifest.spec.definition.kind === undefined) {
+  if (!manifest.spec.definition.kind) {
     errors.push("--kind is required");
   }
 
-  if (manifest.spec.definition.version === undefined) {
+  if (!manifest.spec.definition.version) {
     errors.push("--apiVersion is required");
   }
 
@@ -92,7 +92,7 @@ export async function initCommand(argv: InitOptions) {
   manifest.spec.definition.singular = manifest.spec.definition.singular ?? manifest.spec.definition.kind.toLowerCase();
 
   manifest.metadata = manifest.metadata ?? {};
-  manifest.metadata.name = manifest.spec.definition.group ? `${manifest.spec.definition.plural}.${manifest.spec.definition.group}` : manifest.spec.definition.plural;
+  manifest.metadata.name = `${manifest.spec.definition.plural}.${manifest.spec.definition.group}`;
 
 
   fs.mkdirSync(targetDir, { recursive: true });

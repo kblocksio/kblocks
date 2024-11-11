@@ -28,7 +28,8 @@ export function kblockOutputs(host: RuntimeContext) {
 
 export async function patchObjectState(host: RuntimeContext, patch: any, { quiet = false }: { quiet?: boolean } = {}) {
   const group = host.objRef.apiVersion.split("/")[0];
-  const type = `${host.objRef.kind.toLowerCase()}.${group}`;
+  const kind = host.objRef.kind.toLowerCase();
+  const type = group ? `${kind}.${group}` : kind;
 
   const command = [
     "patch",

@@ -2,6 +2,7 @@ import { execSync } from "child_process";
 import { writeFileSync } from "fs";
 import path from "path";
 import $RefParser from '@apidevtools/json-schema-ref-parser';
+import { isCoreGroup } from "./api/manifest";
 
 export interface ImportOptions {
   DIR?: string;
@@ -23,7 +24,7 @@ export async function importCommand(argv: ImportOptions) {
   const definition = Object.values(dereferencedSchema.definitions ?? {}).find((d: any) => {
     const gvks = d["x-kubernetes-group-version-kind"] ?? [];
     return gvks.some((gvk: any) => {
-      return gvk.group === argv.group &&
+      return gvk.group === isCoreGroup(argv.group) ? "" : argv.group &&
         gvk.version === argv.apiVersion &&
         gvk.kind === argv.kind;
     });

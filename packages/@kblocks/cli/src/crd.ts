@@ -21,7 +21,6 @@ export class CustomResourceDefinition extends Construct {
   public readonly kind: string;
   public readonly group: string;
   public readonly plural: string;
-  public readonly apiVersion: string;
 
   constructor(scope: Construct, id: string, props: CustomResourceDefinitionProps) {
     super(scope, id);
@@ -30,8 +29,6 @@ export class CustomResourceDefinition extends Construct {
     this.kind = props.kind;
     this.group = props.group;
     this.plural = props.plural;
-    
-    this.apiVersion = `${props.group}/${props.version}`;
 
     if (!props.schema) {
       throw "schema is required";

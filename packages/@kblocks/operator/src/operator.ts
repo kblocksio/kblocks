@@ -3,7 +3,7 @@ import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
 import { listAllResources } from "./resources";
-import { EventAction, KConfig, blockTypeFromUri, emitEvent, formatBlockUri } from "./api";
+import { EventAction, KConfig, blockTypeFromUri, displayApiVersion, emitEvent, formatBlockUri, systemApiVersion } from "./api";
 
 async function main() {
   const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
@@ -87,6 +87,16 @@ async function main() {
   async function processEvent(context: BindingContext, 
       redis?: { redisClient: Redis, workers: number }) {
     const object = context.object;
+
+    if (object.apiVersion !== displayApiVersion(kblock.manifest)) {
+      console.warn(`Object ${object.metadata.name} has apiVersion ${object.apiVersion}, but expected ${displayApiVersion(kblock.manifest)}`);
+    }
+
+    if (object.kind !== kblock.manifest.definition.kind) {
+      console.warn(`Object ${object.metadata.name} has kind ${object.kind}, but expected ${kblock.manifest.definition.kind}`);
+    }
+
+    context.object.apiVersion = systemApiVersion(kblock.manifest);
   
     const objUri = formatBlockUri({
       group: kblock.manifest.definition.group,
@@ -97,13 +107,7 @@ async function main() {
       name: object.metadata.name,
     })
 
-    if (object.apiVersion !== `${kblock.manifest.definition.group}/${kblock.manifest.definition.version}`) {
-      console.warn(`Object ${object.metadata.name} has apiVersion ${object.apiVersion}, but expected ${kblock.manifest.definition.group}/${kblock.manifest.definition.version}`);
-    }
-
-    if (object.kind !== kblock.manifest.definition.kind) {
-      console.warn(`Object ${object.metadata.name} has kind ${object.kind}, but expected ${kblock.manifest.definition.kind}`);
-    }
+    
 
     const objType = blockTypeFromUri(objUri);
 

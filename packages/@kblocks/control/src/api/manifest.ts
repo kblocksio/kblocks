@@ -10,10 +10,7 @@ export const CustomResourceDefinition = z.object({
   categories: z.optional(z.array(z.string())),
   listKind: z.optional(z.string()),
   outputs: z.optional(z.array(z.string())),
-}).transform((crd) => ({
-  apiVersion: `${crd.group}/${crd.version}`,
-  ...crd,
-}));
+});
 
 export const Manifest = z.object({
   engine: z.union([ 
@@ -63,3 +60,17 @@ export const Manifest = z.object({
 });
 
 export type Manifest = z.infer<typeof Manifest>;
+
+export const isCoreGroup = (group: string) => group === "core";
+
+export const systemApiVersion = (manifest: Manifest) => 
+  systemApiVersionFromComponents({ group: manifest.definition.group, version: manifest.definition.version });
+
+export const systemApiVersionFromComponents = ({ group, version }: { group?: string, version: string }) => 
+  group ? `${group}/${version}` : `core/${version}`;
+
+export const displayApiVersion = (manifest: Manifest) => 
+  displayApiVersionFromComponents({ group: manifest.definition.group, version: manifest.definition.version });
+
+export const displayApiVersionFromComponents = ({ group, version }: { group: string, version: string }) => 
+  isCoreGroup(group) ? version : `${group}/${version}`;
