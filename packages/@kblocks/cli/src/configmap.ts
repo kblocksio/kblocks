@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
 import * as k8s from "cdk8s-plus-30";
-import { Manifest } from "./api";
+import { displayApiVersion, Manifest } from "./api";
 import fs from "fs";
 
 export interface PodEnvironment {
@@ -144,7 +144,7 @@ export function createTgzBase64(rootDir: string): string {
 
 export function readBlockJson(block: Manifest, flushOnly?: boolean) {
   let kubernetes = [{
-    apiVersion: block.definition.apiVersion,
+    apiVersion: displayApiVersion(block),
     kind: block.definition.kind,
     executeHookOnEvent: ["Added", "Modified", "Deleted"]
   }];

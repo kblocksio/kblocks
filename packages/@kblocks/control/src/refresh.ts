@@ -1,6 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
-import { blockTypeFromUri, emitEvent, parseBlockUri } from "./api";
+import { blockTypeFromUri, emitEvent, isCoreGroup, parseBlockUri } from "./api";
 import { Context } from "./context";
+import { getCoreResource } from "./client";
 
 export async function refreshObject(client: k8s.CustomObjectsApi, ctx: Context, objUri: string) {
   console.log(`REFRESH: ${objUri}`);
@@ -8,12 +9,23 @@ export async function refreshObject(client: k8s.CustomObjectsApi, ctx: Context, 
   const { group, version, plural } = ctx;
   const { namespace, name } = parseBlockUri(objUri);
 
-  const obj = await client.getNamespacedCustomObject(group, version, namespace, plural, name);
+  let obj;
+  if (!isCoreGroup(group)) {
+    const res = await client.getNamespacedCustomObject(group, version, namespace, plural, name);
+    obj = res.body;
+  } else {
+    obj = await getCoreResource({
+      ...ctx,
+      name,
+      namespace,
+    });
+  }
+
   return emitEvent({
     type: "OBJECT",
     objType: blockTypeFromUri(objUri),
     objUri,
-    object: obj.body,
+    object: obj as any,
     reason: "SYNC",
     timestamp: new Date(),
     requestId: ctx.requestId,

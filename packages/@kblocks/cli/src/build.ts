@@ -28,7 +28,7 @@ export const buildCommand = async (opts: {
 
     console.log();
     console.log("-------------------------------------------------------------------------------------------------------------------");
-    console.log(`Block '${manifest.definition.apiVersion}.${manifest.definition.kind}' is ready. To install:`);
+    console.log(`Block '${manifest.definition.group}.${manifest.definition.kind}' is ready. To install:`);
     console.log();
     console.log(`  helm upgrade --install ${manifest.definition.kind.toLowerCase()}-block ${outdir}`);
     console.log();

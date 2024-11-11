@@ -1,5 +1,6 @@
-import { Manifest } from "./api";
+import { isCoreGroup, Manifest, systemApiVersion } from "./api";
 import * as k8s from "@kubernetes/client-node";
+import { listAllCoreResources } from "./client";
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -7,7 +8,7 @@ kc.loadFromDefault();
 const k8sCoreClient = kc.makeApiClient(k8s.CoreV1Api);
 const k8sCustomClient = kc.makeApiClient(k8s.CustomObjectsApi);
 
-export async function listAllResources(manifest: Manifest) {
+export async function listAllCustomResources(manifest: Manifest) {
   const { body: namespaceList } = await k8sCoreClient.listNamespace();
   const result = [];
 
@@ -27,11 +28,19 @@ export async function listAllResources(manifest: Manifest) {
     for (const resource of (resourceList as any).items) {
       result.push({
         ...resource,
-        apiVersion: `${manifest.definition.group}/${manifest.definition.version}`,
+        apiVersion: systemApiVersion(manifest),
         kind: manifest.definition.kind,
       });
     }
   }
 
   return result;
+}
+
+export async function listAllResources(manifest: Manifest) {
+  if (!isCoreGroup(manifest.definition.group)) {
+    return listAllCustomResources(manifest);
+  } else {
+    return listAllCoreResources(manifest);
+  }
 }

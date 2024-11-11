@@ -1,6 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
-import { parseBlockUri } from "./api";
+import { isCoreGroup, parseBlockUri } from "./api";
 import { Context } from "./context";
+import { patchCoreResource } from "./client";
 
 const FIELD_MANAGER = "kblocks";
 
@@ -10,16 +11,25 @@ export async function patchObject(client: k8s.CustomObjectsApi, ctx: Context, ob
   const { group, version, plural } = ctx;
   const { namespace, name } = parseBlockUri(objUri);
 
-  return await client.patchNamespacedCustomObject(
-    group,
-    version,
-    namespace,
-    plural,
-    name,
-    obj,
-    undefined,
-    FIELD_MANAGER,
-    undefined,
-    { headers: { 'Content-Type': 'application/merge-patch+json' } }
-  );
+  if (!isCoreGroup(group)) {
+    return await client.patchNamespacedCustomObject(
+      group,
+      version,
+      namespace,
+      plural,
+      name,
+      obj,
+      undefined,
+      FIELD_MANAGER,
+      undefined,
+      { headers: { 'Content-Type': 'application/merge-patch+json' } }
+    );
+  } else {
+    return await patchCoreResource({
+      ...ctx,
+      name,
+      namespace,
+      object: obj
+    });
+  }
 }

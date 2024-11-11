@@ -18,7 +18,6 @@ const fixtures: Record<string, Manifest> = {
         type: "object",
         properties: { name: { type: "string" } },
       },
-      apiVersion: "boom.com/v1",
     }
   },
 
@@ -33,7 +32,6 @@ const fixtures: Record<string, Manifest> = {
         type: "object",
         properties: { name: { type: "string" } },
       },
-      apiVersion: "boom.com/v1",
     },
     operator: {
       namespace: "my-namespace",
