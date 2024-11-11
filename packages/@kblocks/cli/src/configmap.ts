@@ -20,6 +20,7 @@ export interface ConfigMapVolumeProps {
   namespace: string;
   block: Manifest;
   source?: string;
+  flushOnly?: boolean;
 }
 
 export class ConfigMapFromDirectory extends Construct {
@@ -49,7 +50,7 @@ export class ConfigMapFromDirectory extends Construct {
         namespace: props.namespace,
       },
       data: {
-        "kblock.json": readBlockJson(props.block),
+        "kblock.json": readBlockJson(props.block, props.flushOnly),
       },
     });
   }
@@ -141,24 +142,35 @@ export function createTgzBase64(rootDir: string): string {
   return data.toString("base64");
 }
 
-export function readBlockJson(block: Manifest) {
+export function readBlockJson(block: Manifest, flushOnly?: boolean) {
+  let kubernetes = [{
+    apiVersion: block.definition.apiVersion,
+    kind: block.definition.kind,
+    executeHookOnEvent: ["Added", "Modified", "Deleted"]
+  }];
+  let schedule = [];
+  if (flushOnly) {
+    schedule.push({
+      name: "flush",
+      crontab: "0,30 * * * * *",
+      allowFailure: false,
+    });
+  } else {
+    schedule.push({
+      name: "read",
+      crontab: "* * * * *",
+      allowFailure: true,
+    });
+  }
+
   return JSON.stringify({
     manifest: block,
     engine: block.engine,
+    flushOnly: flushOnly,
     config: {
       configVersion: "v1",
-      schedule: [{
-        name: "read",
-        crontab: "* * * * *",
-        allowFailure: true,
-      }],
-      kubernetes: [
-        {
-          apiVersion: `${block.definition.group}/${block.definition.version}`,
-          kind: block.definition.kind,
-          executeHookOnEvent: ["Added", "Modified", "Deleted"]
-        }
-      ]
+      schedule: schedule,
+      kubernetes: kubernetes,
     }
   });
 }

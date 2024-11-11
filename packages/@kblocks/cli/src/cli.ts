@@ -6,6 +6,7 @@ import { readManifest, writeManifest } from "./manifest-util";
 import { catalogCommand, initCommand, listProjectTemplates } from "./init";
 import { buildCommand } from "./build";
 import { installCommand } from "./install";
+import { importCommand } from "./import";
 
 export async function cli() {
 
@@ -31,6 +32,18 @@ export async function cli() {
         type: "string",
         required: false,
         default: "kblock.yaml",
+      })
+      .option("flush-only", {
+        description: "Only flush the resources to the backend, without engine operations",
+        type: "boolean",
+        required: false,
+        default: false,
+      })
+      .option("skip-crd", {
+        description: "Skip the creation of the CRD",
+        type: "boolean",
+        required: false,
+        default: false,
       })
       .option("env", {
         alias: "e",
@@ -91,22 +104,26 @@ export async function cli() {
       })
       .option("group", {
         description: "Kubernetes custom resource group (e.g. 'acme.com')",
+        alias: "g",
         type: "string",
         required: false,
       })
       .option("api-version", {
         description: "Kubernetes custom resource API version (e.g. v1)",
+        alias: "v",
         type: "string",
         default: "v1",
         required: false,
       })
       .option("kind", {
         description: "Kubernetes custom resource kind, pascal case (e.g. 'Foo')",
+        alias: "k",
         type: "string",
         required: false,
       })
       .option("plural", {
         description: "Kubernetes custom resource plural, all lowercase (e.g. 'foos')",
+        alias: "p",
         type: "string",
         required: false,
       })
@@ -147,9 +164,40 @@ export async function cli() {
         type: "string",
         required: false,
       })
+      .option("import", {
+        description: "Import the schema from kubernetes",
+        type: "boolean",
+        required: false,
+      })
       .epilogue(templatesHelp()), argv => initCommand(argv))
 
     .command("catalog", "Outputs a JSON catalog of all available init project types", argv => catalogCommand())
+
+    .command("import", "Imports and writes a schema to a file from kubernetes", yargs => yargs
+      .positional("DIR", {
+        description: "The directory containing the block to write the schema to",
+        type: "string",
+        required: false,
+      })
+      .option("group", {
+        description: "Kubernetes resource group (e.g. 'acme.com')",
+        alias: "g",
+        type: "string",
+        required: true,
+      })
+      .option("api-version", {
+        description: "Kubernetes resource API version (e.g. v1)",
+        alias: "v",
+        type: "string",
+        default: "v1",
+        required: true,
+      })
+      .option("kind", {
+        description: "Kubernetes resource kind, pascal case (e.g. 'Foo')",
+        alias: "k",
+        type: "string",
+        required: true,
+      }), argv => importCommand(argv))
 
     .command("install [DIR]", "Install a block to a cluster", yargs => yargs
       .positional("DIR", {
@@ -181,6 +229,18 @@ export async function cli() {
         alias: "n",
         type: "string",
         required: false,
+      })
+      .option("flush-only", {
+        description: "Only flush the resources to the backend, without engine operations",
+        type: "boolean",
+        required: false,
+        default: false,
+      })
+      .option("skip-crd", {
+        description: "Skip the creation of the CRD",
+        type: "boolean",
+        required: false,
+        default: false,
       })
       .option("env", {
         alias: "e",

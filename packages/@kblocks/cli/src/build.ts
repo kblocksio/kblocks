@@ -20,13 +20,15 @@ export const buildCommand = async (opts: {
   manifest: string;
   output: string;
   env: Record<string, string>;
+  skipCrd?: boolean;
+  flushOnly?: boolean;
 }) => {
   return chdir(opts.DIR, async () => {
     const { manifest, outdir } = await build(opts);
 
     console.log();
     console.log("-------------------------------------------------------------------------------------------------------------------");
-    console.log(`Block '${manifest.definition.group}/${manifest.definition.version}.${manifest.definition.kind}' is ready. To install:`);
+    console.log(`Block '${manifest.definition.apiVersion}.${manifest.definition.kind}' is ready. To install:`);
     console.log();
     console.log(`  helm upgrade --install ${manifest.definition.kind.toLowerCase()}-block ${outdir}`);
     console.log();
@@ -38,6 +40,8 @@ export async function build(opts: {
   output: string;
   silent?: boolean;
   env: Record<string, string>;
+  skipCrd?: boolean;
+  flushOnly?: boolean;
 }) {
   const manifestPath = path.resolve(opts.manifest);
   const outdir = path.resolve(opts.output);
@@ -60,7 +64,7 @@ export async function build(opts: {
     fs.copyFileSync(chartPath, path.join(outdir, 'Chart.yaml'));
   }
 
-  synth({ block: manifest, source: process.cwd(), output: outdir, env: opts.env });
+  synth({ block: manifest, source: process.cwd(), output: outdir, env: opts.env, skipCrd: opts.skipCrd, flushOnly: opts.flushOnly });
 
   // write any additional objects to the templates directory
   if (additionalObjects.length > 0) {
@@ -75,6 +79,8 @@ export interface BlockProps {
   block: Manifest;
   source?: string;
   env: Record<string, string>;
+  skipCrd?: boolean;
+  flushOnly?: boolean;
 }
 
 interface Options extends BlockProps {
@@ -86,7 +92,7 @@ export class Block extends Chart {
   constructor(scope: Construct, id: string, props: BlockProps) {
     super(scope, id);
 
-    const { block, source, env } = props;
+    const { block, source, env, skipCrd, flushOnly } = props;
 
     this.validateManifest(block);
 
@@ -99,6 +105,7 @@ export class Block extends Chart {
       block,
       source,
       namespace,
+      flushOnly,
     });
   
     const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
@@ -123,25 +130,27 @@ export class Block extends Chart {
       }
     });
   
-    new Worker(this, "Worker", {
-      image: image.worker,
-      configMaps: configmap.configMaps,
-      ...block.operator,
-      ...block.definition,
-      replicas: workers,
-      namespace,
-      env: {
-        // redis url should be the url of the redis instance in the operator
-        REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
-        ...env,
-        ...block.operator?.env,
-
-        // this can be used to spawn new blocks (e.g. byt the `Block` block).
-        KBLOCKS_WORKER_IMAGE: image.worker,
-        KBLOCKS_OPERATOR_IMAGE: image.operator,
-        KBLOCKS_CONTROL_IMAGE: image.control,
-      }
-    });
+    if (!flushOnly) {
+      new Worker(this, "Worker", {
+        image: image.worker,
+        configMaps: configmap.configMaps,
+        ...block.operator,
+        ...block.definition,
+        replicas: workers,
+        namespace,
+        env: {
+          // redis url should be the url of the redis instance in the operator
+          REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
+          ...env,
+          ...block.operator?.env,
+  
+          // this can be used to spawn new blocks (e.g. byt the `Block` block).
+          KBLOCKS_WORKER_IMAGE: image.worker,
+          KBLOCKS_OPERATOR_IMAGE: image.operator,
+          KBLOCKS_CONTROL_IMAGE: image.control,
+        }
+      });
+    }
   
     new Control(this, "Control", {
       image: image.control,
@@ -157,8 +166,6 @@ export class Block extends Chart {
         ...block.operator?.env,
       }
     });
-  
-    const schema = resolveSchema(block);
   
     const meta = new BlockMetadata(this, "Metadata", {
       resourceName: block.definition.kind,
@@ -178,12 +185,16 @@ export class Block extends Chart {
     if (block.definition.color) {
       annotations["kblocks.io/color"] = block.definition.color;
     }
-  
-    new CustomResourceDefinition(this, "CRD", {
-      ...block.definition,
-      annotations,
-      schema,
-    });
+
+    if (!skipCrd) {
+      const schema = resolveSchema(block);
+    
+      new CustomResourceDefinition(this, "CRD", {
+        ...block.definition,
+        annotations,
+        schema,
+      });
+    }
   }
 
   private validateManifest(block: Manifest) {

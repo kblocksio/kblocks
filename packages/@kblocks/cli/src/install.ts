@@ -8,6 +8,8 @@ export interface InstallOptions {
   output: string;
   releaseName?: string;
   env: Record<string, string>;
+  skipCrd?: boolean;
+  flushOnly?: boolean;
 }
 
 export async function installCommand(argv: InstallOptions) {
@@ -18,6 +20,8 @@ export async function installCommand(argv: InstallOptions) {
       output: argv.output,
       silent: true,
       env: argv.env,
+      skipCrd: argv.skipCrd,
+      flushOnly: argv.flushOnly,
     });
 
     const command = [];

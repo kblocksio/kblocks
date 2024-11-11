@@ -174,7 +174,7 @@ async function main() {
     await exec(undefined, "kubectl", [
       "label",
       "blocks.kblocks.io",
-      `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}`,
+      kblock.manifest.definition.group ? `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}` : kblock.manifest.definition.plural,
       `kblocks.io/commit=${commit}`,
       "-n",
       kblock.manifest.operator?.namespace ?? "default"

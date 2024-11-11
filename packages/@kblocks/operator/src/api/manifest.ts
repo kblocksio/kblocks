@@ -10,7 +10,10 @@ export const CustomResourceDefinition = z.object({
   categories: z.optional(z.array(z.string())),
   listKind: z.optional(z.string()),
   outputs: z.optional(z.array(z.string())),
-});
+}).transform((crd) => ({
+  apiVersion: `${crd.group}/${crd.version}`,
+  ...crd,
+}));
 
 export const Manifest = z.object({
   engine: z.union([ 
