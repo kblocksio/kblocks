@@ -5,8 +5,9 @@ import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
 import * as k8s from "cdk8s-plus-30";
-import { displayApiVersion, Manifest } from "./api";
+import { displayApiVersion, formatBlockTypeForEnv } from "./api/index.js";
 import fs from "fs";
+import { BlockRequest } from "./types";
 
 export interface PodEnvironment {
   namespace: string;
@@ -18,8 +19,7 @@ export interface PodEnvironment {
 
 export interface ConfigMapVolumeProps {
   namespace: string;
-  block: Manifest;
-  source?: string;
+  blockRequests: BlockRequest[];
   flushOnly?: boolean;
 }
 
@@ -35,28 +35,54 @@ export class ConfigMapFromDirectory extends Construct {
     // override the file under `values.schema.json` with the materialized schema
     // which should be available `props.block.definition.schema`.
 
-    if (props.source) {
-      this.configMaps["kblock"] = new ConfigMap(this, "archive-tgz", {
-        metadata: {
-          namespace: props.namespace,
-        },
-        data: {
-          "archive.tgz": createTgzBase64(props.source),
-        },
-      });
+    for (const blockRequest of props.blockRequests) {
+      if (blockRequest.source) {
+        const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
+        this.configMaps[`kblock_${blockType}`] = new ConfigMap(this, `archive-${blockType}`, {
+          metadata: {
+            namespace: props.namespace,
+          },
+          data: {
+            "archive.tgz": createTgzBase64(blockRequest.source),
+          },
+        });
+      }
     }
+
     this.configMaps["kconfig"] = new ConfigMap(this, "block-json", {
       metadata: {
         namespace: props.namespace,
       },
       data: {
-        "kblock.json": readBlockJson(props.block, props.flushOnly),
+        "kblock.json": readBlockJson(props.blockRequests, props.flushOnly),
       },
     });
   }
 }
 
-export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Container, podEnv: PodEnvironment) {
+export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Container, podEnvs: PodEnvironment[]) {
+  const podEnv = podEnvs.reduce((acc, curr) => {
+    return {
+      namespace: curr.namespace,
+      configMaps: {
+        ...acc.configMaps,
+        ...curr.configMaps,
+      },
+      envSecrets: {
+        ...acc.envSecrets,
+        ...curr.envSecrets,
+      },
+      envConfigMaps: {
+        ...acc.envConfigMaps,
+        ...curr.envConfigMaps,
+      },
+      env: {
+        ...acc.env,
+        ...curr.env,
+      },
+    }
+  });
+
   for (const [key, value] of Object.entries(podEnv.configMaps)) {
     const volume = k8s.Volume.fromConfigMap(pod, `ConfigMapVolume-${key}`, value);
     pod.addVolume(volume);
@@ -142,13 +168,19 @@ export function createTgzBase64(rootDir: string): string {
   return data.toString("base64");
 }
 
-export function readBlockJson(block: Manifest, flushOnly?: boolean) {
-  let kubernetes = [{
-    apiVersion: displayApiVersion(block),
-    kind: block.definition.kind,
+export function readBlockJson(blockRequests: BlockRequest[], flushOnly?: boolean) {
+  const blocks = blockRequests.map( b => ({
+    manifest: b.block,
+    engine: b.block.engine,
+  }));
+
+  const kubernetes = blockRequests.map( b => ({
+    apiVersion: displayApiVersion(b.block),
+    kind: b.block.definition.kind,
     executeHookOnEvent: ["Added", "Modified", "Deleted"]
-  }];
-  let schedule = [];
+  }));
+
+  const schedule = [];
   if (flushOnly) {
     schedule.push({
       name: "flush",
@@ -164,8 +196,7 @@ export function readBlockJson(block: Manifest, flushOnly?: boolean) {
   }
 
   return JSON.stringify({
-    manifest: block,
-    engine: block.engine,
+    blocks,
     flushOnly: flushOnly,
     config: {
       configVersion: "v1",

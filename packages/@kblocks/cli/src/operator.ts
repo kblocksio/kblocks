@@ -1,23 +1,28 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
 import { setupPodEnvironment, PodEnvironment } from "./configmap";
+import { formatBlockTypeForEnv, formatBlockTypeFromGVP } from "./api";
 
-export interface OperatorProps extends PodEnvironment {
+export interface OperatorProps {
+  names: string;
+  namespace: string;
   image: string;
-  group: string;
-  kind: string
-  plural: string;
+  blocks: {
+    pod: PodEnvironment;
+    group: string;
+    version: string
+    plural: string;
+    outputs?: string[];
+  }[];
   redisServiceName: string;
   workers: number;
-  outputs?: string[];
 }
 
 export class Operator extends Construct {
   constructor(scope: Construct, id: string, props: OperatorProps) {
     super(scope, id);
 
-    const kind = props.kind.toLocaleLowerCase();
-
+    const name = props.names.substring(0, 63 - 17);
     const serviceAccount = new k8s.ServiceAccount(this, "ServiceAccount", {
       metadata: {
         namespace: props.namespace,
@@ -26,16 +31,6 @@ export class Operator extends Construct {
     
     const role = new k8s.ClusterRole(this, "ClusterRole", {
       rules: [
-        {
-          verbs: ["get", "watch", "list"],
-          endpoints: [
-            k8s.ApiResource.custom({
-              apiGroup: props.group,
-              resourceType: props.plural,
-            })
-          ],
-        },
-
         // allow pod to apply any manifest to any namespace
         {
           verbs: ["*"],
@@ -55,9 +50,9 @@ export class Operator extends Construct {
     const operatorDeployment = new k8s.Deployment(this, "Deployment", {
       metadata: {
         namespace: props.namespace,
-        name: `kblocks-${kind}-operator`,
+        name: `kblocks-${name}-operator`,
         labels: {
-          "app.kubernetes.io/name": `kblocks-${kind}-operator`,
+          "app.kubernetes.io/name": `kblocks-${name}-operator`,
         }
       },
       serviceAccount: serviceAccount,
@@ -83,9 +78,12 @@ export class Operator extends Construct {
       ports: [{ number: 3000 }],
     });
 
-    setupPodEnvironment(operatorDeployment, container, props);
+    setupPodEnvironment(operatorDeployment, container, props.blocks.map(b => b.pod));
 
-    container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
+    for (const block of props.blocks) {
+      const b = formatBlockTypeForEnv(block);
+      container.env.addVariable(`KBLOCK_OUTPUTS_${b}`, k8s.EnvValue.fromValue((block.outputs ?? []).join(",")));
+    }
     container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
 
     // Add Redis sidecar container

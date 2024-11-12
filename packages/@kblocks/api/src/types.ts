@@ -100,9 +100,13 @@ export enum StatusReason {
   Error = "Error",
 }
 
-export type KConfig = {
+export type KBlock = {
   manifest: Manifest;
   engine: string;
+}
+
+export type KConfig = {
+  blocks: KBlock[];
   config: Record<string, any>;
   flushOnly: boolean;
 }

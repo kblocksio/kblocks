@@ -49,6 +49,29 @@ const fixtures: Record<string, Manifest> = {
       workers: 2,
     }
   },
+
+  with_operator_settings_2: {
+    engine: "noop",
+    definition: {
+      group: "doom.com",
+      version: "v1",
+      kind: "Doom",
+      plural: "dooms",
+      schema: {
+        type: "object",
+        properties: { name: { type: "string" } },
+      },
+    },
+    operator: {
+      namespace: "my-namespace",
+      env: {
+        ENV1: "env-1",
+        ENV2: "env-2",
+        ENV3: "env-3",
+      },
+      workers: 2,
+    }
+  },
 };
 
 beforeEach(() => {
@@ -58,18 +81,23 @@ beforeEach(() => {
 });
 
 test("minimal block snapshot", () => {
-  const objects = synthBlock(fixtures.minimal);
+  const objects = synthBlock([fixtures.minimal]);
   expect(objects).toMatchSnapshot();
 });
 
 
-test("operator configuration", () => {
-  const objects = synthBlock(fixtures.with_operator_settings);
+// test("operator configuration", () => {
+//   const objects = synthBlock([fixtures.with_operator_settings]);
+//   expect(objects).toMatchSnapshot();
+// });
+
+test("multiple blocks", () => {
+  const objects = synthBlock([fixtures.with_operator_settings, fixtures.with_operator_settings_2]);
   expect(objects).toMatchSnapshot();
 });
 
 test("all non-cluster objects are namespaced and cluster-scoped are not", () => {
-  const objects = synthBlock(fixtures.minimal);
+  const objects = synthBlock([fixtures.minimal]);
 
   // these are cluster-scoped, so they should not have a namespace
   const cluster = [
@@ -92,11 +120,11 @@ test("all non-cluster objects are namespaced and cluster-scoped are not", () => 
 
 // -----------------------------------------------------------------------------------------------------------
 
-function synthBlock(block: Manifest) {
+function synthBlock(blocks: Manifest[]) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "kblocks-test-"));
 
   synth({
-    block,
+    blockRequests: blocks.map(b => ({ block: b })),
     output: tempDir,
     env: {
       ADDITIONAL_ENV: "additional-env",

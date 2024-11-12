@@ -3,19 +3,17 @@ import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
 import { listAllResources } from "./resources";
-import { EventAction, KConfig, blockTypeFromUri, displayApiVersion, emitEvent, formatBlockUri, systemApiVersion } from "./api";
+import { EventAction, KConfig, blockTypeFromUri, displayApiVersion, emitEvent, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "./api/index.js";
 
 async function main() {
-  const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
-  if (!kblock.config) {
-    throw new Error("kblock.json must contain a 'config' field");
-  }
-  
-  if (!kblock.engine) {
-    throw new Error("kblock.json must contain an 'engine' field");
+  const kconfig: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
+  if (!kconfig.blocks.length) {
+    throw new Error("kblock.json must contain at least one kblock");
   }
 
-  const plural = kblock.manifest.definition.plural;
+  if (!kconfig.config) {
+    throw new Error("kblock.json must contain a 'config' field");
+  }
 
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID!;
   if (!KBLOCKS_SYSTEM_ID) {
@@ -23,7 +21,7 @@ async function main() {
   }
 
   if (process.argv[2] === "--config") {
-    process.stdout.write(JSON.stringify(kblock.config, null, 2));
+    process.stdout.write(JSON.stringify(kconfig.config, null, 2));
     return process.exit(0);
   }
 
@@ -48,7 +46,7 @@ async function main() {
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {
     if (ctx.binding === "read") {
-      const resources = await listAllResources(kblock.manifest);
+      const resources = await listAllResourcesForOperator(kconfig);
       for (const resource of resources) {
         // we don't go through processEvent because we don't want to emit the READ event to the backend
         await sendContextToStream(redisClient, workers, {
@@ -59,7 +57,7 @@ async function main() {
         });
       }
     } else if (ctx.binding === "flush") {
-      const resources = await listAllResources(kblock.manifest);
+      const resources = await listAllResourcesForOperator(kconfig);
       for (const resource of resources) {
         await processEvent({
           ...ctx,
@@ -68,7 +66,7 @@ async function main() {
           watchEvent: "Flush",
         });
       }
-    } else if (!kblock.flushOnly) {
+    } else if (!kconfig.flushOnly) {
       if ("objects" in ctx) {
         for (const ctx2 of ctx.objects) {
           // copy from parent so we can reason about it.
@@ -87,6 +85,11 @@ async function main() {
   async function processEvent(context: BindingContext, 
       redis?: { redisClient: Redis, workers: number }) {
     const object = context.object;
+    const apiVersion = systemApiVersionFromDisplay(object.apiVersion);
+    const kblock = kconfig.blocks.find(b => systemApiVersion(b.manifest) === apiVersion);
+    if (!kblock) {
+      throw new Error(`No kblock found for apiVersion ${apiVersion}`);
+    }
 
     if (object.apiVersion !== displayApiVersion(kblock.manifest)) {
       console.warn(`Object ${object.metadata.name} has apiVersion ${object.apiVersion}, but expected ${displayApiVersion(kblock.manifest)}`);
@@ -96,8 +99,9 @@ async function main() {
       console.warn(`Object ${object.metadata.name} has kind ${object.kind}, but expected ${kblock.manifest.definition.kind}`);
     }
 
-    context.object.apiVersion = systemApiVersion(kblock.manifest);
-  
+    context.object.apiVersion = apiVersion;
+    const plural = kblock.manifest.definition.plural;
+
     const objUri = formatBlockUri({
       group: kblock.manifest.definition.group,
       version: kblock.manifest.definition.version,
@@ -106,8 +110,6 @@ async function main() {
       namespace: object.metadata.namespace ?? "default",
       name: object.metadata.name,
     })
-
-    
 
     const objType = blockTypeFromUri(objUri);
 
@@ -132,6 +134,10 @@ main().catch(err => {
   process.exit(1);
 });
 
+async function listAllResourcesForOperator(kconfig: KConfig) {
+  const result = await Promise.all(kconfig.blocks.map(kblock => listAllResources(kblock.manifest)));
+  return result.flat();
+}
 
 function renderReason(watchEvent: BindingContext["watchEvent"]): EventAction {
   switch (watchEvent) {

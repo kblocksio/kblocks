@@ -23,7 +23,11 @@ export function parseBlockUri(uri: string): BlockUriComponents {
 }
 
 export function formatBlockType(components: BlockUriComponents): string {
-  return `${components.group}/${components.version}/${components.plural}`;
+  return formatBlockTypeFromGVP(components);
+}
+
+export function formatBlockTypeFromGVP({ group, version, plural }: { group: string, version: string, plural: string }): string {
+  return `${group}/${version}/${plural}`;
 }
 
 export function blockTypeFromUri(uri: string): string {
@@ -32,4 +36,11 @@ export function blockTypeFromUri(uri: string): string {
 
 export function formatBlockUri(components: BlockUriComponents): string {
   return `kblocks://${components.group}/${components.version}/${components.plural}/${components.system}/${components.namespace}/${components.name}`;
+}
+
+export function formatBlockTypeForEnv(args: { group: string, version: string, plural: string }): string {
+  return formatBlockTypeFromGVP(args)
+    .replace(/\//g, "-")
+    .replace(/\./g, "-")
+    .toUpperCase();
 }

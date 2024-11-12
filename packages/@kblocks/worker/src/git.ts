@@ -1,7 +1,7 @@
 import path from "path";
 import { Octokit } from "@octokit/rest";
 import { exec, tempdir } from "./util.js";
-import { KConfig } from "./api/index.js";
+import { KBlock } from "./api/index.js";
 
 const DEFAULT_BRANCH = "main";
 const token = process.env.GITHUB_TOKEN;
@@ -15,7 +15,7 @@ const createOctokit = async (): Promise<Octokit> => {
   return new Octokit({ auth: token });
 }
 
-export async function getLatestCommit(source: KConfig["manifest"]["source"]) {
+export async function getLatestCommit(source: KBlock["manifest"]["source"]) {
   if (!source) {
     throw new Error("No source given");
   }
@@ -39,7 +39,7 @@ export async function getLatestCommit(source: KConfig["manifest"]["source"]) {
   }
 }
 
-export async function listenForChanges(kblock: KConfig, onChanges: (commit: string) => void) {
+export async function listenForChanges(kblock: KBlock, onChanges: (commit: string) => void) {
   if (!kblock.manifest.source) {
     console.log("No source found, skipping source listening");
     return "no-source";
@@ -58,7 +58,7 @@ export async function listenForChanges(kblock: KConfig, onChanges: (commit: stri
   return commit;
 }
 
-export async function cloneRepo(source: NonNullable<KConfig["manifest"]["source"]>) {
+export async function cloneRepo(source: NonNullable<KBlock["manifest"]["source"]>) {
   const url = source.url;
   const branch = source.branch ?? DEFAULT_BRANCH;
   const directory = source.directory ?? "";

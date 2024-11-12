@@ -3,87 +3,113 @@ import fs from "fs";
 import { App, Chart } from "cdk8s";
 import { Operator } from "./operator";
 import { Worker } from "./worker";
-import { BlockMetadata } from "./metadata";
 import { CustomResourceDefinition } from "./crd";
 import { JsonSchemaProps } from "../imports/k8s";
 import { ConfigMapFromDirectory } from "./configmap";
 import packageJson from "../package.json";
 import { Control } from "./control";
-import { Manifest } from "./api";
+import { formatBlockTypeForEnv, Manifest } from "./api";
 import { Construct } from "constructs";
 import yaml from 'yaml';
 import { readManifest, resolveExternalAssets } from "./manifest-util";
-import { chdir } from "./util";
+import { BlockRequest } from "./types";
 
 export const buildCommand = async (opts: {
-  DIR?: string;
+  DIR?: string[];
   manifest: string;
   output: string;
   env: Record<string, string>;
   skipCrd?: boolean;
   flushOnly?: boolean;
 }) => {
-  return chdir(opts.DIR, async () => {
-    const { manifest, outdir } = await build(opts);
+  const requests = opts.DIR && opts.DIR.length ? opts.DIR.map(dir => ({
+    manifest: opts.manifest,
+    dir,
+  })) : [{
+    manifest: opts.manifest,
+    dir: process.cwd(),
+  }];
 
-    console.log();
-    console.log("-------------------------------------------------------------------------------------------------------------------");
-    console.log(`Block '${manifest.definition.group}.${manifest.definition.kind}' is ready. To install:`);
-    console.log();
-    console.log(`  helm upgrade --install ${manifest.definition.kind.toLowerCase()}-block ${outdir}`);
-    console.log();
+  const { blockRequests, outdir, names } = await build({
+    ...opts,
+    requests,
   });
+
+  console.log();
+  console.log("-------------------------------------------------------------------------------------------------------------------");
+  for (const request of blockRequests) {
+    console.log(`Block '${request.block.definition.group}.${request.block.definition.kind}' is ready. To install:`);
+  }
+  console.log();
+  console.log(`  helm upgrade --install ${names}-block ${outdir}`);
+  console.log();
 };
 
 export async function build(opts: {
-  manifest: string;
+  requests: {
+    manifest: string;
+    dir: string;
+  }[]
   output: string;
   silent?: boolean;
   env: Record<string, string>;
   skipCrd?: boolean;
   flushOnly?: boolean;
 }) {
-  const manifestPath = path.resolve(opts.manifest);
-  const outdir = path.resolve(opts.output);
-
-  // read the manifest file and extract the block manifest
-  var { blockObject, additionalObjects } = readManifest(manifestPath);
-  if (!blockObject) {
-    throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
-  }
-
-  const manifest: Manifest = await resolveExternalAssets(blockObject.spec);
+  const outdir = path.resolve(process.cwd(),opts.output);
 
   // create the output directory
   fs.mkdirSync(outdir, { recursive: true });
 
-  // Check if Chart.yaml exists in the manifest directory
-  const manifestDir = path.dirname(manifestPath);
-  const chartPath = path.join(manifestDir, 'Chart.yaml');
-  if (fs.existsSync(chartPath)) {
-    fs.copyFileSync(chartPath, path.join(outdir, 'Chart.yaml'));
+  const moreObjects: any[] = [];
+  const blockRequests: BlockRequest[] = [];
+  for (const request of opts.requests) {
+    const dir = path.resolve(process.cwd(), request.dir);
+    const manifestPath = path.resolve(dir, request.manifest);
+
+    // read the manifest file and extract the block manifest
+    var { blockObject, additionalObjects } = readManifest(manifestPath);
+    if (!blockObject) {
+      throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
+    }
+
+    const manifest: Manifest = await resolveExternalAssets(blockObject.spec);
+    const source = dir;
+
+    // Check if Chart.yaml exists in the manifest directory
+    const manifestDir = path.dirname(manifestPath);
+    const chartPath = path.join(manifestDir, 'Chart.yaml');
+    if (fs.existsSync(chartPath)) {
+      fs.copyFileSync(chartPath, path.join(outdir, 'Chart.yaml'));
+    }
+
+    blockRequests.push({
+      block: manifest,
+      source,
+    });
+
+    moreObjects.push(...additionalObjects);
   }
 
-  synth({ block: manifest, source: process.cwd(), output: outdir, env: opts.env, skipCrd: opts.skipCrd, flushOnly: opts.flushOnly });
+  const names = synth({ blockRequests, output: outdir, env: opts.env, skipCrd: opts.skipCrd, flushOnly: opts.flushOnly });
 
   // write any additional objects to the templates directory
-  if (additionalObjects.length > 0) {
+  if (moreObjects.length > 0) {
     const additionalObjectsManifest = path.join(outdir, "templates", "additional-objects.yaml");
-    fs.writeFileSync(additionalObjectsManifest, yaml.stringify(additionalObjects));
+    fs.writeFileSync(additionalObjectsManifest, yaml.stringify(moreObjects));
   }
 
-  return { outdir, manifest };
+  return { outdir, names, blockRequests };
 }
 
 export interface BlockProps {
-  block: Manifest;
-  source?: string;
+  blockRequests: BlockRequest[];
   env: Record<string, string>;
   skipCrd?: boolean;
   flushOnly?: boolean;
 }
 
-interface Options extends BlockProps {
+interface SynthProps extends BlockProps {
   output: string;
   force?: boolean;
 }
@@ -92,108 +118,99 @@ export class Block extends Chart {
   constructor(scope: Construct, id: string, props: BlockProps) {
     super(scope, id);
 
-    const { block, source, env, skipCrd, flushOnly } = props;
+    const { blockRequests, env, skipCrd, flushOnly } = props;
+    const {
+      namespace = "{{ .Release.Namespace }}",
+      workers = 1
+    } = this.validateBlockRequests(blockRequests);
 
-    this.validateManifest(block);
-
-    const namespace = block.operator?.namespace ?? "{{ .Release.Namespace }}";
-    const workers = block.operator?.workers ?? 1;
-
-    addSystemIfNotSet(block);
+    for (const blockRequest of blockRequests) {
+      addSystemIfNotSet(blockRequest.block);
+    }
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
-      block,
-      source,
+      blockRequests,
       namespace,
       flushOnly,
     });
   
-    const redisServiceName = `${block.definition.kind.toLocaleLowerCase()}-redis`;
+    const redisServiceName = `${id}-redis`;
 
     const image = {
       operator: calculateImageName("operator"),
       worker: calculateImageName("worker"),
       control: calculateImageName("control"),
     };
+
+    const blocks = blockRequests.map(b => ({
+      ...b.block.definition,
+      pod: {
+        namespace,
+        configMaps: configmap.configMaps,
+        ...b.block.operator,
+        env: {
+          REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
+          // this can be used to spawn new blocks (e.g. by the `Block` block).
+          KBLOCKS_WORKER_IMAGE: image.worker,
+          KBLOCKS_OPERATOR_IMAGE: image.operator,
+          KBLOCKS_CONTROL_IMAGE: image.control,
+          ...b.block.operator?.env,
+          ...env,
+        }
+      }
+    }));
   
     new Operator(this, "Operator", {
+      names: id,
+      namespace,
       image: image.operator,
-      configMaps: configmap.configMaps,
       redisServiceName,
       workers,
-      namespace,
-      ...block.operator,
-      ...block.definition,
-      env: {
-        ...env,
-        ...block.operator?.env,
-      }
+      blocks,
     });
   
     if (!flushOnly) {
       new Worker(this, "Worker", {
-        image: image.worker,
-        configMaps: configmap.configMaps,
-        ...block.operator,
-        ...block.definition,
-        replicas: workers,
+        names: id,
         namespace,
-        env: {
-          // redis url should be the url of the redis instance in the operator
-          REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
-          ...env,
-          ...block.operator?.env,
-  
-          // this can be used to spawn new blocks (e.g. byt the `Block` block).
-          KBLOCKS_WORKER_IMAGE: image.worker,
-          KBLOCKS_OPERATOR_IMAGE: image.operator,
-          KBLOCKS_CONTROL_IMAGE: image.control,
-        }
+        image: image.worker,
+        replicas: workers,
+        blocks,
       });
     }
   
     new Control(this, "Control", {
+      names: id,
+      namespace,
       image: image.control,
-      configMaps: configmap.configMaps,
-      ...block.operator,
-      ...block.definition,
       workers,
-      namespace,
-      env: {
-        // redis url should be the url of the redis instance in the operator
-        REDIS_URL: `redis://${redisServiceName}.${namespace}.svc.cluster.local:${6379}`,
-        ...env,
-        ...block.operator?.env,
-      }
-    });
-  
-    const meta = new BlockMetadata(this, "Metadata", {
-      resourceName: block.definition.kind,
-      ...block.definition,
-      namespace,
+      blocks,
     });
 
-    const annotations: Record<string, string> = {
-      "kblocks.io/metadata-name": meta.name,
-      "kblocks.io/metadata-namespace": namespace,
-    };
-  
-    if (block.definition.icon) {
-      annotations["kblocks.io/icon"] = block.definition.icon;
-    }
-  
-    if (block.definition.color) {
-      annotations["kblocks.io/color"] = block.definition.color;
-    }
-
-    if (!skipCrd) {
-      const schema = resolveSchema(block);
     
-      new CustomResourceDefinition(this, "CRD", {
-        ...block.definition,
-        annotations,
-        schema,
-      });
+    if (!skipCrd) {
+      for (const blockRequest of blockRequests) {
+        const annotations: Record<string, string> = {
+          "kblocks.io/metadata-namespace": namespace,
+        };
+      
+        if (blockRequest.block.definition.icon) {
+          annotations["kblocks.io/icon"] = blockRequest.block.definition.icon;
+        }
+      
+        if (blockRequest.block.definition.color) {
+          annotations["kblocks.io/color"] = blockRequest.block.definition.color;
+        }
+
+        const schema = resolveSchema(blockRequest.block);
+    
+        const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
+        new CustomResourceDefinition(this, `CRD-${blockType}`, {
+          ...blockRequest.block.definition,
+          annotations,
+          schema,
+        });
+      }
     }
   }
 
@@ -213,27 +230,53 @@ export class Block extends Chart {
       throw err;
     }
   }
+
+  private validateBlockRequests(blockRequests: BlockRequest[]) {
+    if (blockRequests.length === 0) {
+      throw new Error("No block requests provided");
+    }
+
+    const firstBlock = blockRequests[0].block;
+    const namespace = firstBlock.operator?.namespace;
+    const workers = firstBlock.operator?.workers;
+
+    for (const { block } of blockRequests) {
+      this.validateManifest(block);
+
+      if (block.operator?.namespace !== namespace) {
+        throw new Error("All blocks must have the same namespace");
+      }
+
+      if (block.operator?.workers !== workers) {
+        throw new Error("All blocks must have the same number of workers");
+      }
+    }
+
+    return { namespace, workers };
+  }
 }
 
-export function synth(opts: Options) {
-  const name = opts.block.definition.kind.toLocaleLowerCase();
+export function synth(opts: SynthProps) {
+  const names = calculateNames(opts.blockRequests);
   const outputDir = path.resolve(opts.output);
   
   const templatesdir = path.join(outputDir, "templates");
   fs.mkdirSync(templatesdir, { recursive: true });
 
   const app = new App({ outdir: templatesdir });
-  new Block(app, name, opts);
+  const block = new Block(app, names, opts);
   app.synth();
 
   const chartFilePath = path.join(outputDir, 'Chart.yaml');
   if (!fs.existsSync(chartFilePath)) {
     fs.writeFileSync(chartFilePath, yaml.stringify({
       apiVersion: 'v1',
-      name: `${name}-kblock`,
+      name: `${names}-kblock`,
       version: "1.0.0"
     }));
   }
+
+  return names;
 }
 
 function resolveSchema(props: Manifest): JsonSchemaProps {
@@ -291,4 +334,17 @@ function addSystemIfNotSet(block: Manifest) {
   // if KBLOCKS_SYSTEM_ID is not set, read it from the "kblocks-system" ConfigMap by default.
   block.operator.envConfigMaps = block.operator.envConfigMaps ?? {};
   block.operator.envConfigMaps[key] = "kblocks-system";
+}
+
+export function calculateNames(blockRequests: BlockRequest[]) {
+  if (blockRequests.length === 0) {
+    throw new Error("No block requests provided");
+  }
+
+  const names = [];
+  for (const { block } of blockRequests) {
+    names.push(block.definition.kind.toLocaleLowerCase());
+  }
+
+  return names.join("-");
 }
