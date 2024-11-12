@@ -1,23 +1,27 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
 import { PodEnvironment, setupPodEnvironment } from "./configmap";
+import { formatBlockTypeForEnv, formatBlockTypeFromGVP } from "./api/uri";
 
-export interface WorkerProps extends PodEnvironment {
+export interface WorkerProps {
+  names: string;
+  namespace: string;
   image: string;
-  group: string;
-  kind: string
-  plural: string;
   replicas: number;
-  env?: Record<string, string>;
-  outputs?: string[];
+  blocks: {
+    pod: PodEnvironment;
+    group: string;
+    version: string
+    plural: string;
+    outputs?: string[];
+  }[];
 }
 
 export class Worker extends Construct {
   constructor(scope: Construct, id: string, props: WorkerProps) {
     super(scope, id);
 
-    const kind = props.kind.toLocaleLowerCase();
-
+    const name = props.names.substring(0, 63 - 15);
     const serviceAccount = new k8s.ServiceAccount(this, "WorkerServiceAccount", {
       metadata: {
         namespace: props.namespace,
@@ -26,16 +30,6 @@ export class Worker extends Construct {
     
     const role = new k8s.ClusterRole(this, "WorkerClusterRole", {
       rules: [
-        {
-          verbs: ["get", "watch", "list"],
-          endpoints: [
-            k8s.ApiResource.custom({
-              apiGroup: props.group,
-              resourceType: props.plural,
-            })
-          ],
-        },
-
         // allow pod to apply any manifest to any namespace
         {
           verbs: ["*"],
@@ -55,7 +49,7 @@ export class Worker extends Construct {
     const workerDeployment = new k8s.StatefulSet(this, "WorkerStatefulSet", {
       metadata: {
         namespace: props.namespace,
-        name: `kblocks-${kind}-worker`,
+        name: `kblocks-${name}-worker`,
       },
       serviceAccount: serviceAccount,
       replicas: props.replicas,
@@ -63,7 +57,7 @@ export class Worker extends Construct {
       service: new k8s.Service(this, "WorkerService", {
         metadata: {
           namespace: props.namespace,
-          name: `kblocks-${kind}-worker`,
+          name: `kblocks-${name}-worker`,
         },
         ports: [{ port: 3000 }],
       }),
@@ -86,12 +80,14 @@ export class Worker extends Construct {
       portNumber: 3000,
     });
 
-    setupPodEnvironment(workerDeployment, container, props);
+    setupPodEnvironment(workerDeployment, container, props.blocks.map(b => b.pod));
 
     container.env.addVariable("RELEASE_NAME", k8s.EnvValue.fromValue("{{ .Release.Name }}"));
-    container.env.addVariable("KBLOCK_OUTPUTS", k8s.EnvValue.fromValue((props.outputs ?? []).join(",")));
+    for (const block of props.blocks) {
+      const b = formatBlockTypeForEnv(block);
+      container.env.addVariable(`KBLOCK_OUTPUTS_${b}`, k8s.EnvValue.fromValue((block.outputs ?? []).join(",")));
+    }
     container.env.addVariable("WORKER_INDEX",
       k8s.EnvValue.fromFieldRef(k8s.EnvFieldPaths.POD_LABEL, { key: "apps.kubernetes.io/pod-index" }));
   }
-
 }

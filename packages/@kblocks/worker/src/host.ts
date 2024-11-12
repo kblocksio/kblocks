@@ -3,7 +3,7 @@ import path from "path";
 import child_process from "child_process";
 import { chatCompletion } from "./ai.js";
 import { newSlackThread } from "./slack.js";
-import { Event, InvolvedObject, emitEvent } from "./api/index.js";
+import { Event, InvolvedObject, emitEvent, formatBlockTypeForEnv, parseBlockUri } from "./api/index.js";
 import { getenv, tryGetenv, tempdir, exec } from "./util.js";
 import { type createLogger } from "./logging.js";
 
@@ -23,7 +23,9 @@ export interface RuntimeContext {
 }
 
 export function kblockOutputs(host: RuntimeContext) {
-  return (host.tryGetenv("KBLOCK_OUTPUTS") ?? "").split(",").filter(x => x);
+  const uri = parseBlockUri(host.objUri);
+  const block = formatBlockTypeForEnv(uri);
+  return (host.tryGetenv(`KBLOCK_OUTPUTS_${block}`) ?? "").split(",").filter(x => x);
 }
 
 export async function patchObjectState(host: RuntimeContext, patch: any, { quiet = false }: { quiet?: boolean } = {}) {

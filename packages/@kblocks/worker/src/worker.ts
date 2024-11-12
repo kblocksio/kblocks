@@ -6,43 +6,63 @@ import { synth } from "./synth.js";
 import { exec, tempdir } from "./util.js";
 import { startServer } from "./http.js";
 import { cloneRepo, listenForChanges } from "./git.js";
-import { Manifest, KConfig, BindingContext } from "./api/index.js";
+import {
+  Manifest,
+  KConfig,
+  BindingContext,
+  KBlock,
+  systemApiVersionFromDisplay,
+  systemApiVersion,
+  formatBlockTypeForEnv
+} from "./api/index.js";
+
+type Source = {
+  kblock: KBlock;
+  dir: string;
+}
 
 const mountdir = "/kblock";
-const kblock: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
-if (!kblock.config) {
+const kconfig: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
+if (!kconfig.config) {
   throw new Error("kblock.json must contain a 'config' field");
 }
 
-if (!kblock.engine) {
-  throw new Error("kblock.json must contain an 'engine' field");
-}
+async function getSource(kconfig: KConfig) {
+  const sources: Record<string, Source> = {};
+  for (const kblock of kconfig.blocks) {
+    const blockType = formatBlockTypeForEnv(kblock.manifest.definition);
+    const archive = `${mountdir}_${blockType}`;
+    console.log(`Checking for archive in ${archive}`);
 
-async function getSource(kblock: KConfig) {
-  const archivedir = await extractArchive(mountdir);
-
-  if (archivedir) {
+    const archivedir = await extractArchive(archive);
+  
+    if (archivedir) {
+      if (kblock.manifest.source) {
+        console.log("WARNING: Found block source in archive, skipping git source.");
+      }
+  
+      sources[blockType] = { kblock, dir: archivedir };
+    }
+  
     if (kblock.manifest.source) {
-      console.log("WARNING: Found block source in archive, skipping git source.");
+      // we expect the source directory to always end with "/src"
+      if (!kblock.manifest.source.directory.endsWith("/src")) {
+        throw new Error("Source directory must end with '/src'");
+      }
+  
+      const clonedir = await cloneRepo(kblock.manifest.source);
+      const sourcedir = tempdir();
+      await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });    
+      sources[blockType] = { kblock, dir: sourcedir };
     }
-
-    return archivedir;
+  }
+  
+  if (!Object.keys(sources).length) {
+    console.log("NOTE: No block source found.");
+    return undefined;
   }
 
-  if (kblock.manifest.source) {
-    // we expect the source directory to always end with "/src"
-    if (!kblock.manifest.source.directory.endsWith("/src")) {
-      throw new Error("Source directory must end with '/src'");
-    }
-
-    const clonedir = await cloneRepo(kblock.manifest.source);
-    const sourcedir = tempdir();
-    await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });    
-    return sourcedir;
-  }
-
-  console.log("NOTE: No block source found.");
-  return undefined;
+  return sources;
 }
 
 async function extractArchive(dir: string) {
@@ -68,33 +88,35 @@ async function extractArchive(dir: string) {
   return targetDir;
 }
 
-async function installDependencies(dir: string) {
-  if (fs.existsSync(path.join(dir, "package.json"))) {
-    if (fs.existsSync(path.join(dir, "node_modules"))) {
-      return;
+async function installDependencies(sources: Record<string, Source>) {
+  for (const source of Object.values(sources)) {
+    if (fs.existsSync(path.join(source.dir, "package.json"))) {
+      if (fs.existsSync(path.join(source.dir, "node_modules"))) {
+        return;
+      }
+    
+      await exec(undefined, "npm", ["install", "--production"], { cwd: source.dir });
     }
   
-    await exec(undefined, "npm", ["install", "--production"], { cwd: dir });
-  }
-
-  // make sure @winglibs/k8s is installed if this is a wing/k8s block.
-  if (kblock.engine === "wing" || kblock.engine === "wing/k8s") {
-    await exec(undefined, "npm", ["install", "@winglibs/k8s"], { cwd: dir });
-  }
-
-  if (fs.existsSync(path.join(dir, "Chart.yaml"))) {
-    if (fs.existsSync(path.join(dir, "__helm"))) {
-      return;
+    // make sure @winglibs/k8s is installed if this is a wing/k8s block.
+    if (source.kblock.engine === "wing" || source.kblock.engine === "wing/k8s") {
+      await exec(undefined, "npm", ["install", "@winglibs/k8s"], { cwd: source.dir });
     }
-
-    await exec(undefined, "helm", ["dependency", "update"], { cwd: dir });
-    fs.writeFileSync(path.join(dir, "__helm"), "{}");
+  
+    if (fs.existsSync(path.join(source.dir, "Chart.yaml"))) {
+      if (fs.existsSync(path.join(source.dir, "__helm"))) {
+        return;
+      }
+  
+      await exec(undefined, "helm", ["dependency", "update"], { cwd: source.dir });
+      fs.writeFileSync(path.join(source.dir, "__helm"), "{}");
+    }
   }
 }
 
 async function main() {
   if (process.argv[2] === "--config") {
-    process.stdout.write(JSON.stringify(kblock.config, null, 2));
+    process.stdout.write(JSON.stringify(kconfig.config, null, 2));
     return process.exit(0);
   }
 
@@ -130,10 +152,12 @@ async function main() {
 
   startServer(); // TODO: do we need this to keep the pod alive?
 
-  const sourcedir = await getSource(kblock);
-  if (sourcedir) {
-    await installDependencies(sourcedir);
+  const sourcedirs = await getSource(kconfig);
+  if (!sourcedirs) {
+    throw new Error("No block source found. Exiting.");
   }
+
+  await installDependencies(sourcedirs);
 
   const workerIndex = parseInt(process.env.WORKER_INDEX, 10);
 
@@ -148,15 +172,25 @@ async function main() {
 
     const [key, messages] = results[0];
     console.log(`Received ${messages.length} messages from ${key}`);
-  
-    const manifest = kblock.manifest as Manifest;
 
     for (const message of messages) {
       if (isShuttingDown) break;
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
-        console.log(`Processing event: ${event.object.metadata.namespace}-${event.object.metadata.name}`);
-        await synth(sourcedir, kblock.engine, manifest.definition.plural, event);
+        const apiVersion = systemApiVersionFromDisplay(event.object.apiVersion);
+        const kblock = kconfig.blocks.find(b => systemApiVersion(b.manifest) === apiVersion);
+        if (!kblock) {
+          throw new Error(`No kblock found for apiVersion ${apiVersion}`);
+        }
+
+        const manifest = kblock.manifest as Manifest;
+        const blockType = formatBlockTypeForEnv(kblock.manifest.definition);
+        if (!sourcedirs || !sourcedirs[blockType]) {
+          throw new Error(`No block source found for ${blockType}`);
+        }
+
+        console.log(`Processing event: ${blockType}-${event.object.metadata.namespace}-${event.object.metadata.name}`);
+        await synth(sourcedirs[blockType].dir, kblock.engine, manifest.definition.plural, event);
       } catch (error) {
         console.error(`Error processing event: ${error}.`);
       } finally {
@@ -169,18 +203,20 @@ async function main() {
     }
   }
 
-  const commit = await listenForChanges(kblock, async (commit) => {
-    console.log(`Changes detected: ${commit}. Rebuilding...`);
-    await exec(undefined, "kubectl", [
-      "label",
-      "blocks.kblocks.io",
-      kblock.manifest.definition.group ? `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}` : kblock.manifest.definition.plural,
-      `kblocks.io/commit=${commit}`,
-      "-n",
-      kblock.manifest.operator?.namespace ?? "default"
-    ]);
-  });
-  console.log("Initial commit", commit);
+  for (const kblock of kconfig.blocks) {
+    const commit = await listenForChanges(kblock, async (commit) => {
+      console.log(`Changes detected: ${commit}. Rebuilding...`);
+      await exec(undefined, "kubectl", [
+        "label",
+        "blocks.kblocks.io",
+        kblock.manifest.definition.group ? `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}` : kblock.manifest.definition.plural,
+        `kblocks.io/commit=${commit}`,
+        "-n",
+        kblock.manifest.operator?.namespace ?? "default"
+      ]);
+    });
+    console.log("Initial commit", commit);
+  }
 
   listenForMessage();
 }

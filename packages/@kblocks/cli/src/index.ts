@@ -1,4 +1,4 @@
-import { synth } from "./build";
+import { calculateNames, synth } from "./build";
 import fs from "fs";
 import yaml from "yaml";
 
@@ -28,6 +28,7 @@ if (!output) {
   process.exit(1);
 }
 
-synth({ block: manifest, source: archiveSource, output, env: {} });
+const blockRequests = [{ block: manifest, source: archiveSource }];
+synth({ blockRequests, output, env: {} });
 console.log("Block built successfully");
 

@@ -69,6 +69,14 @@ export const systemApiVersion = (manifest: Manifest) =>
 export const systemApiVersionFromComponents = ({ group, version }: { group?: string, version: string }) => 
   group ? `${group}/${version}` : `core/${version}`;
 
+export const systemApiVersionFromDisplay = (displayApiVersion: string) => {
+  const [group, version] = displayApiVersion.split("/");
+  return systemApiVersionFromComponents({
+    group: !version ? undefined : group,
+    version: !version ? group : version,
+  });
+};
+
 export const displayApiVersion = (manifest: Manifest) => 
   displayApiVersionFromComponents({ group: manifest.definition.group, version: manifest.definition.version });
 

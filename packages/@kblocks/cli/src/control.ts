@@ -2,18 +2,25 @@ import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
 import { PodEnvironment, setupPodEnvironment } from "./configmap";
 
-export interface ControlProps extends PodEnvironment {
+export interface ControlProps {
+  names: string;
+  namespace: string;
   image: string;
-  kind: string
   workers: number;
+  blocks: {
+    pod: PodEnvironment;
+    group: string;
+    version: string
+    plural: string;
+    outputs?: string[];
+  }[];
 }
 
 export class Control extends Construct {
   constructor(scope: Construct, id: string, props: ControlProps) {
     super(scope, id);
 
-    const kind = props.kind.toLocaleLowerCase();
-
+    const name = props.names.substring(0, 63 - 16);
     const serviceAccount = new k8s.ServiceAccount(this, "ServiceAccount", {
       metadata: {
         namespace: props.namespace,
@@ -40,9 +47,9 @@ export class Control extends Construct {
     const controlDeployment = new k8s.Deployment(this, "Deployment", {
       metadata: {
         namespace: props.namespace,
-        name: `kblocks-${kind}-control`,
+        name: `kblocks-${name}-control`,
         labels: {
-          "app.kubernetes.io/name": `kblocks-${kind}-control`,
+          "app.kubernetes.io/name": `kblocks-${name}-control`,
         }
       },
       serviceAccount: serviceAccount,
@@ -67,7 +74,7 @@ export class Control extends Construct {
       ports: [{ number: 3000 }],
     });
 
-    setupPodEnvironment(controlDeployment, container, props);
+    setupPodEnvironment(controlDeployment, container, props.blocks.map(b => b.pod));
 
     container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
   }

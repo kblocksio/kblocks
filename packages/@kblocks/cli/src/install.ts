@@ -2,7 +2,7 @@ import { build } from "./build";
 import { chdir } from "./util";
 import { execSync } from "child_process";
 export interface InstallOptions {
-  DIR?: string;
+  DIR?: string[];
   namespace?: string;
   manifest: string;
   output: string;
@@ -13,36 +13,41 @@ export interface InstallOptions {
 }
 
 export async function installCommand(argv: InstallOptions) {
-  return chdir(argv.DIR, async () => {
+  const requests = argv.DIR && argv.DIR.length > 0 ? argv.DIR.map(dir => ({
+    manifest: argv.manifest,
+    dir,
+  })) : [{
+    manifest: argv.manifest,
+    dir: process.cwd(),
+  }];
 
-    const { outdir, manifest } = await build({
-      manifest: argv.manifest,
-      output: argv.output,
-      silent: true,
-      env: argv.env,
-      skipCrd: argv.skipCrd,
-      flushOnly: argv.flushOnly,
-    });
-
-    const command = [];
-
-    command.push("helm", "upgrade", "--install");
-
-    if (argv.namespace) {
-      command.push("--namespace", argv.namespace);
-      command.push("--create-namespace");
-    }
-
-    const releaseName = argv.releaseName || `${manifest.definition.kind.toLowerCase()}-block`;
-    command.push(releaseName);
-    command.push(outdir);
-
-    execSync(command.join(" "), { stdio: "inherit" });
-
-    console.log("");
-    console.log("To uninstall:");
-    console.log("");
-    console.log(`  helm uninstall ${releaseName}`);
-    console.log("");
+  const { outdir, names } = await build({
+    requests,
+    output: argv.output,
+    silent: true,
+    env: argv.env,
+    skipCrd: argv.skipCrd,
+    flushOnly: argv.flushOnly,
   });
+
+  const command = [];
+
+  command.push("helm", "upgrade", "--install");
+
+  if (argv.namespace) {
+    command.push("--namespace", argv.namespace);
+    command.push("--create-namespace");
+  }
+
+  const releaseName = argv.releaseName || `${names}-block`;
+  command.push(releaseName);
+  command.push(outdir);
+
+  execSync(command.join(" "), { stdio: "inherit", cwd: outdir });
+
+  console.log("");
+  console.log("To uninstall:");
+  console.log("");
+  console.log(`  helm uninstall ${releaseName}`);
+  console.log("");
 }
