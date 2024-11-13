@@ -36,15 +36,15 @@ export function readManifest(manifest: string) {
 }
 
 
-export async function resolveExternalAssets(spec: Manifest) {
+export async function resolveExternalAssets(dir: string, spec: Manifest) {
   let readme;
   if (spec.definition.readme) {
-    readme = await fs.promises.readFile(spec.definition.readme, "utf8");
+    readme = await fs.promises.readFile(path.join(dir, spec.definition.readme), "utf8");
   } else {
     console.warn("No readme file");
   }
 
-  const schema = await resolveSchema(spec.definition.schema, spec.definition.kind);
+  const schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind);
 
   return {
     ...spec,

@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-test
+  namespace: {{ .Release.Namespace }}
+spec:
+  template:
+    metadata:
+      name: {{ .Release.Name }}-test
+      namespace: {{ .Release.Namespace }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: {{ .Release.Name }}-test
+          image: busybox:latest
+          command: ["echo", "Hello, World!"]
