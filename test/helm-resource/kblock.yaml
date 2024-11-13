@@ -1,0 +1,25 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: helm-resource
+spec:
+  engine: helm
+  definition: 
+    group: helm.kblocks.io
+    version: v1
+    kind: HelmResource
+    plural: helmresources
+    readme: README.md
+    icon: heroicon://sparkles
+    color: yellow
+    description: kblock helm resource
+    schema: ./src/values.schema.json
+  operator:
+    namespace: kblocks-test
+    workers: 2
+    env:
+      KBLOCKS_EVENTS_URL: "http://{{ .Release.Name
+        }}-testserver.kblocks-test.svc.cluster.local/events"
+      KBLOCKS_CONTROL_URL: "ws://{{ .Release.Name
+        }}-testserver.kblocks-test.svc.cluster.local/control"
+      KBLOCKS_SYSTEM_ID: test-system

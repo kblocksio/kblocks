@@ -1,6 +1,6 @@
 const yaml = require("yaml");
 
-exports.renderYaml = function renderYaml(parent, all) {
+exports.renderYaml = function renderYaml(parent, all, takeOwnerNS = false) {
   // adding "ownerReferences" to the generated manifest to ensure that the resources are deleted
   // when the owner is deleted.
   const parentNamespace = parent.metadata?.namespace ?? "default";
@@ -9,7 +9,7 @@ exports.renderYaml = function renderYaml(parent, all) {
   for (const doc of docs) {
     const metadata = doc.get("metadata");
 
-    const namespace = metadata.get("namespace") ?? "default";
+    const namespace = metadata.get("namespace") ?? (takeOwnerNS ? parentNamespace : "default");
     if (parentNamespace === namespace) {
       const ownerRef = "ownerReferences";
       

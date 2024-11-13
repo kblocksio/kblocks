@@ -13,4 +13,4 @@ if (!process.env.OWNER_REF) {
 }
 
 const parent = JSON.parse(process.env.OWNER_REF);
-process.stdout.write(renderYaml(parent, stdin));
+process.stdout.write(renderYaml(parent, stdin, true));

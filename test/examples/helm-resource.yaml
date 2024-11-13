@@ -1,0 +1,5 @@
+apiVersion: helm.kblocks.io/v1
+kind: HelmResource
+metadata:
+  name: helm-resource-001
+hello: kblocks

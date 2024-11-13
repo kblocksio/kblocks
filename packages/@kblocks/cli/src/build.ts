@@ -73,7 +73,7 @@ export async function build(opts: {
       throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
     }
 
-    const manifest: Manifest = await resolveExternalAssets(blockObject.spec);
+    const manifest: Manifest = await resolveExternalAssets(dir, blockObject.spec);
     const source = dir;
 
     // Check if Chart.yaml exists in the manifest directory
