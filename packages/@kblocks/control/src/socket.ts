@@ -7,20 +7,6 @@ export function connect(url: string) {
   const pingPeriod = 10_000;
   let ws: WebSocket;
 
-  const ping = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      return;
-    }
-
-    ws.ping((err: any) => {
-      if (err) {
-        console.log("Ping error:", err);
-        ws.close();
-      }
-    });
-  };
-
-  const pingInterval = setInterval(ping, pingPeriod);
 
   function reconnect() {
     console.log(`Connecting to control channel: ${url}`);
@@ -40,12 +26,32 @@ export function connect(url: string) {
     ws.on("error", (err) => {
       console.log("connection error: ", err.message, ", closing connection");
       ws.close();
+      console.log("reconnecting in 1s");
+      setTimeout(reconnect, 1000);
     });
 
     ws.on("message", (data) => {
       emitter.emit("message", data.toString("utf-8"));
     });
   }
+
+  const ping = () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    ws.ping((err: any) => {
+      if (err) {
+        console.log("Ping error:", err);
+        ws.close();
+        console.log("reconnecting in 1s");
+        setTimeout(reconnect, 1000);  
+      }
+    });
+  };
+
+  const pingInterval = setInterval(ping, pingPeriod);
+  
 
   reconnect();
 
