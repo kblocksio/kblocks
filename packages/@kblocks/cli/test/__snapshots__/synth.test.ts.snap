@@ -410,7 +410,6 @@ exports[`minimal block snapshot 1`] = `
               },
               "startupProbe": {
                 "failureThreshold": 3,
-                "initialDelaySeconds": 20,
                 "tcpSocket": {
                   "port": 3000,
                 },
@@ -1218,7 +1217,6 @@ exports[`multiple blocks 1`] = `
               },
               "startupProbe": {
                 "failureThreshold": 3,
-                "initialDelaySeconds": 20,
                 "tcpSocket": {
                   "port": 3000,
                 },

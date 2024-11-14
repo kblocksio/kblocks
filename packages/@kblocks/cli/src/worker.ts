@@ -79,10 +79,6 @@ export class Worker extends Construct {
         ensureNonRoot: false,
       },
       portNumber: 3000,
-      startup: k8s.Probe.fromTcpSocket({
-        port: 3000,
-        initialDelaySeconds: Duration.seconds(20),
-      }),
     });
 
     setupPodEnvironment(workerDeployment, container, props.blocks.map(b => b.pod));
