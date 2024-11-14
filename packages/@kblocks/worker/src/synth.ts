@@ -44,7 +44,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   }
 
   // do not emit logs for read requests (if there will be an error, we will include the info there)
-  const requestId = generateRandomId();
+  const requestId = ctx.requestId ?? generateRandomId();
   const logger = createLogger(objUri, objType, requestId, { emitEvent: !isReading });
 
   const host: RuntimeContext = {

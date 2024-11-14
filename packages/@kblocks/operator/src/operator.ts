@@ -3,7 +3,7 @@ import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
 import { listAllResources } from "./resources";
-import { EventAction, KConfig, blockTypeFromUri, displayApiVersion, emitEvent, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "./api/index.js";
+import { EventAction, EventReason, EventType, KConfig, LogLevel, blockTypeFromUri, displayApiVersion, emitEvent, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "./api/index.js";
 
 async function main() {
   const kconfig: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
@@ -112,6 +112,7 @@ async function main() {
     })
 
     const objType = blockTypeFromUri(objUri);
+    const requestId = generateRandomId();
 
     emitEvent({
       type: "OBJECT",
@@ -120,11 +121,57 @@ async function main() {
       objUri,
       objType,
       timestamp: new Date(),
-      requestId: "<object>",
+      requestId,
+    });
+
+    let eventAction: EventAction;
+    switch (context.watchEvent) {
+      case "Deleted":
+        eventAction = EventAction.Delete;
+        break;
+      case "Modified":
+        eventAction = EventAction.Update;
+        break;
+      case "Added":
+        eventAction = EventAction.Create;
+        break;
+      case "Read":
+        eventAction = EventAction.Read;
+        break;
+      default:
+        eventAction = EventAction.Sync;
+        break;
+    }
+
+    emitEvent({
+      type: "LIFECYCLE",
+      objUri,
+      objType,
+      event: {
+        type: EventType.Normal,
+        action: eventAction,
+        reason: EventReason.Started,
+        message: `Waiting for worker to become available...`,
+      },
+      timestamp: new Date(),
+      requestId,
+    });
+
+    emitEvent({
+      type: "LOG",
+      level: LogLevel.INFO,
+      message: `Waiting for worker to become available...`,
+      objUri,
+      objType,
+      requestId,
+      timestamp: new Date(),
     });
   
     if (redis) {
-      await sendContextToStream(redis.redisClient, redis.workers, context);
+      await sendContextToStream(redis.redisClient, redis.workers, {
+        ...context,
+        requestId,
+      });
     }
   }  
 }
@@ -164,4 +211,8 @@ async function sendContextToStream(redisClient: Redis, workers: number, context:
   } catch (error) {
     console.error('Error sending context to Redis stream:', error);
   }
+}
+
+export function generateRandomId() {
+  return crypto.randomUUID();
 }
