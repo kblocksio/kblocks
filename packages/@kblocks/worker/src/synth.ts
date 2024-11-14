@@ -66,10 +66,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   const workdir = tempdir();
 
   try {
-    if (sourcedir) {
-      await fs.cp(sourcedir, workdir, { recursive: true });
-    }
-
     if (!isDeletion) {
       // fetch the latest object since the message was queued
       ctx.object = await getResource(host);
@@ -129,6 +125,10 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       }
     } catch (err: any) {
       console.warn(`Error while saving initial state: ${err.message}`);
+    }
+
+    if (sourcedir) {
+      await fs.cp(sourcedir, workdir, { recursive: true });
     }
 
     const slackChannel = process.env.SLACK_CHANNEL ?? "kblocks";
