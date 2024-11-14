@@ -37,6 +37,12 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   const objType = `${objRef.apiVersion}/${plural}`;
   const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
 
+  // if we are reading but there is no read script, we should just skip the read
+  if (isReading && sourcedir && !hasReadScript(sourcedir)) {
+    console.log("No read script found, skipping read request");
+    return;
+  }
+
   // do not emit logs for read requests (if there will be an error, we will include the info there)
   const requestId = generateRandomId();
   const logger = createLogger(objUri, objType, requestId, { emitEvent: !isReading });
@@ -67,12 +73,6 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     if (!isDeletion) {
       // fetch the latest object since the message was queued
       ctx.object = await getResource(host);
-    }
-
-    // if we are reading but there is no read script, we should just skip the read
-    if (isReading && !hasReadScript(workdir)) {
-      console.log("No read script found, skipping read request");
-      return;
     }
 
     console.log("-------------------------------------------------------------------------------------------");
