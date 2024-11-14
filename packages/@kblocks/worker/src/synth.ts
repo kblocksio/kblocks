@@ -188,7 +188,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
             throw new Error(`unsupported engine: ${engine}`);
         }
 
-        if (Object.keys(outputs).length > 0) {
+        if (!isDeletion && Object.keys(outputs).length > 0) {
           await statusUpdate(outputs);
         }
 
