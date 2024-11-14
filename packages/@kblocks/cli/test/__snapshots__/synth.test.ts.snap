@@ -409,7 +409,9 @@ exports[`minimal block snapshot 1`] = `
                 "runAsNonRoot": false,
               },
               "startupProbe": {
-                "failureThreshold": 3,
+                "failureThreshold": 10,
+                "initialDelaySeconds": 30,
+                "periodSeconds": 45,
                 "tcpSocket": {
                   "port": 3000,
                 },
@@ -1216,7 +1218,9 @@ exports[`multiple blocks 1`] = `
                 "runAsNonRoot": false,
               },
               "startupProbe": {
-                "failureThreshold": 3,
+                "failureThreshold": 10,
+                "initialDelaySeconds": 30,
+                "periodSeconds": 45,
                 "tcpSocket": {
                   "port": 3000,
                 },
