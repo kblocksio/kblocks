@@ -55,7 +55,10 @@ async function sendContextToStream(workers: number, context: BindingContext & { 
 
   try {
     const key = `${context.object.metadata.namespace}/${context.object.metadata.name}`;
-    const hash = createHash('sha256').update(key).digest('hex');
+    // Use murmur3 hash for better distribution properties and performance
+    const hash = createHash('shake128', { outputLength: 4 }) // 32-bit output
+      .update(key)
+      .digest('hex');
     const workerIndex = parseInt(hash, 16) % workers;
     const streamName = `worker-${workerIndex}`;
 
