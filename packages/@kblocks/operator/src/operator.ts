@@ -123,49 +123,6 @@ async function main() {
       timestamp: new Date(),
       requestId,
     });
-
-    let eventAction: EventAction;
-    switch (context.watchEvent) {
-      case "Deleted":
-        eventAction = EventAction.Delete;
-        break;
-      case "Modified":
-        eventAction = EventAction.Update;
-        break;
-      case "Added":
-        eventAction = EventAction.Create;
-        break;
-      case "Read":
-        eventAction = EventAction.Read;
-        break;
-      default:
-        eventAction = EventAction.Sync;
-        break;
-    }
-
-    emitEvent({
-      type: "LIFECYCLE",
-      objUri,
-      objType,
-      event: {
-        type: EventType.Normal,
-        action: eventAction,
-        reason: EventReason.Started,
-        message: `Waiting for worker to become available...`,
-      },
-      timestamp: new Date(),
-      requestId,
-    });
-
-    emitEvent({
-      type: "LOG",
-      level: LogLevel.INFO,
-      message: `Waiting for worker to become available...`,
-      objUri,
-      objType,
-      requestId,
-      timestamp: new Date(),
-    });
   
     if (redis) {
       await sendContextToStream(redis.redisClient, redis.workers, {
