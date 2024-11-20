@@ -66,7 +66,7 @@ async function main() {
           watchEvent: "Flush",
         });
       }
-    } else if (!kconfig.flushOnly) {
+    } else {
       if ("objects" in ctx) {
         for (const ctx2 of ctx.objects) {
           // copy from parent so we can reason about it.
@@ -91,10 +91,6 @@ async function main() {
       throw new Error(`No kblock found for apiVersion ${apiVersion}`);
     }
 
-    if (object.apiVersion !== displayApiVersion(kblock.manifest)) {
-      console.warn(`Object ${object.metadata.name} has apiVersion ${object.apiVersion}, but expected ${displayApiVersion(kblock.manifest)}`);
-    }
-
     if (object.kind !== kblock.manifest.definition.kind) {
       console.warn(`Object ${object.metadata.name} has kind ${object.kind}, but expected ${kblock.manifest.definition.kind}`);
     }
@@ -114,17 +110,19 @@ async function main() {
     const objType = blockTypeFromUri(objUri);
     const requestId = generateRandomId();
 
+    const reason = renderReason(context.watchEvent);
     emitEvent({
       type: "OBJECT",
-      object: context.object,
-      reason: renderReason(context.watchEvent),
+      // if we're not flushing, the worker will delete the object
+      object: (kconfig.flushOnly && reason === EventAction.Delete) ? {} : context.object,
+      reason,
       objUri,
       objType,
       timestamp: new Date(),
       requestId,
     });
   
-    if (redis) {
+    if (redis && !kconfig.flushOnly) {
       await sendContextToStream(redis.redisClient, redis.workers, {
         ...context,
         requestId,
