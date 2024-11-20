@@ -74,7 +74,7 @@ jobs:
       - name: Setup a new qkube
         id: qkube
         run: |
-          QKUBE_NAME=$(qkube new --size small | awk -F'"' '/\.quickube\.sh/ {print $2; exit}')
+          QKUBE_NAME=$(qkube new --size large | awk -F'"' '/\.quickube\.sh/ {print $2; exit}')
           echo "Using qkube $QKUBE_NAME"
           # save the qkube name to the workspace
           echo "qbube-name=$QKUBE_NAME" >> $GITHUB_OUTPUT
