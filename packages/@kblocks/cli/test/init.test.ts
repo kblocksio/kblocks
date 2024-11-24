@@ -1,4 +1,4 @@
-import { listProjectTemplates, initCommand } from "../src/init";
+import { listProjectTemplates, initCommand, InitOptions } from "../src/init";
 import { expect, test } from "vitest";
 import os from "os";
 import path from "path";
@@ -20,7 +20,7 @@ Object.keys(catalog).forEach((name) => {
 
     fs.rmdirSync(tmpdir, { recursive: true });
 
-    await initCommand({
+    const options: InitOptions = {
       DIR: tmpdir,
       apiVersion: "v99",
       categories: ["cat1", "cat2"],
@@ -33,7 +33,17 @@ Object.keys(catalog).forEach((name) => {
       plural: "bangs",
       shortNames: ["b", "ba"],
       TEMPLATE: name,
-    });
+    };
+
+    if (name === "noop") {
+      options.import = true;
+      options.kind = "Secret";
+      options.group = "core";
+      options.plural = "secrets";
+      options.apiVersion = "v1";
+    }
+
+    await initCommand(options);
 
     const files = readAllFiles(tmpdir);
     expect(files).toMatchSnapshot();

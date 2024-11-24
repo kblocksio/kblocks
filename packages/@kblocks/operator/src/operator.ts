@@ -46,7 +46,7 @@ async function main() {
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {
     if (ctx.binding === "read") {
-      const resources = await listAllResourcesForOperator(kconfig);
+      const resources = await listAllNonFlushOnlyResourcesForOperator(kconfig);
       for (const resource of resources) {
         // we don't go through processEvent because we don't want to emit the READ event to the backend
         await sendContextToStream(redisClient, workers, {
@@ -57,7 +57,7 @@ async function main() {
         });
       }
     } else if (ctx.binding === "flush") {
-      const resources = await listAllResourcesForOperator(kconfig);
+      const resources = await listAllFlushOnlyResourcesForOperator(kconfig);
       for (const resource of resources) {
         await processEvent({
           ...ctx,
@@ -114,7 +114,7 @@ async function main() {
     emitEvent({
       type: "OBJECT",
       // if we're not flushing, the worker will delete the object
-      object: (kconfig.flushOnly && reason === EventAction.Delete) ? {} : context.object,
+      object: (kblock.manifest.operator?.flushOnly && reason === EventAction.Delete) ? {} : context.object,
       reason,
       objUri,
       objType,
@@ -122,7 +122,7 @@ async function main() {
       requestId,
     });
   
-    if (redis && !kconfig.flushOnly) {
+    if (redis && !kblock.manifest.operator?.flushOnly) {
       await sendContextToStream(redis.redisClient, redis.workers, {
         ...context,
         requestId,
@@ -136,8 +136,19 @@ main().catch(err => {
   process.exit(1);
 });
 
-async function listAllResourcesForOperator(kconfig: KConfig) {
-  const result = await Promise.all(kconfig.blocks.map(kblock => listAllResources(kblock.manifest)));
+async function listAllFlushOnlyResourcesForOperator(kconfig: KConfig) {
+  const result = await Promise.all(
+    kconfig.blocks.filter(b => b.manifest.operator?.flushOnly)
+      .map(kblock => listAllResources(kblock.manifest))
+  );
+  return result.flat();
+}
+
+async function listAllNonFlushOnlyResourcesForOperator(kconfig: KConfig) {
+  const result = await Promise.all(
+    kconfig.blocks.filter(b => !b.manifest.operator?.flushOnly)
+      .map(kblock => listAllResources(kblock.manifest))
+  );
   return result.flat();
 }
 

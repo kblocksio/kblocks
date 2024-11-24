@@ -40,6 +40,8 @@ export const Manifest = z.object({
 
   operator: z.optional(z.object({
     namespace: z.optional(z.string()),
+    skipCrd: z.optional(z.boolean().default(false)),
+    flushOnly: z.optional(z.boolean().default(false)),
     permissions: z.optional(z.array(z.object({
       apiGroups: z.array(z.string()),
       resources: z.array(z.string()),

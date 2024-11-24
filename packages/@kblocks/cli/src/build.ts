@@ -19,8 +19,6 @@ export const buildCommand = async (opts: {
   manifest: string;
   output: string;
   env: Record<string, string>;
-  skipCrd?: boolean;
-  flushOnly?: boolean;
 }) => {
   const requests = opts.DIR && opts.DIR.length ? opts.DIR.map(dir => ({
     manifest: opts.manifest,
@@ -53,8 +51,6 @@ export async function build(opts: {
   output: string;
   silent?: boolean;
   env: Record<string, string>;
-  skipCrd?: boolean;
-  flushOnly?: boolean;
 }) {
   const outdir = path.resolve(process.cwd(),opts.output);
 
@@ -91,7 +87,7 @@ export async function build(opts: {
     moreObjects.push(...additionalObjects);
   }
 
-  const names = synth({ blockRequests, output: outdir, env: opts.env, skipCrd: opts.skipCrd, flushOnly: opts.flushOnly });
+  const names = synth({ blockRequests, output: outdir, env: opts.env });
 
   // write any additional objects to the templates directory
   if (moreObjects.length > 0) {
@@ -105,8 +101,6 @@ export async function build(opts: {
 export interface BlockProps {
   blockRequests: BlockRequest[];
   env: Record<string, string>;
-  skipCrd?: boolean;
-  flushOnly?: boolean;
 }
 
 interface SynthProps extends BlockProps {
@@ -118,7 +112,7 @@ export class Block extends Chart {
   constructor(scope: Construct, id: string, props: BlockProps) {
     super(scope, id);
 
-    const { blockRequests, env, skipCrd, flushOnly } = props;
+    const { blockRequests, env } = props;
     const {
       namespace = "{{ .Release.Namespace }}",
       workers = 1
@@ -131,7 +125,6 @@ export class Block extends Chart {
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       blockRequests,
       namespace,
-      flushOnly,
     });
   
     const redisServiceName = `${id}-redis`;
@@ -169,7 +162,8 @@ export class Block extends Chart {
       blocks,
     });
   
-    if (!flushOnly) {
+    const hasNonFlushManifests = blockRequests.some(b => !b.block.operator?.flushOnly);
+    if (hasNonFlushManifests) {
       new Worker(this, "Worker", {
         names: id,
         namespace,
@@ -187,30 +181,31 @@ export class Block extends Chart {
       blocks,
     });
 
-    
-    if (!skipCrd) {
-      for (const blockRequest of blockRequests) {
-        const annotations: Record<string, string> = {
-          "kblocks.io/metadata-namespace": namespace,
-        };
-      
-        if (blockRequest.block.definition.icon) {
-          annotations["kblocks.io/icon"] = blockRequest.block.definition.icon;
-        }
-      
-        if (blockRequest.block.definition.color) {
-          annotations["kblocks.io/color"] = blockRequest.block.definition.color;
-        }
-
-        const schema = resolveSchema(blockRequest.block);
-    
-        const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
-        new CustomResourceDefinition(this, `CRD-${blockType}`, {
-          ...blockRequest.block.definition,
-          annotations,
-          schema,
-        });
+    for (const blockRequest of blockRequests) {
+      if (blockRequest.block.operator?.skipCrd) {
+        continue;
       }
+
+      const annotations: Record<string, string> = {
+        "kblocks.io/metadata-namespace": namespace,
+      };
+    
+      if (blockRequest.block.definition.icon) {
+        annotations["kblocks.io/icon"] = blockRequest.block.definition.icon;
+      }
+    
+      if (blockRequest.block.definition.color) {
+        annotations["kblocks.io/color"] = blockRequest.block.definition.color;
+      }
+
+      const schema = resolveSchema(blockRequest.block);
+  
+      const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
+      new CustomResourceDefinition(this, `CRD-${blockType}`, {
+        ...blockRequest.block.definition,
+        annotations,
+        schema,
+      });
     }
   }
 

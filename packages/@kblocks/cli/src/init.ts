@@ -98,9 +98,6 @@ export async function initCommand(argv: InitOptions) {
   fs.mkdirSync(targetDir, { recursive: true });
   pasteTemplate(templateDir, targetDir, manifest);
 
-  // write the kblock.yaml file
-  fs.writeFileSync(path.join(targetDir, "kblock.yaml"), yaml.stringify(manifest));
-
   if (argv.import) {
     await importCommand({
       DIR: path.join(targetDir, "src"),
@@ -108,7 +105,16 @@ export async function initCommand(argv: InitOptions) {
       apiVersion: manifest.spec.definition.version,
       kind: manifest.spec.definition.kind,
     });
+
+    if (!manifest.spec.operator) {
+      manifest.spec.operator = {};
+    }
+    manifest.spec.operator.skipCrd = true;
+    manifest.spec.operator.flushOnly = true;
   }
+
+  // write the kblock.yaml file
+  fs.writeFileSync(path.join(targetDir, "kblock.yaml"), yaml.stringify(manifest));
 
   const kb = path.basename(process.argv[1]);
 

@@ -104,6 +104,14 @@
             "namespace": {
               "type": "string"
             },
+            "skipCrd": {
+              "type": "boolean",
+              "default": false
+            },
+            "flushOnly": {
+              "type": "boolean",
+              "default": false
+            },
             "permissions": {
               "type": "array",
               "items": {

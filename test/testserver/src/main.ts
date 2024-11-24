@@ -80,6 +80,7 @@ server.on("request", (req, res) => {
       if (req.url === "/reset") {
         execSync('kubectl delete testresources --all --all-namespaces');
         execSync('kubectl delete customresources --all --all-namespaces');
+        execSync('kubectl delete secrets --selector kblocks.io/system=test-system --all-namespaces');
         for (const key of Object.keys(map)) {
           delete map[key];
         }

@@ -16,7 +16,9 @@ export async function getCoreResource({ version, plural, name, namespace }:
 
 export async function createCoreResource({ version, plural, name, namespace, object }: 
   { version: string, plural: string, name: string, namespace: string, object: object }) {
-  return await rawRequest(`api/${version}/namespaces/${namespace}/${plural}/${name}`, "POST", JSON.stringify(object));
+  return await rawRequest(`api/${version}/namespaces/${namespace}/${plural}`, "POST", JSON.stringify(object), {
+    "Content-Type": "application/json",
+  });
 }
 
 export async function patchCoreResource({ version, plural, name, namespace, object }: 

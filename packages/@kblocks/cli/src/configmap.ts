@@ -20,7 +20,6 @@ export interface PodEnvironment {
 export interface ConfigMapVolumeProps {
   namespace: string;
   blockRequests: BlockRequest[];
-  flushOnly?: boolean;
 }
 
 export class ConfigMapFromDirectory extends Construct {
@@ -54,7 +53,7 @@ export class ConfigMapFromDirectory extends Construct {
         namespace: props.namespace,
       },
       data: {
-        "kblock.json": readBlockJson(props.blockRequests, props.flushOnly),
+        "kblock.json": readBlockJson(props.blockRequests),
       },
     });
   }
@@ -168,7 +167,7 @@ export function createTgzBase64(rootDir: string): string {
   return data.toString("base64");
 }
 
-export function readBlockJson(blockRequests: BlockRequest[], flushOnly?: boolean) {
+export function readBlockJson(blockRequests: BlockRequest[]) {
   const blocks = blockRequests.map( b => ({
     manifest: b.block,
     engine: b.block.engine,
@@ -181,13 +180,17 @@ export function readBlockJson(blockRequests: BlockRequest[], flushOnly?: boolean
   }));
 
   const schedule = [];
-  if (flushOnly) {
+  const hasFlushOnly = blockRequests.some(b => b.block.operator?.flushOnly);
+  const hasNonFlushOnly = blockRequests.some(b => !b.block.operator?.flushOnly);
+  if (hasFlushOnly) {
     schedule.push({
       name: "flush",
       crontab: "0,30 * * * * *",
       allowFailure: false,
     });
-  } else {
+  }
+
+  if (hasNonFlushOnly) {
     schedule.push({
       name: "read",
       crontab: "* * * * *",
@@ -197,7 +200,6 @@ export function readBlockJson(blockRequests: BlockRequest[], flushOnly?: boolean
 
   return JSON.stringify({
     blocks,
-    flushOnly: flushOnly,
     config: {
       configVersion: "v1",
       schedule: schedule,
