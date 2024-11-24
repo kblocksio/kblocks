@@ -60,7 +60,8 @@ async function createResource(name: string, {
     }
   });
 
-  const objUri = `kblocks://${apiVersion}/${plural}/test-system/default/${name}`;
+  const version = apiVersion.split("/").length === 1 ? `core/${apiVersion}` : apiVersion;
+  const objUri = `kblocks://${version}/${plural}/test-system/default/${name}`;
 
   let obj: any = undefined;
 
@@ -305,7 +306,7 @@ test("read resource", opts, async () => {
   });
 });
 
-test.only("flush resource", opts, async () => {
+test("flush resource", opts, async () => {
   const name = `my-resource-${crypto.randomUUID()}`;
 
   // send a request to create the resource and wait for it to be created
