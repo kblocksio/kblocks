@@ -34,18 +34,6 @@ export async function cli() {
         required: false,
         default: "kblock.yaml",
       })
-      .option("flush-only", {
-        description: "Only flush the resources to the backend, without engine operations",
-        type: "boolean",
-        required: false,
-        default: false,
-      })
-      .option("skip-crd", {
-        description: "Skip the creation of the CRD",
-        type: "boolean",
-        required: false,
-        default: false,
-      })
       .option("env", {
         alias: "e",
         description: "Environment variables to set in the build environment",
@@ -231,18 +219,6 @@ export async function cli() {
         alias: "n",
         type: "string",
         required: false,
-      })
-      .option("flush-only", {
-        description: "Only flush the resources to the backend, without engine operations",
-        type: "boolean",
-        required: false,
-        default: false,
-      })
-      .option("skip-crd", {
-        description: "Skip the creation of the CRD",
-        type: "boolean",
-        required: false,
-        default: false,
       })
       .option("env", {
         alias: "e",

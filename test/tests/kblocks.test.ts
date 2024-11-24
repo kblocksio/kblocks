@@ -37,20 +37,31 @@ async function sendControlCommand(command: ControlCommand) {
   }
 }
 
-async function createResource(name: string, { kind = "TestResource", plural = "testresources" }: { kind?: string, plural?: string } = {}) {
+async function createResource(name: string, {
+  kind = "TestResource",
+  plural = "testresources",
+  apiVersion = "testing.kblocks.io/v1",
+  data = { hello: "world1234" }
+}: { kind?: string, plural?: string, apiVersion?: string, data?: any } = {}) {
   console.log("creating resource", name);
 
   await sendControlCommand({
     type: "APPLY",
     object: {
-      apiVersion: "testing.kblocks.io/v1",
+      apiVersion,
       kind,
-      metadata: { name },
-      hello: "world1234",
+      metadata: {
+        name,
+        labels: {
+          "kblocks.io/system": "test-system",
+        },
+      },
+      ...data,
     }
   });
 
-  const objUri = `kblocks://testing.kblocks.io/v1/${plural}/test-system/default/${name}`;
+  const version = apiVersion.split("/").length === 1 ? `core/${apiVersion}` : apiVersion;
+  const objUri = `kblocks://${version}/${plural}/test-system/default/${name}`;
 
   let obj: any = undefined;
 
@@ -293,6 +304,27 @@ test("read resource", opts, async () => {
       healthy.message === "ok" &&
       healthy.reason === "ok";
   });
+});
+
+test("flush resource", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  // send a request to create the resource and wait for it to be created
+  const { obj, objUri } = await createResource(name, {
+    kind: "Secret",
+    plural: "secrets",
+    apiVersion: "v1",
+    data: { data: { username: "YWRtaW4=" } }
+  });
+  
+  // get the resource from the server
+  expect(obj.apiVersion).toBe("core/v1");
+  expect(obj.kind).toBe("Secret");
+  expect(obj.metadata.name).toBe(name);
+  expect(obj.data.username).toBe("YWRtaW4=");
+
+  await deleteResource(objUri);
+  await waitForResourceToBeDeleted(objUri);
 });
 
 async function waitUntilLastEvent(predicate: (event: any, events?: any[]) => boolean, timeout: number = 60_000) {
