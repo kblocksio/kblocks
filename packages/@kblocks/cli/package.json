@@ -28,6 +28,7 @@
     "test": "vitest run **/*.test.ts",
     "watch": "tsc --watch",
     "build": "./build.sh && npm run test",
+    "build-only": "./build.sh",
     "publish": "./publish.sh"
   },
   "devDependencies": {
