@@ -201,6 +201,6 @@ export function createHashFromConfigMap(configMap: ConfigMap) {
 }
 
 export function createGzipBase64(data: string) {
-  const compressed = zlib.deflateSync(data, { level: zlib.constants.Z_BEST_COMPRESSION });
+  const compressed = zlib.gzipSync(data, { level: zlib.constants.Z_BEST_COMPRESSION });
   return compressed.toString("base64");
 }
