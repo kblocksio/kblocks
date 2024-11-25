@@ -64,8 +64,8 @@ export async function build(opts: {
   for (const include of manifest.include ?? []) {
     const includePath = path.resolve(dir, include);
     const included = await getManifest({
-      dir: includePath,
-      manifest: ".",
+      dir: path.dirname(includePath),
+      manifest: path.basename(includePath),
     });
 
     blockRequests.push({

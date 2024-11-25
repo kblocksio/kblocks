@@ -1,6 +1,6 @@
 import fs from "fs";
 import yaml from "yaml";
-import { ApiObject, Manifest } from "./api";
+import { ApiObject, IncludeManifest, Manifest } from "./api";
 import { generateSchemaFromWingStruct } from "./wing-schema";
 import path from "path";
 import $RefParser from '@apidevtools/json-schema-ref-parser';
@@ -47,28 +47,33 @@ export function readManifest(manifest: string) {
 }
 
 
-export async function resolveExternalAssets(dir: string, spec: Manifest) {
+export async function resolveExternalAssets(dir: string, spec: Record<string, any>) {
   let readme;
-  if (spec.definition.readme) {
-    readme = await fs.promises.readFile(path.join(dir, spec.definition.readme), "utf8");
-  } else {
-    console.warn("No readme file");
+  let schema;
+  if (spec.definition) {
+    if (spec.definition.readme) {
+      readme = await fs.promises.readFile(path.join(dir, spec.definition.readme), "utf8");
+    } else {
+      console.warn("No readme file");
+    }
+
+    schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind);
   }
 
   if (spec.include) {
-    spec.include = spec.include.map(include => path.join(dir, include));
+    spec.include = spec.include.map((include: string) => path.join(dir, include));
   }
-
-  const schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind);
 
   return {
     ...spec,
-    definition: {
-      ...spec.definition,
-      schema,
-      readme,
-    }
-  };
+    ...(spec.definition ? {
+      definition: {
+        ...spec.definition,
+        schema,
+        readme,
+      }
+    } : {})
+  } as any as Manifest;
 }
 
 async function resolveSchema(schema: string | undefined, kind: string) {
