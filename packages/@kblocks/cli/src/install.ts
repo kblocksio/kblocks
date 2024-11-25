@@ -1,8 +1,7 @@
 import { build } from "./build";
-import { chdir } from "./util";
 import { execSync } from "child_process";
 export interface InstallOptions {
-  DIR?: string[];
+  DIR?: string;
   namespace?: string;
   manifest: string;
   output: string;
@@ -11,16 +10,9 @@ export interface InstallOptions {
 }
 
 export async function installCommand(argv: InstallOptions) {
-  const requests = argv.DIR && argv.DIR.length > 0 ? argv.DIR.map(dir => ({
-    manifest: argv.manifest,
-    dir,
-  })) : [{
-    manifest: argv.manifest,
-    dir: process.cwd(),
-  }];
-
   const { outdir, names } = await build({
-    requests,
+    manifest: argv.manifest,
+    dir: argv.DIR ?? process.cwd(),
     output: argv.output,
     silent: true,
     env: argv.env,

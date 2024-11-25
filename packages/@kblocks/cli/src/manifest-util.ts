@@ -14,6 +14,17 @@ export function writeManifest(manifest: string, blockObject: ApiObject, addition
   fs.writeFileSync(manifest, docs.join("\n---\n"));
 }
 
+export async function getManifest(opts: { dir: string, manifest: string }) {
+  const manifestPath = path.resolve(opts.dir, opts.manifest);
+  const { blockObject, additionalObjects } = readManifest(manifestPath);
+  if (!blockObject) {
+    throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
+  }
+
+  const manifest: Manifest = await resolveExternalAssets(opts.dir, blockObject.spec);
+  return { manifest, additionalObjects };
+}
+
 export function readManifest(manifest: string) {
   const docs = yaml.parseAllDocuments(fs.readFileSync(manifest, "utf8"));
 
@@ -42,6 +53,10 @@ export async function resolveExternalAssets(dir: string, spec: Manifest) {
     readme = await fs.promises.readFile(path.join(dir, spec.definition.readme), "utf8");
   } else {
     console.warn("No readme file");
+  }
+
+  if (spec.include) {
+    spec.include = spec.include.map(include => path.join(dir, include));
   }
 
   const schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind);

@@ -8,7 +8,6 @@ import { startServer } from "./http.js";
 import { cloneRepo, listenForChanges } from "./git.js";
 import {
   Manifest,
-  KConfig,
   BindingContext,
   KBlock,
   systemApiVersionFromDisplay,
@@ -22,14 +21,10 @@ type Source = {
 }
 
 const mountdir = "/kblock";
-const kconfig: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
-if (!kconfig.config) {
-  throw new Error("kblock.json must contain a 'config' field");
-}
 
-async function getSource(kconfig: KConfig) {
+async function getSource(blocks: KBlock[]) {
   const sources: Record<string, Source> = {};
-  for (const kblock of kconfig.blocks) {
+  for (const kblock of blocks) {
     const blockType = formatBlockTypeForEnv(kblock.manifest.definition);
     const archive = `${mountdir}_${blockType}`;
     console.log(`Checking for archive in ${archive}`);
@@ -115,17 +110,17 @@ async function installDependencies(sources: Record<string, Source>) {
 }
 
 async function main() {
-  if (process.argv[2] === "--config") {
-    process.stdout.write(JSON.stringify(kconfig.config, null, 2));
-    return process.exit(0);
-  }
-
   if (!process.env.REDIS_URL) {
     throw new Error("REDIS_URL is not set");
   }
 
   if (!process.env.WORKER_INDEX) {
     throw new Error("WORKER_INDEX is not set");
+  }
+
+  const blocks = await readAllBlocks();
+  if (blocks.length === 0) {
+    throw new Error("No blocks found");
   }
   
   // Redis client for Redlock
@@ -152,7 +147,7 @@ async function main() {
 
   startServer(); // TODO: do we need this to keep the pod alive?
 
-  const sourcedirs = await getSource(kconfig);
+  const sourcedirs = await getSource(blocks);
   if (!sourcedirs) {
     throw new Error("No block source found. Exiting.");
   }
@@ -178,7 +173,7 @@ async function main() {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         const apiVersion = systemApiVersionFromDisplay(event.object.apiVersion);
-        const kblock = kconfig.blocks.find(b => systemApiVersion(b.manifest) === apiVersion);
+        const kblock = blocks.find(b => systemApiVersion(b.manifest) === apiVersion);
         if (!kblock) {
           throw new Error(`No kblock found for apiVersion ${apiVersion}`);
         }
@@ -203,7 +198,7 @@ async function main() {
     }
   }
 
-  for (const kblock of kconfig.blocks) {
+  for (const kblock of blocks) {
     const commit = await listenForChanges(kblock, async (commit) => {
       console.log(`Changes detected: ${commit}. Rebuilding...`);
       await exec(undefined, "kubectl", [
@@ -226,3 +221,20 @@ main().catch(err => {
   process.exit(1);
 });
 
+async function readAllBlocks() {
+  const blockDirs = fs.readdirSync("/")
+    .filter(dir => dir.startsWith("kblock-"))
+    .map(dir => path.join("/", dir));
+
+  const blocks: KBlock[] = [];
+  for (const dir of blockDirs) {
+    try {
+      const blockJson = fs.readFileSync(path.join(dir, "block.json"), "utf8");
+      blocks.push(JSON.parse(blockJson));
+    } catch (error) {
+      console.error(`Error reading block.json from ${dir}:`, error);
+    }
+  }
+
+  return blocks;
+}
