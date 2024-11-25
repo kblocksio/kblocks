@@ -9,43 +9,42 @@ import { cloneRepo, listenForChanges } from "./git.js";
 import {
   Manifest,
   BindingContext,
-  KBlock,
   systemApiVersionFromDisplay,
   systemApiVersion,
   formatBlockTypeForEnv
 } from "./api/index.js";
 
 type Source = {
-  kblock: KBlock;
+  kblock: Manifest;
   dir: string;
 }
 
 const mountdir = "/kblock";
 
-async function getSource(blocks: KBlock[]) {
+async function getSource(blocks: Manifest[]) {
   const sources: Record<string, Source> = {};
   for (const kblock of blocks) {
-    const blockType = formatBlockTypeForEnv(kblock.manifest.definition);
+    const blockType = formatBlockTypeForEnv(kblock.definition);
     const archive = `${mountdir}_${blockType}`;
     console.log(`Checking for archive in ${archive}`);
 
     const archivedir = await extractArchive(archive);
   
     if (archivedir) {
-      if (kblock.manifest.source) {
+      if (kblock.source) {
         console.log("WARNING: Found block source in archive, skipping git source.");
       }
   
       sources[blockType] = { kblock, dir: archivedir };
     }
   
-    if (kblock.manifest.source) {
+    if (kblock.source) {
       // we expect the source directory to always end with "/src"
-      if (!kblock.manifest.source.directory.endsWith("/src")) {
+      if (!kblock.source.directory.endsWith("/src")) {
         throw new Error("Source directory must end with '/src'");
       }
   
-      const clonedir = await cloneRepo(kblock.manifest.source);
+      const clonedir = await cloneRepo(kblock.source);
       const sourcedir = tempdir();
       await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });    
       sources[blockType] = { kblock, dir: sourcedir };
@@ -173,13 +172,13 @@ async function main() {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         const apiVersion = systemApiVersionFromDisplay(event.object.apiVersion);
-        const kblock = blocks.find(b => systemApiVersion(b.manifest) === apiVersion);
+        const kblock = blocks.find(b => systemApiVersion(b) === apiVersion);
         if (!kblock) {
           throw new Error(`No kblock found for apiVersion ${apiVersion}`);
         }
 
-        const manifest = kblock.manifest as Manifest;
-        const blockType = formatBlockTypeForEnv(kblock.manifest.definition);
+        const manifest = kblock as Manifest;
+        const blockType = formatBlockTypeForEnv(kblock.definition);
         if (!sourcedirs || !sourcedirs[blockType]) {
           throw new Error(`No block source found for ${blockType}`);
         }
@@ -204,10 +203,10 @@ async function main() {
       await exec(undefined, "kubectl", [
         "label",
         "blocks.kblocks.io",
-        kblock.manifest.definition.group ? `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}` : kblock.manifest.definition.plural,
+        kblock.definition.group ? `${kblock.definition.plural}.${kblock.definition.group}` : kblock.definition.plural,
         `kblocks.io/commit=${commit}`,
         "-n",
-        kblock.manifest.operator?.namespace ?? "default"
+        kblock.operator?.namespace ?? "default"
       ]);
     });
     console.log("Initial commit", commit);
@@ -226,7 +225,7 @@ async function readAllBlocks() {
     .filter(dir => dir.startsWith("kblock-"))
     .map(dir => path.join("/", dir));
 
-  const blocks: KBlock[] = [];
+  const blocks: Manifest[] = [];
   for (const dir of blockDirs) {
     try {
       const blockJson = fs.readFileSync(path.join(dir, "block.json"), "utf8");

@@ -3,7 +3,7 @@ import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
 import { listAllResources } from "./resources";
-import { EventAction, KBlock, KConfig, blockTypeFromUri, emitEvent, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "./api/index.js";
+import { EventAction, KConfig, Manifest, blockTypeFromUri, emitEvent, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "./api/index.js";
 import path from "path";
 
 async function main() {
@@ -88,21 +88,21 @@ async function main() {
       redis?: { redisClient: Redis, workers: number }) {
     const object = context.object;
     const apiVersion = systemApiVersionFromDisplay(object.apiVersion);
-    const kblock = blocks.find(b => systemApiVersion(b.manifest) === apiVersion);
+    const kblock = blocks.find(b => systemApiVersion(b) === apiVersion);
     if (!kblock) {
       throw new Error(`No kblock found for apiVersion ${apiVersion}`);
     }
 
-    if (object.kind !== kblock.manifest.definition.kind) {
-      console.warn(`Object ${object.metadata.name} has kind ${object.kind}, but expected ${kblock.manifest.definition.kind}`);
+    if (object.kind !== kblock.definition.kind) {
+      console.warn(`Object ${object.metadata.name} has kind ${object.kind}, but expected ${kblock.definition.kind}`);
     }
 
     context.object.apiVersion = apiVersion;
-    const plural = kblock.manifest.definition.plural;
+    const plural = kblock.definition.plural;
 
     const objUri = formatBlockUri({
-      group: kblock.manifest.definition.group,
-      version: kblock.manifest.definition.version,
+      group: kblock.definition.group,
+      version: kblock.definition.version,
       plural: plural,
       system: KBLOCKS_SYSTEM_ID,
       namespace: object.metadata.namespace ?? "default",
@@ -116,7 +116,7 @@ async function main() {
     emitEvent({
       type: "OBJECT",
       // if we're not flushing, the worker will delete the object
-      object: (kblock.manifest.operator?.flushOnly && reason === EventAction.Delete) ? {} : context.object,
+      object: (kblock.operator?.flushOnly && reason === EventAction.Delete) ? {} : context.object,
       reason,
       objUri,
       objType,
@@ -124,7 +124,7 @@ async function main() {
       requestId,
     });
   
-    if (redis && !kblock.manifest.operator?.flushOnly) {
+    if (redis && !kblock.operator?.flushOnly) {
       await sendContextToStream(redis.redisClient, redis.workers, {
         ...context,
         requestId,
@@ -138,18 +138,18 @@ main().catch(err => {
   process.exit(1);
 });
 
-async function listAllFlushOnlyResourcesForOperator(blocks: KBlock[]) {
+async function listAllFlushOnlyResourcesForOperator(blocks: Manifest[]) {
   const result = await Promise.all(
-    blocks.filter(b => b.manifest.operator?.flushOnly)
-      .map(kblock => listAllResources(kblock.manifest))
+    blocks.filter(b => b.operator?.flushOnly)
+      .map(kblock => listAllResources(kblock))
   );
   return result.flat();
 }
 
-async function listAllNonFlushOnlyResourcesForOperator(blocks: KBlock[]) {
+async function listAllNonFlushOnlyResourcesForOperator(blocks: Manifest[]) {
   const result = await Promise.all(
-    blocks.filter(b => !b.manifest.operator?.flushOnly)
-      .map(kblock => listAllResources(kblock.manifest))
+    blocks.filter(b => !b.operator?.flushOnly)
+      .map(kblock => listAllResources(kblock))
   );
   return result.flat();
 }
@@ -190,7 +190,7 @@ async function readAllBlocks() {
     .filter(dir => dir.startsWith("kblock-"))
     .map(dir => path.join("/", dir));
 
-  const blocks: KBlock[] = [];
+  const blocks: Manifest[] = [];
   for (const dir of blockDirs) {
     try {
       const blockJson = fs.readFileSync(path.join(dir, "block.json"), "utf8");

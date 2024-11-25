@@ -1,5 +1,5 @@
 import { start } from "./control";
-import { getEndpoints, KBlock } from "./api/index.js";
+import { getEndpoints, Manifest } from "./api/index.js";
 import { type connect } from "./socket";
 import fs from "fs";
 import path from "path";
@@ -16,8 +16,7 @@ async function main() {
   }
 
   const connections: ReturnType<typeof connect>[] = [];
-  for (const kblock of blocks) {
-    const manifest = kblock.manifest;
+  for (const manifest of blocks) {
     const controlEndpoint = getEndpoints().control;
     const connection = start(controlEndpoint, KBLOCKS_SYSTEM_ID, manifest);
     connections.push(connection);
@@ -46,7 +45,7 @@ async function readAllBlocks() {
     .filter(dir => dir.startsWith("kblock-"))
     .map(dir => path.join("/", dir));
 
-  const blocks: KBlock[] = [];
+  const blocks: Manifest[] = [];
   for (const dir of blockDirs) {
     try {
       const blockJson = fs.readFileSync(path.join(dir, "block.json"), "utf8");
