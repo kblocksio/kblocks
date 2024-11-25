@@ -1,6 +1,7 @@
 import { Construct } from "constructs";
 import { ConfigMap } from "cdk8s-plus-30";
 import * as tar from "tar";
+import zlib from "zlib";
 import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
@@ -53,7 +54,7 @@ export class ConfigMapFromDirectory extends Construct {
           namespace: props.namespace,
         },
         data: {
-          "block.json": JSON.stringify(blockRequest.block),
+          "block.json": createGzipBase64(JSON.stringify(blockRequest.block)),
         },
       });
     }
@@ -197,4 +198,9 @@ export function createHashFromConfigMap(configMap: ConfigMap) {
 
   const sortedData = sortedValues.join("\n");
   return crypto.createHash("sha256").update(sortedData).digest("hex").substring(0, 62);
+}
+
+export function createGzipBase64(data: string) {
+  const compressed = zlib.deflateSync(data, { level: zlib.constants.Z_BEST_COMPRESSION });
+  return compressed.toString("base64");
 }
