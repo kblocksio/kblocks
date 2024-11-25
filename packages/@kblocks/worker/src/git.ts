@@ -1,7 +1,7 @@
 import path from "path";
 import { Octokit } from "@octokit/rest";
 import { exec, tempdir } from "./util.js";
-import { KBlock } from "./api/index.js";
+import { Manifest } from "./api/index.js";
 
 const DEFAULT_BRANCH = "main";
 const token = process.env.GITHUB_TOKEN;
@@ -15,7 +15,7 @@ const createOctokit = async (): Promise<Octokit> => {
   return new Octokit({ auth: token });
 }
 
-export async function getLatestCommit(source: KBlock["manifest"]["source"]) {
+export async function getLatestCommit(source: Manifest["source"]) {
   if (!source) {
     throw new Error("No source given");
   }
@@ -39,15 +39,15 @@ export async function getLatestCommit(source: KBlock["manifest"]["source"]) {
   }
 }
 
-export async function listenForChanges(kblock: KBlock, onChanges: (commit: string) => void) {
-  if (!kblock.manifest.source) {
+export async function listenForChanges(kblock: Manifest, onChanges: (commit: string) => void) {
+  if (!kblock.source) {
     console.log("No source found, skipping source listening");
     return "no-source";
   }
 
-  const commit = await getLatestCommit(kblock.manifest.source);
+  const commit = await getLatestCommit(kblock.source);
   setTimeout(async () => {
-    const newCommit = await getLatestCommit(kblock.manifest.source);
+    const newCommit = await getLatestCommit(kblock.source);
     console.log("Comparing commits", commit, newCommit);
     if (newCommit === commit) {
       listenForChanges(kblock, onChanges);
@@ -58,7 +58,7 @@ export async function listenForChanges(kblock: KBlock, onChanges: (commit: strin
   return commit;
 }
 
-export async function cloneRepo(source: NonNullable<KBlock["manifest"]["source"]>) {
+export async function cloneRepo(source: NonNullable<Manifest["source"]>) {
   const url = source.url;
   const branch = source.branch ?? DEFAULT_BRANCH;
   const directory = source.directory ?? "";

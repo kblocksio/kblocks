@@ -8,49 +8,43 @@ import { startServer } from "./http.js";
 import { cloneRepo, listenForChanges } from "./git.js";
 import {
   Manifest,
-  KConfig,
   BindingContext,
-  KBlock,
   systemApiVersionFromDisplay,
   systemApiVersion,
   formatBlockTypeForEnv
 } from "./api/index.js";
 
 type Source = {
-  kblock: KBlock;
+  kblock: Manifest;
   dir: string;
 }
 
 const mountdir = "/kblock";
-const kconfig: KConfig = JSON.parse(fs.readFileSync("/kconfig/kblock.json", "utf8"));
-if (!kconfig.config) {
-  throw new Error("kblock.json must contain a 'config' field");
-}
 
-async function getSource(kconfig: KConfig) {
+async function getSource(blocks: Manifest[]) {
   const sources: Record<string, Source> = {};
-  for (const kblock of kconfig.blocks) {
-    const blockType = formatBlockTypeForEnv(kblock.manifest.definition);
+  for (const kblock of blocks) {
+    const blockType = formatBlockTypeForEnv(kblock.definition);
     const archive = `${mountdir}_${blockType}`;
     console.log(`Checking for archive in ${archive}`);
 
     const archivedir = await extractArchive(archive);
   
     if (archivedir) {
-      if (kblock.manifest.source) {
+      if (kblock.source) {
         console.log("WARNING: Found block source in archive, skipping git source.");
       }
   
       sources[blockType] = { kblock, dir: archivedir };
     }
   
-    if (kblock.manifest.source) {
+    if (kblock.source) {
       // we expect the source directory to always end with "/src"
-      if (!kblock.manifest.source.directory.endsWith("/src")) {
+      if (!kblock.source.directory.endsWith("/src")) {
         throw new Error("Source directory must end with '/src'");
       }
   
-      const clonedir = await cloneRepo(kblock.manifest.source);
+      const clonedir = await cloneRepo(kblock.source);
       const sourcedir = tempdir();
       await fs.promises.cp(clonedir, sourcedir, { recursive: true, dereference: true });    
       sources[blockType] = { kblock, dir: sourcedir };
@@ -115,17 +109,17 @@ async function installDependencies(sources: Record<string, Source>) {
 }
 
 async function main() {
-  if (process.argv[2] === "--config") {
-    process.stdout.write(JSON.stringify(kconfig.config, null, 2));
-    return process.exit(0);
-  }
-
   if (!process.env.REDIS_URL) {
     throw new Error("REDIS_URL is not set");
   }
 
   if (!process.env.WORKER_INDEX) {
     throw new Error("WORKER_INDEX is not set");
+  }
+
+  const blocks = await readAllBlocks();
+  if (blocks.length === 0) {
+    throw new Error("No blocks found");
   }
   
   // Redis client for Redlock
@@ -152,7 +146,7 @@ async function main() {
 
   startServer(); // TODO: do we need this to keep the pod alive?
 
-  const sourcedirs = await getSource(kconfig);
+  const sourcedirs = await getSource(blocks);
   if (!sourcedirs) {
     throw new Error("No block source found. Exiting.");
   }
@@ -178,13 +172,13 @@ async function main() {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         const apiVersion = systemApiVersionFromDisplay(event.object.apiVersion);
-        const kblock = kconfig.blocks.find(b => systemApiVersion(b.manifest) === apiVersion);
+        const kblock = blocks.find(b => systemApiVersion(b) === apiVersion);
         if (!kblock) {
           throw new Error(`No kblock found for apiVersion ${apiVersion}`);
         }
 
-        const manifest = kblock.manifest as Manifest;
-        const blockType = formatBlockTypeForEnv(kblock.manifest.definition);
+        const manifest = kblock as Manifest;
+        const blockType = formatBlockTypeForEnv(kblock.definition);
         if (!sourcedirs || !sourcedirs[blockType]) {
           throw new Error(`No block source found for ${blockType}`);
         }
@@ -203,16 +197,16 @@ async function main() {
     }
   }
 
-  for (const kblock of kconfig.blocks) {
+  for (const kblock of blocks) {
     const commit = await listenForChanges(kblock, async (commit) => {
       console.log(`Changes detected: ${commit}. Rebuilding...`);
       await exec(undefined, "kubectl", [
         "label",
         "blocks.kblocks.io",
-        kblock.manifest.definition.group ? `${kblock.manifest.definition.plural}.${kblock.manifest.definition.group}` : kblock.manifest.definition.plural,
+        kblock.definition.group ? `${kblock.definition.plural}.${kblock.definition.group}` : kblock.definition.plural,
         `kblocks.io/commit=${commit}`,
         "-n",
-        kblock.manifest.operator?.namespace ?? "default"
+        kblock.operator?.namespace ?? "default"
       ]);
     });
     console.log("Initial commit", commit);
@@ -226,3 +220,20 @@ main().catch(err => {
   process.exit(1);
 });
 
+async function readAllBlocks() {
+  const blockDirs = fs.readdirSync("/")
+    .filter(dir => dir.startsWith("kblock-"))
+    .map(dir => path.join("/", dir));
+
+  const blocks: Manifest[] = [];
+  for (const dir of blockDirs) {
+    try {
+      const blockJson = fs.readFileSync(path.join(dir, "block.json"), "utf8");
+      blocks.push(JSON.parse(blockJson));
+    } catch (error) {
+      console.error(`Error reading block.json from ${dir}:`, error);
+    }
+  }
+
+  return blocks;
+}

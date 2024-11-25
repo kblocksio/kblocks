@@ -1,19 +1,10 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
-import { PodEnvironment, setupPodEnvironment } from "./configmap";
+import { setupPodEnvironment } from "./configmap";
+import { DeploymentProps } from "./types";
 
-export interface ControlProps {
-  names: string;
-  namespace: string;
-  image: string;
+export interface ControlProps extends DeploymentProps {
   workers: number;
-  blocks: {
-    pod: PodEnvironment;
-    group: string;
-    version: string
-    plural: string;
-    outputs?: string[];
-  }[];
 }
 
 export class Control extends Construct {
@@ -74,7 +65,7 @@ export class Control extends Construct {
       ports: [{ number: 3000 }],
     });
 
-    setupPodEnvironment(controlDeployment, container, props.blocks.map(b => b.pod));
+    setupPodEnvironment(controlDeployment, container, props.pod);
 
     container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
   }

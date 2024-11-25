@@ -13,6 +13,8 @@ export const CustomResourceDefinition = z.object({
 });
 
 export const Manifest = z.object({
+  include: z.optional(z.array(z.string())),
+
   engine: z.union([ 
     z.literal("tofu"), 
     z.literal("helm"), 
@@ -62,6 +64,12 @@ export const Manifest = z.object({
 });
 
 export type Manifest = z.infer<typeof Manifest>;
+
+export const IncludeManifest = z.object({
+  include: Manifest.shape.include,
+  operator: Manifest.shape.operator,
+});
+export type IncludeManifest = z.infer<typeof IncludeManifest>;
 
 export const isCoreGroup = (group: string) => group === "core";
 

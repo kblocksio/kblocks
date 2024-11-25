@@ -5,7 +5,19 @@ exports[`minimal block snapshot 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "kblock.json": "{"blocks":[{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"envConfigMaps":{"KBLOCKS_SYSTEM_ID":"kblocks-system"}}},"engine":"noop"}],"config":{"configVersion":"v1","schedule":[{"name":"read","crontab":"* * * * *","allowFailure":true}],"kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
+      "block.json": "{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"envConfigMaps":{"KBLOCKS_SYSTEM_ID":"kblocks-system"}}}",
+    },
+    "immutable": false,
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "data": {
+      "config.json": "{"config":{"configVersion":"v1","schedule":[{"name":"read","crontab":"* * * * *","allowFailure":true}],"kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -70,7 +82,8 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-operator",
-        "configmap-hash-kconfig": "fdeb0dbdb06e09c151c7930f1fb8ac744b1f68fa1da70846683252e88cae04",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e08cb387aaf9a9af83441cfc2f0ed1cb8beb10b6d27dc81c5c088bdb832ac3",
+        "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-operator",
       "namespace": "{{ .Release.Namespace }}",
@@ -95,7 +108,8 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
-            "configmap-hash-kconfig": "fdeb0dbdb06e09c151c7930f1fb8ac744b1f68fa1da70846683252e88cae04",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e08cb387aaf9a9af83441cfc2f0ed1cb8beb10b6d27dc81c5c088bdb832ac3",
+            "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
         "spec": {
@@ -133,10 +147,6 @@ exports[`minimal block snapshot 1`] = `
                   "value": "additional-env",
                 },
                 {
-                  "name": "KBLOCK_OUTPUTS_BOOM-COM-V1-BOOMS",
-                  "value": "",
-                },
-                {
                   "name": "WORKERS",
                   "value": "1",
                 },
@@ -164,6 +174,10 @@ exports[`minimal block snapshot 1`] = `
                 "runAsNonRoot": false,
               },
               "volumeMounts": [
+                {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+                },
                 {
                   "mountPath": "/kconfig",
                   "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
@@ -206,6 +220,12 @@ exports[`minimal block snapshot 1`] = `
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+            },
             {
               "configMap": {
                 "name": "boom-configmapvolume-block-json-c8b85b34",
@@ -313,7 +333,8 @@ exports[`minimal block snapshot 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kconfig": "fdeb0dbdb06e09c151c7930f1fb8ac744b1f68fa1da70846683252e88cae04",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e08cb387aaf9a9af83441cfc2f0ed1cb8beb10b6d27dc81c5c088bdb832ac3",
+        "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-worker",
       "namespace": "{{ .Release.Namespace }}",
@@ -332,7 +353,8 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
-            "configmap-hash-kconfig": "fdeb0dbdb06e09c151c7930f1fb8ac744b1f68fa1da70846683252e88cae04",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e08cb387aaf9a9af83441cfc2f0ed1cb8beb10b6d27dc81c5c088bdb832ac3",
+            "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
         "spec": {
@@ -416,6 +438,10 @@ exports[`minimal block snapshot 1`] = `
               },
               "volumeMounts": [
                 {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+                },
+                {
                   "mountPath": "/kconfig",
                   "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
                 },
@@ -433,6 +459,12 @@ exports[`minimal block snapshot 1`] = `
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+            },
             {
               "configMap": {
                 "name": "boom-configmapvolume-block-json-c8b85b34",
@@ -506,7 +538,8 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-control",
-        "configmap-hash-kconfig": "fdeb0dbdb06e09c151c7930f1fb8ac744b1f68fa1da70846683252e88cae04",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e08cb387aaf9a9af83441cfc2f0ed1cb8beb10b6d27dc81c5c088bdb832ac3",
+        "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-control",
       "namespace": "{{ .Release.Namespace }}",
@@ -531,7 +564,8 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
-            "configmap-hash-kconfig": "fdeb0dbdb06e09c151c7930f1fb8ac744b1f68fa1da70846683252e88cae04",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e08cb387aaf9a9af83441cfc2f0ed1cb8beb10b6d27dc81c5c088bdb832ac3",
+            "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
         "spec": {
@@ -597,6 +631,10 @@ exports[`minimal block snapshot 1`] = `
               },
               "volumeMounts": [
                 {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+                },
+                {
                   "mountPath": "/kconfig",
                   "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
                 },
@@ -614,6 +652,12 @@ exports[`minimal block snapshot 1`] = `
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+            },
             {
               "configMap": {
                 "name": "boom-configmapvolume-block-json-c8b85b34",
@@ -726,7 +770,31 @@ exports[`multiple blocks 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "kblock.json": "{"blocks":[{"manifest":{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"namespace":"my-namespace","envSecrets":{"SECRET1":"secret-1","SECRET2":"secret-2"},"envConfigMaps":{"CONFIGMAP1":"configmap-1","KBLOCKS_SYSTEM_ID":"kblocks-system"},"env":{"ENV1":"env-1","ENV2":"env-2"},"workers":2}},"engine":"noop"},{"manifest":{"engine":"noop","definition":{"group":"doom.com","version":"v1","kind":"Doom","plural":"dooms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"namespace":"my-namespace","env":{"ENV1":"env-1","ENV2":"env-2","ENV3":"env-3"},"workers":2,"envConfigMaps":{"KBLOCKS_SYSTEM_ID":"kblocks-system"}}},"engine":"noop"}],"config":{"configVersion":"v1","schedule":[{"name":"read","crontab":"* * * * *","allowFailure":true}],"kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]},{"apiVersion":"doom.com/v1","kind":"Doom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
+      "block.json": "{"engine":"noop","definition":{"group":"boom.com","version":"v1","kind":"Boom","plural":"booms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"namespace":"my-namespace","envSecrets":{"SECRET1":"secret-1","SECRET2":"secret-2"},"envConfigMaps":{"CONFIGMAP1":"configmap-1","KBLOCKS_SYSTEM_ID":"kblocks-system"},"env":{"ENV1":"env-1","ENV2":"env-2"},"workers":2}}",
+    },
+    "immutable": false,
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+      "namespace": "my-namespace",
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "data": {
+      "block.json": "{"engine":"noop","definition":{"group":"doom.com","version":"v1","kind":"Doom","plural":"dooms","schema":{"type":"object","properties":{"name":{"type":"string"}}}},"operator":{"namespace":"my-namespace","envSecrets":{"SECRET1":"secret-1","SECRET2":"secret-2"},"envConfigMaps":{"CONFIGMAP1":"configmap-1","KBLOCKS_SYSTEM_ID":"kblocks-system"},"env":{"ENV1":"env-1","ENV2":"env-2"},"workers":2}}",
+    },
+    "immutable": false,
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+      "namespace": "my-namespace",
+    },
+  },
+  {
+    "apiVersion": "v1",
+    "data": {
+      "config.json": "{"config":{"configVersion":"v1","schedule":[{"name":"read","crontab":"* * * * *","allowFailure":true}],"kubernetes":[{"apiVersion":"boom.com/v1","kind":"Boom","executeHookOnEvent":["Added","Modified","Deleted"]},{"apiVersion":"doom.com/v1","kind":"Doom","executeHookOnEvent":["Added","Modified","Deleted"]}]}}",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -791,7 +859,9 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-operator",
-        "configmap-hash-kconfig": "987eccc681ea131cd98f03f42a3b4c1261b458ead248eb6ae665096a5d22a1",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "d3752adf0ebe84dbf01f72744f9e8c0e466dd104b8170202928f336339bcc2",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "a30b66604bfe5d3993f7d4af5efa44811e3d7390925a9a41f48d41929023a1",
+        "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-operator",
       "namespace": "my-namespace",
@@ -816,7 +886,9 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Operator-Deployment-c81ed77e",
-            "configmap-hash-kconfig": "987eccc681ea131cd98f03f42a3b4c1261b458ead248eb6ae665096a5d22a1",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "d3752adf0ebe84dbf01f72744f9e8c0e466dd104b8170202928f336339bcc2",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "a30b66604bfe5d3993f7d4af5efa44811e3d7390925a9a41f48d41929023a1",
+            "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
         "spec": {
@@ -889,18 +961,6 @@ exports[`multiple blocks 1`] = `
                   "value": "additional-env",
                 },
                 {
-                  "name": "ENV3",
-                  "value": "env-3",
-                },
-                {
-                  "name": "KBLOCK_OUTPUTS_BOOM-COM-V1-BOOMS",
-                  "value": "",
-                },
-                {
-                  "name": "KBLOCK_OUTPUTS_DOOM-COM-V1-DOOMS",
-                  "value": "",
-                },
-                {
                   "name": "WORKERS",
                   "value": "2",
                 },
@@ -928,6 +988,14 @@ exports[`multiple blocks 1`] = `
                 "runAsNonRoot": false,
               },
               "volumeMounts": [
+                {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+                },
+                {
+                  "mountPath": "/kblock-DOOM-COM-V1-DOOMS",
+                  "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+                },
                 {
                   "mountPath": "/kconfig",
                   "name": "configmap-boom-doom-configmapvolume-block-json-c839368f",
@@ -970,6 +1038,18 @@ exports[`multiple blocks 1`] = `
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+            },
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+              },
+              "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+            },
             {
               "configMap": {
                 "name": "boom-doom-configmapvolume-block-json-c839368f",
@@ -1077,7 +1157,9 @@ exports[`multiple blocks 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kconfig": "987eccc681ea131cd98f03f42a3b4c1261b458ead248eb6ae665096a5d22a1",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "d3752adf0ebe84dbf01f72744f9e8c0e466dd104b8170202928f336339bcc2",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "a30b66604bfe5d3993f7d4af5efa44811e3d7390925a9a41f48d41929023a1",
+        "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-worker",
       "namespace": "my-namespace",
@@ -1096,7 +1178,9 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Worker-WorkerStatefulSet-c8da4c4c",
-            "configmap-hash-kconfig": "987eccc681ea131cd98f03f42a3b4c1261b458ead248eb6ae665096a5d22a1",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "d3752adf0ebe84dbf01f72744f9e8c0e466dd104b8170202928f336339bcc2",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "a30b66604bfe5d3993f7d4af5efa44811e3d7390925a9a41f48d41929023a1",
+            "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
         "spec": {
@@ -1169,10 +1253,6 @@ exports[`multiple blocks 1`] = `
                   "value": "additional-env",
                 },
                 {
-                  "name": "ENV3",
-                  "value": "env-3",
-                },
-                {
                   "name": "RELEASE_NAME",
                   "value": "{{ .Release.Name }}",
                 },
@@ -1223,6 +1303,14 @@ exports[`multiple blocks 1`] = `
               },
               "volumeMounts": [
                 {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+                },
+                {
+                  "mountPath": "/kblock-DOOM-COM-V1-DOOMS",
+                  "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+                },
+                {
                   "mountPath": "/kconfig",
                   "name": "configmap-boom-doom-configmapvolume-block-json-c839368f",
                 },
@@ -1240,6 +1328,18 @@ exports[`multiple blocks 1`] = `
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+            },
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+              },
+              "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+            },
             {
               "configMap": {
                 "name": "boom-doom-configmapvolume-block-json-c839368f",
@@ -1313,7 +1413,9 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-control",
-        "configmap-hash-kconfig": "987eccc681ea131cd98f03f42a3b4c1261b458ead248eb6ae665096a5d22a1",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "d3752adf0ebe84dbf01f72744f9e8c0e466dd104b8170202928f336339bcc2",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "a30b66604bfe5d3993f7d4af5efa44811e3d7390925a9a41f48d41929023a1",
+        "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-control",
       "namespace": "my-namespace",
@@ -1338,7 +1440,9 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Control-Deployment-c87e3b0f",
-            "configmap-hash-kconfig": "987eccc681ea131cd98f03f42a3b4c1261b458ead248eb6ae665096a5d22a1",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "d3752adf0ebe84dbf01f72744f9e8c0e466dd104b8170202928f336339bcc2",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "a30b66604bfe5d3993f7d4af5efa44811e3d7390925a9a41f48d41929023a1",
+            "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
         "spec": {
@@ -1411,10 +1515,6 @@ exports[`multiple blocks 1`] = `
                   "value": "additional-env",
                 },
                 {
-                  "name": "ENV3",
-                  "value": "env-3",
-                },
-                {
                   "name": "WORKERS",
                   "value": "2",
                 },
@@ -1443,6 +1543,14 @@ exports[`multiple blocks 1`] = `
               },
               "volumeMounts": [
                 {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+                },
+                {
+                  "mountPath": "/kblock-DOOM-COM-V1-DOOMS",
+                  "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+                },
+                {
                   "mountPath": "/kconfig",
                   "name": "configmap-boom-doom-configmapvolume-block-json-c839368f",
                 },
@@ -1460,6 +1568,18 @@ exports[`multiple blocks 1`] = `
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+            },
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+              },
+              "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+            },
             {
               "configMap": {
                 "name": "boom-doom-configmapvolume-block-json-c839368f",

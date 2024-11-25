@@ -4,7 +4,7 @@ import os from "os";
 import { expect, test, beforeEach } from "vitest";
 import { synth } from "../src/build";
 import yaml from "yaml";
-import { Manifest } from "../src/api";
+import { IncludeManifest, Manifest } from "../src/api";
 
 const fixtures: Record<string, Manifest> = {
   minimal: {
@@ -21,18 +21,11 @@ const fixtures: Record<string, Manifest> = {
     }
   },
 
-  with_operator_settings: {
-    engine: "noop",
-    definition: {
-      group: "boom.com",
-      version: "v1",
-      kind: "Boom",
-      plural: "booms",
-      schema: {
-        type: "object",
-        properties: { name: { type: "string" } },
-      },
-    },
+  with_includes: {
+    include: [
+      "test/fixtures/included-1",
+      "test/fixtures/included-2",
+    ],
     operator: {
       namespace: "my-namespace",
       envSecrets: {
@@ -48,6 +41,20 @@ const fixtures: Record<string, Manifest> = {
       },
       workers: 2,
     }
+  } as any,
+
+  with_operator_settings: {
+    engine: "noop",
+    definition: {
+      group: "boom.com",
+      version: "v1",
+      kind: "Boom",
+      plural: "booms",
+      schema: {
+        type: "object",
+        properties: { name: { type: "string" } },
+      },
+    },
   },
 
   with_operator_settings_2: {
@@ -62,15 +69,6 @@ const fixtures: Record<string, Manifest> = {
         properties: { name: { type: "string" } },
       },
     },
-    operator: {
-      namespace: "my-namespace",
-      env: {
-        ENV1: "env-1",
-        ENV2: "env-2",
-        ENV3: "env-3",
-      },
-      workers: 2,
-    }
   },
 };
 
@@ -81,7 +79,7 @@ beforeEach(() => {
 });
 
 test("minimal block snapshot", () => {
-  const objects = synthBlock([fixtures.minimal]);
+  const objects = synthBlock(fixtures.minimal);
   expect(objects).toMatchSnapshot();
 });
 
@@ -92,12 +90,12 @@ test("minimal block snapshot", () => {
 // });
 
 test("multiple blocks", () => {
-  const objects = synthBlock([fixtures.with_operator_settings, fixtures.with_operator_settings_2]);
+  const objects = synthBlock(fixtures.with_includes, [fixtures.with_operator_settings, fixtures.with_operator_settings_2]);
   expect(objects).toMatchSnapshot();
 });
 
 test("all non-cluster objects are namespaced and cluster-scoped are not", () => {
-  const objects = synthBlock([fixtures.minimal]);
+  const objects = synthBlock(fixtures.minimal);
 
   // these are cluster-scoped, so they should not have a namespace
   const cluster = [
@@ -120,11 +118,12 @@ test("all non-cluster objects are namespaced and cluster-scoped are not", () => 
 
 // -----------------------------------------------------------------------------------------------------------
 
-function synthBlock(blocks: Manifest[]) {
+function synthBlock(mainBlock: Manifest, included?: Manifest[]) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "kblocks-test-"));
 
   synth({
-    blockRequests: blocks.map(b => ({ block: b })),
+    mainBlock: { block: mainBlock },
+    included: included?.map(b => ({ block: b })) ?? [],
     output: tempDir,
     env: {
       ADDITIONAL_ENV: "additional-env",

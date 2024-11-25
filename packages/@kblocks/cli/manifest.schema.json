@@ -4,6 +4,12 @@
     "spec": {
       "type": "object",
       "properties": {
+        "include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "engine": {
           "type": "string",
           "enum": [

@@ -1,21 +1,11 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
-import { Duration } from "cdk8s";
-import { PodEnvironment, setupPodEnvironment } from "./configmap";
-import { formatBlockTypeForEnv, formatBlockTypeFromGVP } from "./api/uri";
+import { setupPodEnvironment } from "./configmap";
+import { formatBlockTypeForEnv } from "./api/uri";
+import { DeploymentProps } from "./types";
 
-export interface WorkerProps {
-  names: string;
-  namespace: string;
-  image: string;
+export interface WorkerProps extends DeploymentProps {
   replicas: number;
-  blocks: {
-    pod: PodEnvironment;
-    group: string;
-    version: string
-    plural: string;
-    outputs?: string[];
-  }[];
 }
 
 export class Worker extends Construct {
@@ -81,7 +71,7 @@ export class Worker extends Construct {
       portNumber: 3000,
     });
 
-    setupPodEnvironment(workerDeployment, container, props.blocks.map(b => b.pod));
+    setupPodEnvironment(workerDeployment, container, props.pod);
 
     container.env.addVariable("RELEASE_NAME", k8s.EnvValue.fromValue("{{ .Release.Name }}"));
     for (const block of props.blocks) {

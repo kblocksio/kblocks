@@ -20,6 +20,7 @@ export interface PodEnvironment {
 export interface ConfigMapVolumeProps {
   namespace: string;
   blockRequests: BlockRequest[];
+  flushOnly: boolean;
 }
 
 export class ConfigMapFromDirectory extends Construct {
@@ -35,8 +36,8 @@ export class ConfigMapFromDirectory extends Construct {
     // which should be available `props.block.definition.schema`.
 
     for (const blockRequest of props.blockRequests) {
+      const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
       if (blockRequest.source) {
-        const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
         this.configMaps[`kblock_${blockType}`] = new ConfigMap(this, `archive-${blockType}`, {
           metadata: {
             namespace: props.namespace,
@@ -46,6 +47,15 @@ export class ConfigMapFromDirectory extends Construct {
           },
         });
       }
+
+      this.configMaps[`kblock-${blockType}`] = new ConfigMap(this, `block-json-${blockType}`, {
+        metadata: {
+          namespace: props.namespace,
+        },
+        data: {
+          "block.json": JSON.stringify(blockRequest.block),
+        },
+      });
     }
 
     this.configMaps["kconfig"] = new ConfigMap(this, "block-json", {
@@ -53,35 +63,13 @@ export class ConfigMapFromDirectory extends Construct {
         namespace: props.namespace,
       },
       data: {
-        "kblock.json": readBlockJson(props.blockRequests),
+        "config.json": readBlockJson(props.blockRequests, props.flushOnly),
       },
     });
   }
 }
 
-export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Container, podEnvs: PodEnvironment[]) {
-  const podEnv = podEnvs.reduce((acc, curr) => {
-    return {
-      namespace: curr.namespace,
-      configMaps: {
-        ...acc.configMaps,
-        ...curr.configMaps,
-      },
-      envSecrets: {
-        ...acc.envSecrets,
-        ...curr.envSecrets,
-      },
-      envConfigMaps: {
-        ...acc.envConfigMaps,
-        ...curr.envConfigMaps,
-      },
-      env: {
-        ...acc.env,
-        ...curr.env,
-      },
-    }
-  });
-
+export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Container, podEnv: PodEnvironment) {
   for (const [key, value] of Object.entries(podEnv.configMaps)) {
     const volume = k8s.Volume.fromConfigMap(pod, `ConfigMapVolume-${key}`, value);
     pod.addVolume(volume);
@@ -167,12 +155,7 @@ export function createTgzBase64(rootDir: string): string {
   return data.toString("base64");
 }
 
-export function readBlockJson(blockRequests: BlockRequest[]) {
-  const blocks = blockRequests.map( b => ({
-    manifest: b.block,
-    engine: b.block.engine,
-  }));
-
+function readBlockJson(blockRequests: BlockRequest[], flushOnly: boolean) {
   const kubernetes = blockRequests.map( b => ({
     apiVersion: displayApiVersion(b.block),
     kind: b.block.definition.kind,
@@ -180,17 +163,13 @@ export function readBlockJson(blockRequests: BlockRequest[]) {
   }));
 
   const schedule = [];
-  const hasFlushOnly = blockRequests.some(b => b.block.operator?.flushOnly);
-  const hasNonFlushOnly = blockRequests.some(b => !b.block.operator?.flushOnly);
-  if (hasFlushOnly) {
+  if (flushOnly) {
     schedule.push({
       name: "flush",
       crontab: "0,30 * * * * *",
       allowFailure: false,
     });
-  }
-
-  if (hasNonFlushOnly) {
+  } else {
     schedule.push({
       name: "read",
       crontab: "* * * * *",
@@ -199,7 +178,6 @@ export function readBlockJson(blockRequests: BlockRequest[]) {
   }
 
   return JSON.stringify({
-    blocks,
     config: {
       configVersion: "v1",
       schedule: schedule,

@@ -107,6 +107,5 @@ export type KBlock = {
 }
 
 export type KConfig = {
-  blocks: KBlock[];
   config: Record<string, any>;
 }

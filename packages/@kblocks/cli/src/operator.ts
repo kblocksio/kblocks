@@ -1,19 +1,9 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
-import { setupPodEnvironment, PodEnvironment } from "./configmap";
-import { formatBlockTypeForEnv, formatBlockTypeFromGVP } from "./api";
+import { setupPodEnvironment } from "./configmap";
+import { DeploymentProps } from "./types";
 
-export interface OperatorProps {
-  names: string;
-  namespace: string;
-  image: string;
-  blocks: {
-    pod: PodEnvironment;
-    group: string;
-    version: string
-    plural: string;
-    outputs?: string[];
-  }[];
+export interface OperatorProps extends DeploymentProps {
   redisServiceName: string;
   workers: number;
 }
@@ -78,12 +68,8 @@ export class Operator extends Construct {
       ports: [{ number: 3000 }],
     });
 
-    setupPodEnvironment(operatorDeployment, container, props.blocks.map(b => b.pod));
+    setupPodEnvironment(operatorDeployment, container, props.pod);
 
-    for (const block of props.blocks) {
-      const b = formatBlockTypeForEnv(block);
-      container.env.addVariable(`KBLOCK_OUTPUTS_${b}`, k8s.EnvValue.fromValue((block.outputs ?? []).join(",")));
-    }
     container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
 
     // Add Redis sidecar container

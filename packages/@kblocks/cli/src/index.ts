@@ -1,6 +1,7 @@
-import { calculateNames, synth } from "./build";
+import { synth } from "./build";
 import fs from "fs";
 import yaml from "yaml";
+import { BlockRequest } from "./types";
 
 const valuesFile = process.env.KBLOCKS_VALUES_FILE;
 if (!valuesFile) {
@@ -28,7 +29,8 @@ if (!output) {
   process.exit(1);
 }
 
-const blockRequests = [{ block: manifest, source: archiveSource }];
-synth({ blockRequests, output, env: {} });
+const mainBlock = { block: manifest, source: archiveSource };
+const included: BlockRequest[] = [];
+synth({ mainBlock, included, output, env: {} });
 console.log("Block built successfully");
 

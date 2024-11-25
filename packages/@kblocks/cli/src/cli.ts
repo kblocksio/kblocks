@@ -1,5 +1,4 @@
 import yargs from "yargs";
-import { ENGINES } from "./api";
 import path from "path";
 import { enrich } from "./enrich";
 import { readManifest, writeManifest } from "./manifest-util";
@@ -13,11 +12,10 @@ export async function cli() {
   return yargs
     .help()
 
-    .command("build [DIR..]", "Builds a Helm chart for a block from source", yargs => yargs
+    .command("build [DIR]", "Builds a Helm chart for a block from source", yargs => yargs
       .positional("DIR", {
         description: "The directories containing the blocks",
         type: "string",
-        array: true,
         required: false,
       })
       .option("output", {
@@ -188,12 +186,11 @@ export async function cli() {
         required: true,
       }), argv => importCommand(argv))
 
-    .command("install [DIR..]", "Install a block to a cluster", yargs => yargs
+    .command("install [DIR]", "Install a block to a cluster", yargs => yargs
       .positional("DIR", {
         description: "The directory containing the block",
         type: "string",
         required: false,
-        array: true,
       })
       .option("output", {
         alias: "o",
