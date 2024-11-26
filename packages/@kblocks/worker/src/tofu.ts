@@ -46,5 +46,5 @@ terraform {
 }
 
 export function renderTerraformStateKey(host: RuntimeContext, ctx: BindingContext) {
-  return `${host.tryGetenv("TF_BACKEND_KEY")}/${host.system}/${ctx.object.kind}/${ctx.object.metadata.namespace}/${ctx.object.metadata.name}`;
+  return `${host.getenv("TF_BACKEND_KEY")}/${host.system}/${ctx.object.kind}/${ctx.object.metadata.namespace}/${ctx.object.metadata.name}`;
 }
