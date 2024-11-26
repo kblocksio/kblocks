@@ -1,4 +1,5 @@
 import fs from "fs";
+import zlib from "zlib";
 import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
@@ -194,7 +195,8 @@ async function readAllBlocks() {
   for (const dir of blockDirs) {
     try {
       const blockJson = fs.readFileSync(path.join(dir, "block.json"), "utf8");
-      blocks.push(JSON.parse(blockJson));
+      const decompressed = zlib.inflateSync(Buffer.from(blockJson, "base64"));
+      blocks.push(JSON.parse(decompressed.toString("utf8")));
     } catch (error) {
       console.error(`Error reading block.json from ${dir}:`, error);
     }

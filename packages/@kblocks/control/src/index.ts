@@ -3,6 +3,7 @@ import { getEndpoints, Manifest } from "./api/index.js";
 import { type connect } from "./socket";
 import fs from "fs";
 import path from "path";
+import zlib from "zlib";
 
 async function main() {
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
@@ -49,7 +50,8 @@ async function readAllBlocks() {
   for (const dir of blockDirs) {
     try {
       const blockJson = fs.readFileSync(path.join(dir, "block.json"), "utf8");
-      blocks.push(JSON.parse(blockJson));
+      const decompressed = zlib.inflateSync(Buffer.from(blockJson, "base64"));
+      blocks.push(JSON.parse(decompressed.toString("utf8")));
     } catch (error) {
       console.error(`Error reading block.json from ${dir}:`, error);
     }
