@@ -83,7 +83,7 @@ async function resolveSchema(schema: string | undefined, kind: string) {
 
   if (schema.endsWith(".schema.json")) {
     // Ensure schema is in src folder
-    if (!schema.startsWith('src/') && !schema.startsWith('./src/') && !schema.startsWith('./manifest.schema.json')) {
+    if (!schema.startsWith('src/') && !schema.startsWith('./src/') && !schema.includes('manifest.schema.json')) {
       throw new Error(`Schema file must be located in the src directory ${schema}`);
     }
     const dereferencedSchema = await $RefParser.dereference(schema);
