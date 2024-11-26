@@ -17,6 +17,9 @@ jobs:
   prepare:
     name: "Prepare Release"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       version: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
       last-version: ${{ fromJson(steps.changelog.outputs.data).lastVersion }}
@@ -42,7 +45,7 @@ jobs:
       - name: Changelog Generation
         id: changelog
         env:
-          GENERATE_VERSION: ${{ github.event_name != 'push' || github.repository != 'winglang/kblocks' }}
+          GENERATE_VERSION: ${{ github.event_name != 'push' || github.repository != 'kblocksio/kblocks' }}
         run: ./scripts/changelog.sh
 
       - name: Check if version changed
