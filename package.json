@@ -6,7 +6,7 @@
     "dev": "skaffold run --port-forward --tail",
     "start": "skaffold run --port-forward",
     "build": "npm run --if-present -ws build",
-    "test": "./test/run.sh"
+    "test": "./test/test.sh"
   },
   "workspaces": [
     "packages/**/*",

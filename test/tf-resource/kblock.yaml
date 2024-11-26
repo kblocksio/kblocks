@@ -1,0 +1,24 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: tfresources.acme.com
+spec:
+  engine: tofu
+  definition:
+    group: kblocks.io
+    version: v1
+    kind: TerraformResource
+    plural: tfresources
+    outputs:
+      - myOutput
+    schema: ./src/values.schema.json
+    description: Manage a Terraform configuration using Kubernetes custom resources
+  operator:
+    namespace: kblocks-test
+    workers: 1
+    env:
+      KBLOCKS_EVENTS_URL: "http://{{ .Release.Name
+        }}-testserver.kblocks-test.svc.cluster.local/events"
+      KBLOCKS_CONTROL_URL: "ws://{{ .Release.Name
+        }}-testserver.kblocks-test.svc.cluster.local/control"
+      KBLOCKS_SYSTEM_ID: test-system

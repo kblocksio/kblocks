@@ -25,19 +25,28 @@ async function applyWingTerraform(workdir: string, host: RuntimeContext, values:
   await wingcli(host, ["compile", "-t", target, entrypoint], { cwd: workdir });
   
   const targetdir = join(workdir, "target/main.tfaws");
-  const tfjson = join(targetdir, "main.tf.json");
-  const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
 
-  tf.terraform.backend = {
-    s3: {
-      bucket: host.getenv("TF_BACKEND_BUCKET"),
-      region: host.getenv("TF_BACKEND_REGION"),
-      key: renderTerraformStateKey(host, ctx),
-      dynamodb_table: host.tryGetenv("TF_BACKEND_DYNAMODB"),
-    }
-  };
+  // if the backend bucket is set, we configure the Terraform backend to use it
+  const backendBucket = host.tryGetenv("TF_BACKEND_BUCKET");
+  if (backendBucket) {
+    const tfjson = join(targetdir, "main.tf.json");
+    const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
 
-  fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
+    tf.terraform.backend = {
+      s3: {
+        bucket: backendBucket,
+        region: host.getenv("TF_BACKEND_REGION"),
+        key: renderTerraformStateKey(host, ctx),
+        dynamodb_table: host.tryGetenv("TF_BACKEND_DYNAMODB"),
+      }
+    };
+
+    host.logger.info(`Terraform S3 backend: ${JSON.stringify(tf.terraform.backend, null, 2)}`);
+
+    fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
+  } else {
+    host.logger.info("Terraform S3 backend not configured, using Kubernetes as backend");
+  }
 
   return await applyTerraform(host, targetdir, ctx);
 }

@@ -1,7 +1,18 @@
 import { kblockOutputs, RuntimeContext } from "./host.js";
 import type { BindingContext } from "./api/index.js";
+import fs from "fs/promises";
+import { join } from "path";
 
 export async function applyTerraform(host: RuntimeContext, workdir: string, ctx: BindingContext): Promise<Record<string, any>> {
+  const tfstatefile = join(workdir, "terraform.tfstate");
+
+  // if there is a "tfstate" in the status, materialize it into the tfstate file so it will be used by the engine
+  const prevState = ctx.object.status?.tfstate;
+  if (prevState) {
+    host.logger.debug(`previous tfstate: ${prevState}`);
+    await fs.writeFile(tfstatefile, prevState);
+  }
+
   await host.exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: workdir });
 
   if (ctx.watchEvent === "Deleted") {
@@ -17,11 +28,19 @@ export async function applyTerraform(host: RuntimeContext, workdir: string, ctx:
     const value = await host.exec("tofu", ["output", "-no-color", name], { cwd: workdir });
     try {
       results[name] = JSON.parse(value);
-      console.error(`OUTPUT! ${name}=${value}`);
+      host.logger.info(`Output: ${name}=${value}`);
     } catch (e) {
-      console.error(`No outputs found.`);
+      host.logger.debug(`No outputs found.`);
     }
   }
+
+  // if there's a `terraform.tfstate` file, store it's contents in the k8s status so it can be used
+  // as a previous state in subsequent apply calls.
+  try {
+    await fs.access(tfstatefile, fs.constants.R_OK);
+    results.tfstate = await fs.readFile(tfstatefile, "utf8");
+    host.logger.debug("new tfstate: " + JSON.stringify(JSON.parse(results.tfstate), null, 2));
+  } catch (e) { }
 
   return results;
 }

@@ -39,6 +39,7 @@ export class CustomResourceDefinition extends Construct {
       type: "object",
       properties: {
         lastStateHash: { type: "string" },
+        tfstate: { type: "string" },
         conditions: {
           type: "array",
           items: {
