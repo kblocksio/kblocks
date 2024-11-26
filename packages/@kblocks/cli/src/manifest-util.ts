@@ -82,6 +82,10 @@ async function resolveSchema(schema: string | undefined, kind: string) {
   }
 
   if (schema.endsWith(".schema.json")) {
+    // Ensure schema is in src folder
+    if (!schema.startsWith('src/') && !schema.includes('./src/')) {
+      throw new Error('Schema file must be located in the src directory');
+    }
     const dereferencedSchema = await $RefParser.dereference(schema);
     if ('$defs' in dereferencedSchema) {
         delete (dereferencedSchema as any).$defs;
