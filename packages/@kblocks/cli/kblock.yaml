@@ -12,7 +12,7 @@ spec:
     plural: blocks
     readme: README.md
     icon: heroicon://cube
-    schema: ./src/manifest.schema.json
+    schema: ./manifest.schema.json
   operator:
     env:
       KBLOCKS_SYSTEM_ID: "{{ .Values.system }}"
