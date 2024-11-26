@@ -173,7 +173,7 @@ async function main() {
       try {
         const event: BindingContext = JSON.parse(message[1][1]);
         const apiVersion = systemApiVersionFromDisplay(event.object.apiVersion);
-        const kblock = blocks.find(b => systemApiVersion(b) === apiVersion);
+        const kblock = blocks.find(b => systemApiVersion(b) === apiVersion && b.definition.kind === event.object.kind);
         if (!kblock) {
           throw new Error(`No kblock found for apiVersion ${apiVersion}`);
         }

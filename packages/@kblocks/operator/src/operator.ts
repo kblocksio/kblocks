@@ -89,7 +89,7 @@ async function main() {
       redis?: { redisClient: Redis, workers: number }) {
     const object = context.object;
     const apiVersion = systemApiVersionFromDisplay(object.apiVersion);
-    const kblock = blocks.find(b => systemApiVersion(b) === apiVersion);
+    const kblock = blocks.find(b => systemApiVersion(b) === apiVersion && b.definition.kind === object.kind);
     if (!kblock) {
       throw new Error(`No kblock found for apiVersion ${apiVersion}`);
     }
