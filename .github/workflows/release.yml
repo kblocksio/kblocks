@@ -17,6 +17,9 @@ jobs:
   prepare:
     name: "Prepare Release"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       version: ${{ fromJson(steps.changelog.outputs.data).newVersion }}
       last-version: ${{ fromJson(steps.changelog.outputs.data).lastVersion }}
