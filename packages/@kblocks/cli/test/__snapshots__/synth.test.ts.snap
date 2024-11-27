@@ -771,6 +771,9 @@ exports[`minimal block snapshot 1`] = `
                       "type": "array",
                     },
                     "lastStateHash": {
+                      "description": "The hash of the last object state.
+
+@ui hidden",
                       "type": "string",
                     },
                   },
@@ -1720,6 +1723,9 @@ exports[`multiple blocks 1`] = `
                       "type": "array",
                     },
                     "lastStateHash": {
+                      "description": "The hash of the last object state.
+
+@ui hidden",
                       "type": "string",
                     },
                   },
@@ -1813,6 +1819,9 @@ exports[`multiple blocks 1`] = `
                       "type": "array",
                     },
                     "lastStateHash": {
+                      "description": "The hash of the last object state.
+
+@ui hidden",
                       "type": "string",
                     },
                   },

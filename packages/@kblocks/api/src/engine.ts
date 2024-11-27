@@ -14,3 +14,6 @@ export const ENGINES: Record<string, Engine> = {
   noop:            { id: "noop",           description: "Block does nothing (just a declaration)." },
   custom:          { id: "custom",         description: "Block is implemented through a set of custom programs for CREATE/UPDATE and DELETE." },
 };
+
+// the name of the attribute that contains the Terraform state for Terraform-based blocks
+export const TFSTATE_ATTRIBUTE = "tfstate";

@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { JsonSchemaProps } from "../imports/k8s";
 import { ApiObject } from 'cdk8s';
+import { Manifest, TFSTATE_ATTRIBUTE } from './api';
 
 export interface CustomResourceDefinitionProps {
   version: string;
@@ -13,6 +14,7 @@ export interface CustomResourceDefinitionProps {
   singular?: string;
   outputs?: string[];
   annotations?: Record<string, string>;
+  engine: Manifest["engine"];
 }
 
 export class CustomResourceDefinition extends Construct {
@@ -35,10 +37,14 @@ export class CustomResourceDefinition extends Construct {
     }
 
     const additionalPrinterColumns = [];
+
     const status = {
       type: "object",
       properties: {
-        lastStateHash: { type: "string" },
+        lastStateHash: { 
+          type: "string",
+          description: "The hash of the last object state.\n\n@ui hidden",
+        },
         conditions: {
           type: "array",
           items: {
@@ -56,6 +62,15 @@ export class CustomResourceDefinition extends Construct {
         },
       }
     };
+
+    const statusProperties: Record<string, JsonSchemaProps> = status.properties;
+    
+    if (props.engine === "tofu" || props.engine.startsWith("wing/tf-")) {
+      statusProperties[TFSTATE_ATTRIBUTE] = { 
+        type: "string",
+        description: "The last Terraform state of the resource.\n\n@ui hidden",
+      };
+    }
 
     additionalPrinterColumns.push({
       name: "Ready",
@@ -78,9 +93,8 @@ export class CustomResourceDefinition extends Construct {
     }
 
     if (props.outputs) {
-      const p: Record<string, JsonSchemaProps> = status.properties;
       for (const o of props.outputs) {
-        p[o] = { type: "string" };
+        statusProperties[o] = { type: "string" };
         additionalPrinterColumns.push({
           name: o,
           type: "string",

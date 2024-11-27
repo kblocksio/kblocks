@@ -1,4 +1,4 @@
-import { BindingContext, blockTypeFromUri, formatBlockUri } from "@kblocks/api";
+import { BindingContext, blockTypeFromUri, formatBlockUri, TFSTATE_ATTRIBUTE } from "@kblocks/api";
 import { RuntimeContext } from "./host";
 import { createLogger } from "./logging";
 import { applyTerraform } from "./tf";
@@ -41,7 +41,7 @@ test("applyTerraform with tfstate", async () => {
     "KBLOCK_OUTPUTS_ACME-COM-V1-MYBLOCK": "out1,out2",
   });
 
-  const ctx = createBindingContext({ tfstate: JSON.stringify(prevState) });
+  const ctx = createBindingContext({ [TFSTATE_ATTRIBUTE]: JSON.stringify(prevState) });
   const result = await applyTerraform(host, workdir, ctx);
   expect(commands).toEqual([
     ["tofu", "init", "-input=false", "-lock=false", "-no-color"],
@@ -53,7 +53,7 @@ test("applyTerraform with tfstate", async () => {
   expect(result).toEqual({
     out1: "output: out1",
     out2: "output: out2",
-    tfstate: JSON.stringify({
+    [TFSTATE_ATTRIBUTE]: JSON.stringify({
       boom: "new_state",
       bar: "new_bar",
     }),
