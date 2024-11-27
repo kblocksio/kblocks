@@ -1,4 +1,4 @@
-import { BindingContext, blockTypeFromUri, formatBlockUri } from "./api";
+import { BindingContext, blockTypeFromUri, formatBlockUri } from "@kblocks/api";
 import { RuntimeContext } from "./host";
 import { createLogger } from "./logging";
 import { applyTerraform } from "./tf";
