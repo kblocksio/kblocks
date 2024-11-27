@@ -33,7 +33,7 @@ const manifest = {
       plural: "blocks",
       readme: "README.md",
       icon: "heroicon://cube",
-      schema: "./manifest.schema.json",
+      schema: "./src/manifest.schema.json",
     },
     operator: {
       env: {
@@ -60,7 +60,7 @@ const schema = {
   required: ["spec"]
 };
 
-fs.writeFileSync(path.join(__dirname, "../manifest.schema.json"), JSON.stringify(schema, null, 2));
+fs.writeFileSync(path.join(__dirname, "../src/manifest.schema.json"), JSON.stringify(schema, null, 2));
 fs.mkdirSync(path.join(__dirname, "../templates"), { recursive: true });
 
 // only write the Chart.yaml if we are in CI
