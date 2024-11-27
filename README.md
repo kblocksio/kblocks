@@ -132,29 +132,6 @@ If the worker encounters this token when reconciling a resource, it will first w
 referenced resource to be ready and then it will read the value from it's state and replace it in
 the manifest being reconciled.
 
-
-## Roadmap
-
-- [x] Report events such as compile/apply errors to parent resource
-- [ ] Associate all child resources with the parent resource (`ownerReferences`?)
-- [x] Check schema upon helm apply
-- [ ] Update status of parent object during deployment <-- this creates an update cycle
-- [ ] Apply `annotations` to all child-resources
-- [x] Purge label
-- [x] Helm chart output
-- [x] Apply labels to all child-resources.
-- [x] Implement a resource using a Helm chart
-- [x] Implement a resource using a Terraform module
-- [ ] Implement a resource using AWS CDK code
-- [ ] Operator permissions
-- [x] "Delete" should just delete all the resources based on the objectid label instead of synthesizing a manifest
-- [ ] Apply the `kblock/*` labels to all resources in the Helm engine (through a `--post-renderer`)
-- [ ] Add `bundle-version` labels to resources (e.g. https://gateway-api.sigs.k8s.io/concepts/versioning/#version-indicators).
-
-## Known Issues
-
-- [ ] The "spec" struct must be called `XxxSpec` (we use this convention to find it).
-
 ## License
 
 This software is proprietary and confidential. Unauthorized copying, distribution, or use of this

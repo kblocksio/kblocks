@@ -1,0 +1,5 @@
+apiVersion: kblocks.io/v1
+kind: TerraformResource
+metadata:
+  name: my-tf-resource
+input: my_input_666
