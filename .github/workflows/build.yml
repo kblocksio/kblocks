@@ -20,6 +20,10 @@ jobs:
   test:
     name: "Test"
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      actions: 'read'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,8 +64,8 @@ jobs:
 
       - name: Install Qkube
         run: |
-          qkube_url=$(curl -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" https://api.github.com/repos/winglang/quickube/releases/latest | jq -r ".assets[].url")
-          curl -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" -H "Accept: application/octet-stream" -L -o /tmp/qkube $qkube_url
+          qkube_url=$(curl -H "Authorization: Bearer ${{ secrets.PROJEN_GITHUB_TOKEN }}" https://api.github.com/repos/winglang/quickube/releases/latest | jq -r ".assets[].url")
+          curl -H "Authorization: Bearer ${{ secrets.PROJEN_GITHUB_TOKEN }}" -H "Accept: application/octet-stream" -L -o /tmp/qkube $qkube_url
           sudo mv /tmp/qkube /usr/local/bin/qkube
           sudo chmod +x /usr/local/bin/qkube
           qkube ls
