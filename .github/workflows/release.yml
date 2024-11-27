@@ -131,7 +131,8 @@ jobs:
       - name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@v6
         with:
-          context: packages/@kblocks/${{ matrix.image }}
+          context: .
+          file: packages/@kblocks/${{ matrix.image }}/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: wingcloudbot/kblocks-${{ matrix.image }}:latest,wingcloudbot/kblocks-${{ matrix.image }}:${{ needs.prepare.outputs.version }}
