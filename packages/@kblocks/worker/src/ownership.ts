@@ -1,7 +1,7 @@
 import fs from "fs";
 import yaml from "yaml";
 import path from "path";
-import type { ApiObject } from "./api/index.js";
+import type { ApiObject } from "@kblocks/api";
 // @ts-ignore
 import { renderYaml } from "./render.cjs";
 // function renderYaml(parent: ApiObject, all: string) {

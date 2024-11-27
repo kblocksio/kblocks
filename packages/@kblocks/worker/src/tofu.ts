@@ -1,7 +1,8 @@
 import fs from "fs";
 import { join } from "path";
 import { applyTerraform, tryGetTerraformS3Backend } from "./tf.js";
-import type { BindingContext } from "./api/index.js";
+import { getenv, tryGetenv } from "./util.js";
+import type { BindingContext } from "@kblocks/api";
 import { RuntimeContext } from "./host.js";
 
 export async function applyTofu(workdir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {

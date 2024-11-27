@@ -1,4 +1,4 @@
-import { Manifest } from "../src/api/index.js";
+import { Manifest } from "@kblocks/api";
 
 import { zodToJsonSchema } from "zod-to-json-schema";
 import yaml from "yaml";

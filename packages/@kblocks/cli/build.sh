@@ -1,7 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-../api/copy-api.sh
+dir=$(cd $(dirname $0) && pwd)
+cd $dir/../api
+npx tsc
+
+cd $dir
 npx tsc
 
 # render Chart.yaml and kblock.yaml for the kblocks.io/v1.Block resource

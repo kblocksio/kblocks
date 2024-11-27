@@ -1,4 +1,4 @@
-import { ApiObject, isCoreGroup, parseBlockUri } from "./api/index.js";
+import { ApiObject, isCoreGroup, parseBlockUri } from "@kblocks/api";
 import * as k8s from "@kubernetes/client-node";
 import { RuntimeContext } from "./host";
 import { getCoreResource } from "./client.js";

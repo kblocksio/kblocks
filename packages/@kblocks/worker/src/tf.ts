@@ -1,5 +1,5 @@
 import { kblockOutputs, RuntimeContext } from "./host.js";
-import { BindingContext, TFSTATE_ATTRIBUTE } from "./api/index.js";
+import { BindingContext, TFSTATE_ATTRIBUTE } from "@kblocks/api";
 import fs from "fs/promises";
 import { join } from "path";
 

@@ -1,4 +1,4 @@
-import { BindingContext, blockTypeFromUri, formatBlockUri, TFSTATE_ATTRIBUTE } from "./api";
+import { BindingContext, blockTypeFromUri, formatBlockUri, TFSTATE_ATTRIBUTE } from "@kblocks/api";
 import { RuntimeContext } from "./host";
 import { createLogger } from "./logging";
 import { applyTerraform } from "./tf";
@@ -151,7 +151,7 @@ const createHost = (exec: (command: string, args: string[], options: any) => Pro
     chatCompletion: notImplemented,
     emitEvent: notImplemented,
     system,
-    logger: createLogger(objUri, objType, requestId),
+    logger: createLogger(objUri, objType, requestId, { emitEvent: false }),
     requestId,
   } satisfies RuntimeContext;
 }

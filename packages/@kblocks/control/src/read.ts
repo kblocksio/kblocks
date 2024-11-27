@@ -1,7 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
 import Redis from "ioredis";
 import { createHash } from "crypto";
-import { BindingContext, isCoreGroup, parseBlockUri } from "./api";
+import { BindingContext, isCoreGroup, parseBlockUri } from "@kblocks/api";
 import { Context } from "./context";
 import { getCoreResource } from "./client";
 

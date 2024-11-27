@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import yaml from "yaml";
 import ejs from "ejs";
-import { ApiObject, Manifest } from "./api";
+import { ApiObject, Manifest } from "@kblocks/api";
 import { importCommand } from "./import";
 
 export interface InitOptions {

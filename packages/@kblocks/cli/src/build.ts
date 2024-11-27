@@ -8,7 +8,7 @@ import { JsonSchemaProps } from "../imports/k8s";
 import { ConfigMapFromDirectory } from "./configmap";
 import packageJson from "../package.json";
 import { Control } from "./control";
-import { formatBlockTypeForEnv, IncludeManifest, Manifest } from "./api";
+import { formatBlockTypeForEnv, IncludeManifest, Manifest } from "@kblocks/api";
 import { Construct } from "constructs";
 import yaml from 'yaml';
 import { getManifest } from "./manifest-util";
@@ -119,6 +119,7 @@ export class Block extends Chart {
     const flushOnly = mainBlock.block.operator?.flushOnly ?? false;
 
     addSystemIfNotSet(mainBlock.block);
+    addRedisIfNotSet(mainBlock.block);
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       blockRequests,
@@ -293,6 +294,24 @@ function addSystemIfNotSet(block: Manifest) {
   // if KBLOCKS_SYSTEM_ID is not set, read it from the "kblocks-system" ConfigMap by default.
   block.operator.envConfigMaps = block.operator.envConfigMaps ?? {};
   block.operator.envConfigMaps[key] = "kblocks-system";
+}
+
+function addRedisIfNotSet(block: Manifest) {
+  const key = "KBLOCKS_API_KEY";
+  block.operator = block.operator ?? {};
+
+  // check if one of the "env" is KBLOCKS_API_KEY
+  if (key in (block.operator.env ?? {}) ||
+      key in (block.operator.envSecrets ?? {}) ||
+      key in (block.operator.envConfigMaps ?? {})) {
+    return;
+  }
+
+  block.operator.envSecrets = block.operator.envSecrets ?? {};
+  block.operator.envSecrets[key] = {
+    key: "REDIS_PASSWORD",
+    secret: "kblocks-api-secrets",
+  };
 }
 
 export function calculateNames(blockRequests: BlockRequest[]) {

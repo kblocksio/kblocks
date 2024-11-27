@@ -4,7 +4,8 @@ import Redis from "ioredis";
 import { BindingContext } from "./types";
 import { createHash } from 'crypto';
 import { listAllResources } from "./resources";
-import { EventAction, KConfig, Manifest, blockTypeFromUri, emitEvent, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "./api/index.js";
+import { EventAction, KConfig, Manifest, blockTypeFromUri, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "@kblocks/api";
+import { emitEventAsync, closeEvents } from "@kblocks/common";
 import path from "path";
 
 async function main() {
@@ -84,6 +85,7 @@ async function main() {
   }
 
   redisClient.quit();
+  await closeEvents();
 
   async function processEvent(context: BindingContext, 
       redis?: { redisClient: Redis, workers: number }) {
@@ -114,7 +116,7 @@ async function main() {
     const requestId = generateRandomId();
 
     const reason = renderReason(context.watchEvent);
-    emitEvent({
+    await emitEventAsync({
       type: "OBJECT",
       // if we're not flushing, the worker will delete the object
       object: (kblock.operator?.flushOnly && reason === EventAction.Delete) ? {} : context.object,

@@ -1,4 +1,4 @@
-import { ApiObject } from "./api";
+import { ApiObject } from "@kblocks/api";
 
 export type BindingContext = {
   watchEvent: "Deleted" | "Modified" | "Added" | "Read";

@@ -1,7 +1,7 @@
 import { readFileSync} from "fs";
 import { join } from 'path';
 import { RuntimeContext } from "./host.js";
-import type { BindingContext } from "./api/index.js";
+import type { BindingContext } from "@kblocks/api";
 import { tempdir } from './util.js';
 
 export async function applyCustom(dir: string, host: RuntimeContext, ctx: BindingContext, values: string): Promise<Record<string, any>> {

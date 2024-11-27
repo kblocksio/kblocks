@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { JsonSchemaProps } from "../imports/k8s";
 import { ApiObject } from 'cdk8s';
-import { Manifest, TFSTATE_ATTRIBUTE } from './api';
+import { Manifest, TFSTATE_ATTRIBUTE } from '@kblocks/api';
 
 export interface CustomResourceDefinitionProps {
   version: string;

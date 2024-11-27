@@ -14,10 +14,8 @@ spec:
   operator:
     namespace: kblocks-test
     env:
-      KBLOCKS_EVENTS_URL: "http://{{ .Release.Name
-        }}-testserver.kblocks-test.svc.cluster.local/events"
-      KBLOCKS_CONTROL_URL: "ws://{{ .Release.Name
-        }}-testserver.kblocks-test.svc.cluster.local/control"
+      KBLOCKS_HOST: "test-redis.kblocks-test.svc.cluster.local"
+      KBLOCKS_API_KEY: "pass1234"
       KBLOCKS_SYSTEM_ID: test-system
     skipCrd: true
     flushOnly: true

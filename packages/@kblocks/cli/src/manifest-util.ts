@@ -1,6 +1,6 @@
 import fs from "fs";
 import yaml from "yaml";
-import { ApiObject, IncludeManifest, Manifest } from "./api";
+import { ApiObject, IncludeManifest, Manifest } from "@kblocks/api";
 import { generateSchemaFromWingStruct } from "./wing-schema";
 import path from "path";
 import $RefParser from '@apidevtools/json-schema-ref-parser';

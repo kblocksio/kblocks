@@ -1,7 +1,7 @@
 import { Construct } from "constructs";
 import * as k8s from "cdk8s-plus-30";
 import { setupPodEnvironment } from "./configmap";
-import { formatBlockTypeForEnv } from "./api/uri";
+import { formatBlockTypeForEnv } from "@kblocks/api";
 import { DeploymentProps } from "./types";
 
 export interface WorkerProps extends DeploymentProps {

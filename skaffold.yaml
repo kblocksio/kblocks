@@ -4,25 +4,28 @@ build:
   artifacts:
   - image: wingcloudbot/kblocks-operator
     docker:
+      dockerfile: ./packages/@kblocks/operator/Dockerfile
       cacheFrom:
         - wingcloudbot/kblocks-operator:latest
-    context: ./packages/@kblocks/operator
+    context: .
     sync:
-      infer: ["src/**/*.ts"]
+      infer: ["packages/@kblocks/operator/src/**/*.ts"]
   - image: wingcloudbot/kblocks-worker
     docker:
+      dockerfile: ./packages/@kblocks/worker/Dockerfile
       cacheFrom:
         - wingcloudbot/kblocks-worker:latest
-    context: ./packages/@kblocks/worker
+    context: .
     sync:
-      infer: ["src/**/*.ts"]
+      infer: ["packages/@kblocks/worker/src/**/*.ts"]
   - image: wingcloudbot/kblocks-control
     docker:
+      dockerfile: ./packages/@kblocks/control/Dockerfile
       cacheFrom:
         - wingcloudbot/kblocks-control:latest
-    context: ./packages/@kblocks/control
+    context: .
     sync:
-      infer: ["src/**/*.ts"]
+      infer: ["packages/@kblocks/control/src/**/*.ts"]
   - image: wingcloudbot/kblocks-testserver
     context: ./test/testserver
     sync:

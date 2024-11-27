@@ -1,4 +1,5 @@
-import { ApiObject, Manifest, emitEvent, isCoreGroup } from "./api";
+import { ApiObject, Manifest, isCoreGroup } from "@kblocks/api";
+import { emitEvent } from "@kblocks/common";
 import * as k8s from "@kubernetes/client-node";
 import { Context } from "./context";
 import { listAllCoreResources } from "./client";

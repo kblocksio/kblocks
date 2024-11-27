@@ -1,6 +1,6 @@
 import { test, expect, beforeEach } from "vitest";
 import crypto from "crypto";
-import { ControlCommand } from "../../packages/@kblocks/control/src/api";
+import { ControlCommand, parseBlockUri } from "@kblocks/api";
 
 const SERVER_URL = "http://localhost:8080";
 const opts = { timeout: 120_000 };
@@ -26,10 +26,20 @@ async function getEvents() {
   return response.json();
 }
 
-async function sendControlCommand(command: ControlCommand) {
+async function sendControlCommand({
+  system, group, version, plural
+}: {
+  system: string, group: string, version: string, plural: string
+}, command: ControlCommand) {
   const response = await fetch(`${SERVER_URL}/control`, {
     method: "POST",
-    body: JSON.stringify(command)
+    body: JSON.stringify({
+      system,
+      group,
+      version,
+      plural,
+      ...command
+    })
   });
 
   if (!response.ok) {
@@ -45,7 +55,13 @@ async function createResource(name: string, {
 }: { kind?: string, plural?: string, apiVersion?: string, data?: any } = {}) {
   console.log("creating resource", name);
 
+  const parts = apiVersion.split("/");
   await sendControlCommand({
+    system: "test-system",
+    group: parts.length === 1 ? "core" : parts[0],
+    version: parts.length === 1 ? parts[0] : parts[1],
+    plural
+  },{
     type: "APPLY",
     object: {
       apiVersion,
@@ -119,8 +135,13 @@ async function waitForResourceWithCallback(objUri: string, callback: (resource: 
 
 async function deleteResource(objUri: string, wait = true) {
   console.log("deleting resource", objUri);
-
+  const { system, group, version, plural } = parseBlockUri(objUri);
   await sendControlCommand({
+    system,
+    group,
+    version,
+    plural
+  }, {
     type: "DELETE",
     objUri
   });
@@ -133,8 +154,13 @@ async function deleteResource(objUri: string, wait = true) {
 
 async function patchResource(objUri: string, name: string) {
   console.log("patching resource", objUri);
-
+  const { system, group, version, plural } = parseBlockUri(objUri);
   await sendControlCommand({
+    system,
+    group,
+    version,
+    plural
+  }, {
     type: "PATCH",
     objUri,
     object: {
@@ -200,9 +226,16 @@ test("refresh resource that does not exist", opts, async () => {
   // send a request to create the resource and wait for it to be created
   const { objUri } = await createResource(name);
   await deleteResource(objUri);
+ 
+const { system, group, version, plural } = parseBlockUri(objUri);
 
   // now, let's ask for a refresh for the resource
   await sendControlCommand({
+    system,
+    group,
+    version,
+    plural
+  }, {
     type: "REFRESH",
     objUri
   });
@@ -223,9 +256,15 @@ test("refresh resource that exists", opts, async () => {
 
   // send a request to create the resource and wait for it to be created
   const { objUri, obj } = await createResource(name);
-  
+  const { system, group, version, plural } = parseBlockUri(objUri);
+
   // send a request to refresh the resource
   await sendControlCommand({
+    system,
+    group,
+    version,
+    plural
+  }, {
     type: "REFRESH",
     objUri
   });
@@ -291,8 +330,14 @@ test("read resource", opts, async () => {
   const name = `my-read-resource-${crypto.randomUUID()}`;
 
   const { objUri } = await createResource(name);
+  const { system, group, version, plural } = parseBlockUri(objUri);
 
   await sendControlCommand({
+    system,
+    group,
+    version,
+    plural
+  }, {
     type: "READ",
     objUri
   });

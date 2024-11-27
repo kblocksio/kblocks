@@ -1,6 +1,6 @@
 import { start } from "./control";
-import { getEndpoints, Manifest } from "./api/index.js";
-import { type connect } from "./socket";
+import { Manifest } from "@kblocks/api";
+import { closeEvents } from "@kblocks/common";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
@@ -16,19 +16,17 @@ async function main() {
     throw new Error("No blocks found");
   }
 
-  const connections: ReturnType<typeof connect>[] = [];
+  const connections: ReturnType<typeof start>[] = [];
   for (const manifest of blocks) {
-    const controlEndpoint = getEndpoints().control;
-    const connection = start(controlEndpoint, KBLOCKS_SYSTEM_ID, manifest);
+    const connection = start(KBLOCKS_SYSTEM_ID, manifest);
     connections.push(connection);
   }
 
   // Add shutdown signal handlers
-  const shutdownHandler = () => {
+  const shutdownHandler = async () => {
     console.log("Received shutdown signal. Closing connections...");
-    for (const connection of connections) {
-      connection.close();
-    }
+    await Promise.all(connections.map((connection) => connection()));
+    await closeEvents();
     process.exit(0);
   };
 

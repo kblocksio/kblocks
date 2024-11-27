@@ -1,5 +1,5 @@
 import path from "path";
-import type { BindingContext } from "./api/index.js";
+import type { BindingContext } from "@kblocks/api";
 import { RuntimeContext } from "./host.js";
 import { tempdir } from "./util.js";
 import { applyHelm } from "./helm.js";

@@ -2,7 +2,7 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { existsSync } from "fs";
 import { RuntimeContext } from "./host.js";
-import type { BindingContext } from "./api/index.js";
+import type { BindingContext } from "@kblocks/api";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

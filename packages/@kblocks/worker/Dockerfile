@@ -25,17 +25,37 @@ RUN mkdir /terraform-cache
 ENV TF_PLUGIN_CACHE_DIR="/terraform-cache"
 ENV TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE="true"
 RUN mkdir -p /tmp/tf
-ADD providers.tf /tmp/tf
+ADD ./packages/@kblocks/worker/providers.tf /tmp/tf
 RUN cd /tmp/tf && tofu init && rm -rf /tmp/tf
 
 RUN mkdir /app
 WORKDIR /app
 
-COPY package.json .
+# Copy package.json and package-lock.json of the root workspace
+COPY ./package.json ./package-lock.json ./
+
+# Copy the workspace packages' package.json files
+COPY ./packages/@kblocks/api/package.json ./packages/@kblocks/api/
+COPY ./packages/@kblocks/common/package.json ./packages/@kblocks/common/
+COPY ./packages/@kblocks/worker/package.json ./packages/@kblocks/worker/
+
+# Install dependencies in the root (this will install and link workspace packages)
 RUN npm install
 
-COPY --link src .
-COPY tsconfig.json .
+# Copy the workspace packages' source code
+COPY ./packages/@kblocks/api ./packages/@kblocks/api
+COPY ./packages/@kblocks/common ./packages/@kblocks/common
+COPY --link ./packages/@kblocks/worker/src ./packages/@kblocks/worker
+COPY ./packages/@kblocks/worker/tsconfig.json ./packages/@kblocks/worker
+
+WORKDIR /app/packages/@kblocks/api
+RUN npm run build
+
+WORKDIR /app/packages/@kblocks/common
+RUN npm run build
+
+# Set working directory to the app package
+WORKDIR /app/packages/@kblocks/worker
 
 RUN CI=1 npm run test
 RUN tsc

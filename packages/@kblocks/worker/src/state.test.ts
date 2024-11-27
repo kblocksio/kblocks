@@ -1,5 +1,5 @@
 import { RuntimeContext } from "./host";
-import { _renderPatch, statusUpdater } from "./state";
+import { _renderPatch } from "./state";
 import { test, expect, vi } from "vitest";
 
 const host: RuntimeContext = {

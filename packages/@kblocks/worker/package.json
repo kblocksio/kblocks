@@ -3,6 +3,8 @@
   "type": "module",
   "dependencies": {
     "@kubernetes/client-node": "^0.22.0",
+    "@kblocks/api": "0.0.0",
+    "@kblocks/common": "0.0.0",
     "@octokit/rest": "^21.0.2",
     "@types/ws": "^8.5.12",
     "deepmerge": "^4.3.1",
@@ -18,7 +20,7 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "build": "../api/copy-api.sh && tsc --noEmit",
+    "build": "tsc --noEmit",
     "test": "vitest **/*.test.ts *.test.ts",
     "watch": "tsc --watch"
   },

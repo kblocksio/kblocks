@@ -13,7 +13,8 @@ import {
   systemApiVersionFromDisplay,
   systemApiVersion,
   formatBlockTypeForEnv
-} from "./api/index.js";
+} from "@kblocks/api";
+import { closeEvents } from "@kblocks/common";
 
 type Source = {
   kblock: Manifest;
@@ -139,6 +140,7 @@ async function main() {
     isShuttingDown = true;
     console.log(`Received ${signal}. Shutting down gracefully...`);
     await redisClient.quit();
+    await closeEvents();
     process.exit(0);
   };
 

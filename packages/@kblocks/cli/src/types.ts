@@ -1,4 +1,4 @@
-import { Manifest } from "./api/index.js";
+import { Manifest } from "@kblocks/api";
 import { PodEnvironment } from "./configmap.js";
 
 export interface BlockRequest {
