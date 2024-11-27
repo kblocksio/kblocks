@@ -1,3 +1,5 @@
+let logged = false;
+
 export const getEndpoints = () => {
   const KBLOCKS_STORAGE_PREFIX = process.env.KBLOCKS_STORAGE_PREFIX ?? "";
   const KBLOCKS_API_KEY = process.env.KBLOCKS_API_KEY;
@@ -5,7 +7,10 @@ export const getEndpoints = () => {
   const port = process.env.KBLOCKS_PORT ? parseInt(process.env.KBLOCKS_PORT) : 18284;
   const events = process.env.KBLOCKS_EVENTS_CHANNEL ?? `${KBLOCKS_STORAGE_PREFIX}kblocks-events`;
   const control = process.env.KBLOCKS_CONTROL_CHANNEL ?? `${KBLOCKS_STORAGE_PREFIX}kblocks-control`;
-  console.log("endpoints", { host, port, events, control });
+  if (!logged) {
+    console.log("endpoints", { host, port, events, control });
+    logged = true;
+  }
 
   return {
     redis: () => {
