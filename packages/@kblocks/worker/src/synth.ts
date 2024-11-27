@@ -8,13 +8,13 @@ import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
 import { publishNotification, RuntimeContext } from "./host.js";
-import { BindingContext, InvolvedObject, EventReason, StatusReason, emitEvent, EventType, EventAction } from "./api/index.js";
+import { BindingContext, InvolvedObject, EventReason, StatusReason, ENGINES, EventType, EventAction } from "@kblocks/api";
+import { emitEvent } from "@kblocks/common";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
 import { statusUpdater, updateLastStateHash } from "./state.js";
 import { applyCustom } from "./custom.js";
-import { ENGINES } from "./api/engine.js";
 import { execRead, hasReadScript } from "./read.js";
 import { getResource } from "./resources.js";
 

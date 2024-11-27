@@ -1,5 +1,5 @@
 import { RuntimeContext, publishNotification } from "./host.js";
-import { EventAction, EventReason, EventType, type ApiObject } from "./api/index.js";
+import { EventAction, EventReason, EventType, type ApiObject } from "@kblocks/api";
 
 // regular expression that matches `${ref://apigroup/name/field}` or `${ref://apigroup/name/field?timeout=value}`, 
 // for example: `${ref://queues.acme.com/my-queue/queueUrl}` or `${ref://queues.acme.com/my-queue/queueUrl?timeout=10m}`

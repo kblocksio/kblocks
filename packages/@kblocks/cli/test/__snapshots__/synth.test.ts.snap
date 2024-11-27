@@ -5,7 +5,7 @@ exports[`minimal block snapshot 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNpNjbEOgjAURf/lztXEtaPoYJA44OJkCjywQt9r2kpiDP9uShycz7nnfkA8WCZosIiHQke9ZZusMPQHQ5CXh0Yj4ratOCjMFOJKMe+gMFruoLGXFfrpFcz0G0QoxPZBzuRUevt8I82T2pTVIJ5CshQzZePoz4opWB6wLMuikD2TJGROPBfCvR0q49dhuT9firK+17f6eqzupwM0xmaSdoyb+I6JXK58AUy/TrQ=",
+      "block.json": "eNpdjsGKwjAURf/lruPAbLNT60JUKo0grkoan51M27yQxEKR/vuQ4kJm+849974XyLXWESQcs4fAnR7W2WTZQb7QBn56SDTMw5fhAQIjhbhQjN8Q6Ky7Q2LDC/T9M+j+LUQIRPNDg85VafJ5hptfMilHA3sKyVLM1OmBPlIxBetazPM8C+ScThwyJzdu2T1se9J+EQ+bY7k9qFrd1GV3qvcFJLqmZ9PFVZxiogGzyJoiEygtzrmsLutjXe2KvarPa6WuZVVk0NEEiX93gbioH8Xa21V89+Uf/wAGdW2m",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -82,7 +82,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-operator",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e23a2eac76d55c2f0b73ac2dc2b3214a17661931089753a6417e98e50f4805",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "6e4d088bf10a7ceb9c2fcdd9d0da56b2efcc408caa83557672277749c41408",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-operator",
@@ -108,7 +108,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e23a2eac76d55c2f0b73ac2dc2b3214a17661931089753a6417e98e50f4805",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "6e4d088bf10a7ceb9c2fcdd9d0da56b2efcc408caa83557672277749c41408",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -117,6 +117,15 @@ exports[`minimal block snapshot 1`] = `
           "containers": [
             {
               "env": [
+                {
+                  "name": "PORTAL_REDIS_PASSWORD",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "REDIS_PASSWORD",
+                      "name": "kblocks-api-secrets",
+                    },
+                  },
+                },
                 {
                   "name": "KBLOCKS_SYSTEM_ID",
                   "valueFrom": {
@@ -333,7 +342,7 @@ exports[`minimal block snapshot 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e23a2eac76d55c2f0b73ac2dc2b3214a17661931089753a6417e98e50f4805",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "6e4d088bf10a7ceb9c2fcdd9d0da56b2efcc408caa83557672277749c41408",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-worker",
@@ -353,7 +362,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e23a2eac76d55c2f0b73ac2dc2b3214a17661931089753a6417e98e50f4805",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "6e4d088bf10a7ceb9c2fcdd9d0da56b2efcc408caa83557672277749c41408",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -362,6 +371,15 @@ exports[`minimal block snapshot 1`] = `
           "containers": [
             {
               "env": [
+                {
+                  "name": "PORTAL_REDIS_PASSWORD",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "REDIS_PASSWORD",
+                      "name": "kblocks-api-secrets",
+                    },
+                  },
+                },
                 {
                   "name": "KBLOCKS_SYSTEM_ID",
                   "valueFrom": {
@@ -538,7 +556,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-control",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e23a2eac76d55c2f0b73ac2dc2b3214a17661931089753a6417e98e50f4805",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "6e4d088bf10a7ceb9c2fcdd9d0da56b2efcc408caa83557672277749c41408",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-control",
@@ -564,7 +582,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e23a2eac76d55c2f0b73ac2dc2b3214a17661931089753a6417e98e50f4805",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "6e4d088bf10a7ceb9c2fcdd9d0da56b2efcc408caa83557672277749c41408",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -573,6 +591,15 @@ exports[`minimal block snapshot 1`] = `
           "containers": [
             {
               "env": [
+                {
+                  "name": "PORTAL_REDIS_PASSWORD",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "REDIS_PASSWORD",
+                      "name": "kblocks-api-secrets",
+                    },
+                  },
+                },
                 {
                   "name": "KBLOCKS_SYSTEM_ID",
                   "valueFrom": {
@@ -770,7 +797,7 @@ exports[`multiple blocks 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNpNjl1PwjAUhv/Lez1M2OXuZE5DkGEcIfGKlHKYdbSnacvMQvrfTSsGL9+v55wryPTKECoYZosCRzopo4Jig+qK3vHFosKBWT9I1igwkvM5xThHgUGZIyosOIf2fHHifBt4FPDyk7RIqDDZdIYPXyRDqjq25IIin1IjNP1r+eCU6RFjjAVSTwR2fz1vhUwlPc3usgCZsSPpKGRg19TvzXaeWNmcpWd/zfJuloh5WLM5qX4tbN7Wm/Z5+bJ+fEtzmSMtbCasFq+betXtu49u26z3yydUGA5nloOf+ckH0jdi4jTtLhHIjHnbtLvyJvPdb3YDOY+qjPEH3Xx/CA==",
+      "block.json": "eNpdjstuwjAQRf9l1k4lsvQOQlohHkExouoqMmZI3eCHbJMqQvn3yiYVVZdzH2fuHVC3UiNQ0MZYIHDGi9QySKOB3qF15maBwskY9SKMAgI9Op9c6GdAoJP6DBQWJpn2enP8OhU8EPDiExWPqDDY+MacvlCEGHXGogsSfXQ1V/gn5YOTuoVxHEcCMceDcb85b7mIITVkz5MA6p6hcBgSkJVFXR5mkZXELI59iPlTzIHAvqoP801Tl8sVa/Zzxt6rehkRHQ5A4Z9OpipQ6E5XIzqfcSszP32Oe1H3hdEX2W65TVuKave6etvO93GOSJbiNi1aLzZVsWYN+2CHctusln+4fvABFTyIkVPujpGAuk/dcnfMpzOPqW/jOnQeaD6OP6hbmGI=",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -782,7 +809,7 @@ exports[`multiple blocks 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNpNjl1PwjAUhv/Lez1M2OXudExDkGEcIfGKlHKYdbSnacvMQvrfTSsGL9+v55wryPTKECoYZosCRzopo4Jig+qK3vHFosKRWT9I1igwkvM5xThHgUGZIyosOIf2fHHifBt4FPDyk7RIqDDZdIYPXyRDqjq25IIin1IjNP1r+eCU6RFjjAVSTwR2fz1vhUwlPc3usgCZsSPpKGRg19TvzXaeWNmcpWd/zfJuloh5WLM5qX4tbN7Wm/Z5+bJ+fEtzmSMtbCasnl439arbdx/dtlnvlwtUGA5nloOf+ckH0jdi4jTtLhHIjHnbtLvyJvPdb3YDOY+qjPEH5R5/Dg==",
+      "block.json": "eNpdjstugzAQRf9l1qZSWHqXAq2iPIhwlKor5MCEusQP2Q4Vivj3yg5Voi7nPs7cG6DqhEKgoLQ2QKDFs1DCC62A3qCz+mqAQqu1fGm0BAIDWhddGBZAoBeqBQq5jqa5XC2/zAUHBFzzhZIHlB9NeKNP39j4ELXaoPUCXXAVl/iUct4K1cE0TROBkONe27+cM7wJITkmj5MAqoFhY9FHICuyqjgsAiuKSRh7F9OHmAKBfVkdlpu6KvIVq/dLxj7KKg+IHkeg8E8ncxUo9KeLbnqXcCMSN38Oe1ENmVZn0W25iVuycve2et8u92FOEy3JTVy0ft2U2ZrV7JMdim29yp+4bnQeJdyJgVPsjoGAaojdYndM5zMNqR9te7QOaDpNv7HdmGg=",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -859,8 +886,8 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-operator",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "b4d5fe203a39ad80826c86598395485b68acf3acdf277c7b369986b4929b25",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "cd9354d522ea34963c669e41645355e8e5cc059ba887a26f3070b06d0fad17",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "007f2cae808c11e7f54945d69074708ccc91e86e4d0358ab75cddfccb2ba30",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "59d723f7dacc8a5f761e7c5f3fbc7fdc78133b080f932da1633ec6a492d0c1",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-operator",
@@ -886,8 +913,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Operator-Deployment-c81ed77e",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "b4d5fe203a39ad80826c86598395485b68acf3acdf277c7b369986b4929b25",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "cd9354d522ea34963c669e41645355e8e5cc059ba887a26f3070b06d0fad17",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "007f2cae808c11e7f54945d69074708ccc91e86e4d0358ab75cddfccb2ba30",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "59d723f7dacc8a5f761e7c5f3fbc7fdc78133b080f932da1633ec6a492d0c1",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -911,6 +938,15 @@ exports[`multiple blocks 1`] = `
                     "secretKeyRef": {
                       "key": "SECRET2",
                       "name": "secret-2",
+                    },
+                  },
+                },
+                {
+                  "name": "PORTAL_REDIS_PASSWORD",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "REDIS_PASSWORD",
+                      "name": "kblocks-api-secrets",
                     },
                   },
                 },
@@ -1157,8 +1193,8 @@ exports[`multiple blocks 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "b4d5fe203a39ad80826c86598395485b68acf3acdf277c7b369986b4929b25",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "cd9354d522ea34963c669e41645355e8e5cc059ba887a26f3070b06d0fad17",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "007f2cae808c11e7f54945d69074708ccc91e86e4d0358ab75cddfccb2ba30",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "59d723f7dacc8a5f761e7c5f3fbc7fdc78133b080f932da1633ec6a492d0c1",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-worker",
@@ -1178,8 +1214,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Worker-WorkerStatefulSet-c8da4c4c",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "b4d5fe203a39ad80826c86598395485b68acf3acdf277c7b369986b4929b25",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "cd9354d522ea34963c669e41645355e8e5cc059ba887a26f3070b06d0fad17",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "007f2cae808c11e7f54945d69074708ccc91e86e4d0358ab75cddfccb2ba30",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "59d723f7dacc8a5f761e7c5f3fbc7fdc78133b080f932da1633ec6a492d0c1",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -1203,6 +1239,15 @@ exports[`multiple blocks 1`] = `
                     "secretKeyRef": {
                       "key": "SECRET2",
                       "name": "secret-2",
+                    },
+                  },
+                },
+                {
+                  "name": "PORTAL_REDIS_PASSWORD",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "REDIS_PASSWORD",
+                      "name": "kblocks-api-secrets",
                     },
                   },
                 },
@@ -1413,8 +1458,8 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-control",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "b4d5fe203a39ad80826c86598395485b68acf3acdf277c7b369986b4929b25",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "cd9354d522ea34963c669e41645355e8e5cc059ba887a26f3070b06d0fad17",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "007f2cae808c11e7f54945d69074708ccc91e86e4d0358ab75cddfccb2ba30",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "59d723f7dacc8a5f761e7c5f3fbc7fdc78133b080f932da1633ec6a492d0c1",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-control",
@@ -1440,8 +1485,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Control-Deployment-c87e3b0f",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "b4d5fe203a39ad80826c86598395485b68acf3acdf277c7b369986b4929b25",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "cd9354d522ea34963c669e41645355e8e5cc059ba887a26f3070b06d0fad17",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "007f2cae808c11e7f54945d69074708ccc91e86e4d0358ab75cddfccb2ba30",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "59d723f7dacc8a5f761e7c5f3fbc7fdc78133b080f932da1633ec6a492d0c1",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -1465,6 +1510,15 @@ exports[`multiple blocks 1`] = `
                     "secretKeyRef": {
                       "key": "SECRET2",
                       "name": "secret-2",
+                    },
+                  },
+                },
+                {
+                  "name": "PORTAL_REDIS_PASSWORD",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "REDIS_PASSWORD",
+                      "name": "kblocks-api-secrets",
                     },
                   },
                 },

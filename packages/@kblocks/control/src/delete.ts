@@ -1,5 +1,5 @@
 import * as k8s from "@kubernetes/client-node";
-import { isCoreGroup, parseBlockUri } from "./api";
+import { isCoreGroup, parseBlockUri } from "@kblocks/api";
 import { Context } from "./context";
 import { deleteCoreResource } from "./client";
 

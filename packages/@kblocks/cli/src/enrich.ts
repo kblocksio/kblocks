@@ -2,7 +2,7 @@ import openai from "openai";
 import fs from "fs/promises";
 import path from "path";
 import { readAll } from "./util";
-import { Manifest } from "./api";
+import { Manifest } from "@kblocks/api";
 import { EnrichInput, EnrichOutput } from "./enrich-prompts";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { resolveExternalAssets } from "./manifest-util";

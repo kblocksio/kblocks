@@ -42,7 +42,7 @@ jobs:
       - name: Changelog Generation
         id: changelog
         env:
-          GENERATE_VERSION: ${{ github.event_name != 'push' || github.repository != 'winglang/kblocks' }}
+          GENERATE_VERSION: ${{ github.event_name != 'push' || github.repository != 'kblocksio/kblocks' }}
         run: ./scripts/changelog.sh
 
       - name: Check if version changed

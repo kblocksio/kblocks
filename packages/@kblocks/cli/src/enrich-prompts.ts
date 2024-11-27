@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Manifest } from "./api/index.js";
+import { Manifest } from "@kblocks/api";
 
 export const EnrichInput = z.object({
   manifest: z.custom<Manifest>(),

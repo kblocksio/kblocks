@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require("/app/operator");
+require("/app/packages/@kblocks/operator/operator.js");

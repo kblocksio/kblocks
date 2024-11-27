@@ -1,4 +1,4 @@
-import { isCoreGroup, Manifest, systemApiVersion } from "./api";
+import { isCoreGroup, Manifest, systemApiVersion } from "@kblocks/api";
 import * as k8s from "@kubernetes/client-node";
 import { listAllCoreResources } from "./client";
 

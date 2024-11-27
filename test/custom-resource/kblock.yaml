@@ -20,8 +20,6 @@ spec:
     namespace: kblocks-test
     workers: 1
     env:
-      KBLOCKS_EVENTS_URL: "http://{{ .Release.Name
-        }}-testserver.kblocks-test.svc.cluster.local/events"
-      KBLOCKS_CONTROL_URL: "ws://{{ .Release.Name
-        }}-testserver.kblocks-test.svc.cluster.local/control"
+      PORTAL_REDIS_URL: "test-redis.kblocks-test.svc.cluster.local"
+      PORTAL_REDIS_PASSWORD: "pass1234"
       KBLOCKS_SYSTEM_ID: test-system

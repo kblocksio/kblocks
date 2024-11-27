@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, rmSync, writeFileSync } from "fs";
 import { join } from 'path';
 import { RuntimeContext } from "./host.js";
-import type { BindingContext } from "./api/index.js";
+import type { BindingContext } from "@kblocks/api";
 import { tempdir } from './util.js';
 import { findOwnedObjects } from "./ownedObjects.js";
 

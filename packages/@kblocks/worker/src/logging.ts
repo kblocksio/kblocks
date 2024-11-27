@@ -1,4 +1,5 @@
-import { LogLevel, emitEvent } from "./api/index.js";
+import { LogLevel } from "@kblocks/api";
+import { emitEvent } from "@kblocks/common";
 import { generateRandomId } from "./util.js";
 
 const toLogFunction = {

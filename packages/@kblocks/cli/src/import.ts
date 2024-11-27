@@ -2,7 +2,7 @@ import { execSync } from "child_process";
 import { writeFileSync } from "fs";
 import path from "path";
 import $RefParser from '@apidevtools/json-schema-ref-parser';
-import { isCoreGroup } from "./api/manifest";
+import { isCoreGroup } from "@kblocks/api";
 
 export interface ImportOptions {
   DIR?: string;

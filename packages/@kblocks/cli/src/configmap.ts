@@ -6,7 +6,7 @@ import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
 import * as k8s from "cdk8s-plus-30";
-import { displayApiVersion, formatBlockTypeForEnv } from "./api/index.js";
+import { displayApiVersion, formatBlockTypeForEnv } from "@kblocks/api";
 import fs from "fs";
 import { BlockRequest } from "./types";
 

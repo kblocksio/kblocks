@@ -4,7 +4,7 @@ import os from "os";
 import { expect, test, beforeEach } from "vitest";
 import { synth } from "../src/build";
 import yaml from "yaml";
-import { IncludeManifest, Manifest } from "../src/api";
+import { Manifest } from "@kblocks/api";
 
 const fixtures: Record<string, Manifest> = {
   minimal: {

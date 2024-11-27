@@ -1,5 +1,6 @@
 import * as k8s from "@kubernetes/client-node";
-import { blockTypeFromUri, emitEvent, isCoreGroup, parseBlockUri } from "./api";
+import { blockTypeFromUri, isCoreGroup, parseBlockUri } from "@kblocks/api";
+import { emitEvent } from "@kblocks/common";
 import { Context } from "./context";
 import { getCoreResource } from "./client";
 

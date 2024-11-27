@@ -1,17 +1,19 @@
 {
-  "name": "@kblocks/api",
+  "name": "@kblocks/common",
+  "private": true,
   "type": "commonjs",
   "license": "UNLICENSED",
   "version": "0.0.0",
   "main": "./src/index.js",
   "dependencies": {
-    "zod": "^3.23.8"
+    "@kblocks/api": "0.0.0",
+    "ioredis": "^5.4.1"
   },
   "scripts": {
     "test": "vitest **/*.test.ts",
     "watch": "tsc --watch",
     "build": "tsc",
-    "publish": "npm run build && ../../../scripts/npm-publish.sh"
+    "publish": "echo 'Common package is private'"
   },
   "devDependencies": {
     "typescript": "^5.5.4",

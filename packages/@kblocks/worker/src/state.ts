@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import deepmerge from "deepmerge";
 import { patchObjectState, RuntimeContext } from "./host.js";
-import { ApiObject, Condition } from "./api/index.js";
+import { ApiObject, Condition } from "@kblocks/api";
 
 export async function updateLastStateHash(statusUpdate: ReturnType<typeof statusUpdater>, obj: ApiObject) {
   const oldValue = obj.status?.lastStateHash;

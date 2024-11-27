@@ -1,5 +1,5 @@
 import * as k8s from "@kubernetes/client-node";
-import { ApiObject, isCoreGroup } from "./api";
+import { ApiObject, isCoreGroup } from "@kblocks/api";
 import { Context } from "./context";
 import { createCoreResource, getCoreResource, patchCoreResource } from "./client.js";
 
