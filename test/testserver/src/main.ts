@@ -83,7 +83,7 @@ server.on("request", (req, res) => {
         console.log("Sending message to control client");
         const obj = JSON.parse(bodyString);
         const { system, group, version, plural } = obj;
-        const channel = `kblocks-control:${system}/${group}/${version}/${plural}`;
+        const channel = `kblocks-control:${group}/${version}/${plural}/${system}`;
         await redis.publish(channel, bodyString)
 
         return res.end();

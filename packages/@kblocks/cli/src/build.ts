@@ -304,10 +304,10 @@ function addSystemIfNotSet(block: Manifest) {
 }
 
 function addRedisIfNotSet(block: Manifest) {
-  const key = "PORTAL_REDIS_PASSWORD";
+  const key = "KBLOCKS_API_KEY";
   block.operator = block.operator ?? {};
 
-  // check if one of the "env" is PORTAL_REDIS_PASSWORD
+  // check if one of the "env" is KBLOCKS_API_KEY
   if (key in (block.operator.env ?? {}) ||
       key in (block.operator.envSecrets ?? {}) ||
       key in (block.operator.envConfigMaps ?? {})) {

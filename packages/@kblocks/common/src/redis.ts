@@ -1,17 +1,14 @@
 import Redis from "ioredis";
-import { getEndpoints } from "@kblocks/api";
+import { getEndpoints } from "./endpoints.js";
 
 export const getRedisConnection = () => {
   let redisClient: Redis | undefined;
   return {
     getClient: () => {
-      console.log("getting client");
       if (redisClient) {
-        console.log("client already exists");
         return redisClient;
       }
 
-      console.log("creating client");
       const redisEndpoint = getEndpoints().redis();
       redisClient = new Redis(redisEndpoint.port, redisEndpoint.host, {
         password: redisEndpoint.password,

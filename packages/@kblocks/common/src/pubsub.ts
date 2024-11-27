@@ -1,5 +1,5 @@
-import { getEndpoints } from "@kblocks/api";
-import { getRedisConnection } from "./redis";
+import { getEndpoints } from "./endpoints.js";
+import { getRedisConnection } from "./redis.js";
 
 const redisConnection = getRedisConnection();
 

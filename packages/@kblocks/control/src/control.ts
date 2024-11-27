@@ -20,7 +20,7 @@ export function start(system: string, manifest: Manifest) {
   const plural = manifest.definition.plural;
 
   const ctx: Context = { system, group, version, plural, requestId: generateRandomId() };
-  const channel = `${system}/${group}/${version}/${plural}`;
+  const channel = `${group}/${version}/${plural}/${system}`;
 
   const unsubscribe = subscribeToControlUpdates(channel, (message) => {
     const { command, blockUri } = parseCommand(ctx, message);

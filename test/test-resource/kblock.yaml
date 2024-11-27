@@ -20,6 +20,6 @@ spec:
     namespace: kblocks-test
     workers: 2
     env:
-      PORTAL_REDIS_URL: "test-redis.kblocks-test.svc.cluster.local"
-      PORTAL_REDIS_PASSWORD: "pass1234"
+      KBLOCKS_HOST: "test-redis.kblocks-test.svc.cluster.local"
+      KBLOCKS_API_KEY: "pass1234"
       KBLOCKS_SYSTEM_ID: test-system

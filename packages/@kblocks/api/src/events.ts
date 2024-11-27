@@ -1,4 +1,3 @@
-import { getEndpoints } from "./endpoints.js";
 import { ApiObject, Event } from "./types.js";
 
 export interface EventBase {

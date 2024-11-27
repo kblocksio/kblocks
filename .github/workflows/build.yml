@@ -83,6 +83,10 @@ jobs:
           # save the qkube name to the workspace
           echo "qbube-name=$QKUBE_NAME" >> $GITHUB_OUTPUT
 
+      - name: create dummy secrets
+        run: |
+          kubectl create secret generic kblocks-api-secrets --from-literal=REDIS_PASSWORD=pass1234 -n kblocks || true
+
       - name: Start skaffold
         run: |
           skaffold run
