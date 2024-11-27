@@ -20,7 +20,6 @@ COPY package.json .
 RUN npm install
 
 COPY src .
-COPY src/manifest.schema.json src/
 COPY tsconfig.json .
 
 RUN tsc
