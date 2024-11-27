@@ -746,9 +746,6 @@ exports[`minimal block snapshot 1`] = `
                     "lastStateHash": {
                       "type": "string",
                     },
-                    "tfstate": {
-                      "type": "string",
-                    },
                   },
                   "type": "object",
                 },
@@ -1671,9 +1668,6 @@ exports[`multiple blocks 1`] = `
                     "lastStateHash": {
                       "type": "string",
                     },
-                    "tfstate": {
-                      "type": "string",
-                    },
                   },
                   "type": "object",
                 },
@@ -1765,9 +1759,6 @@ exports[`multiple blocks 1`] = `
                       "type": "array",
                     },
                     "lastStateHash": {
-                      "type": "string",
-                    },
-                    "tfstate": {
                       "type": "string",
                     },
                   },

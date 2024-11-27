@@ -199,8 +199,17 @@ export class Block extends Chart {
         const schema = resolveSchema(blockRequest.block);
     
         const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
+
+        const outputs = blockRequest.block.definition.outputs ?? [];
+
+        // if this is a terraform engine, we need to add the `tfstate` output
+        if (blockRequest.block.engine === "tofu" || blockRequest.block.engine.startsWith("wing/tf-")) {
+          outputs.push("tfstate");
+        }
+
         new CustomResourceDefinition(this, `CRD-${blockType}`, {
           ...blockRequest.block.definition,
+          outputs,
           annotations,
           schema,
         });
