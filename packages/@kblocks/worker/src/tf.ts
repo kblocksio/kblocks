@@ -1,5 +1,5 @@
 import { kblockOutputs, RuntimeContext } from "./host.js";
-import type { BindingContext } from "./api/index.js";
+import { BindingContext, TFSTATE_ATTRIBUTE } from "./api/index.js";
 import fs from "fs/promises";
 import { join } from "path";
 
@@ -7,7 +7,7 @@ export async function applyTerraform(host: RuntimeContext, workdir: string, ctx:
   const tfstatefile = join(workdir, "terraform.tfstate");
 
   // if there is a "tfstate" in the status, materialize it into the tfstate file so it will be used by the engine
-  const prevState = ctx.object.status?.tfstate;
+  const prevState = ctx.object.status?.[TFSTATE_ATTRIBUTE];
   if (prevState) {
     host.logger.debug(`previous tfstate: ${prevState}`);
     await fs.writeFile(tfstatefile, prevState);
@@ -38,8 +38,8 @@ export async function applyTerraform(host: RuntimeContext, workdir: string, ctx:
   // as a previous state in subsequent apply calls.
   try {
     await fs.access(tfstatefile, fs.constants.R_OK);
-    results.tfstate = await fs.readFile(tfstatefile, "utf8");
-    host.logger.debug("new tfstate: " + JSON.stringify(JSON.parse(results.tfstate), null, 2));
+    results[TFSTATE_ATTRIBUTE] = await fs.readFile(tfstatefile, "utf8");
+    host.logger.debug("new tfstate: " + JSON.stringify(JSON.parse(results[TFSTATE_ATTRIBUTE]), null, 2));
   } catch (e) { }
 
   return results;
