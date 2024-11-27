@@ -2,11 +2,10 @@ import fs from "fs";
 import path from "path";
 import { join } from "path";
 import type { SpawnOptions } from "child_process";
-import { applyTerraform } from "./tf.js";
+import { applyTerraform, tryGetTerraformS3Backend } from "./tf.js";
 import { addOwnerReferences } from "./ownership.js";
 import type { BindingContext } from "@kblocks/api";
 import { kblockOutputs, RuntimeContext } from "./host.js";
-import { renderTerraformStateKey } from "./tofu.js";
 
 export async function applyWing(workdir: string, host: RuntimeContext, engine: string, ctx: BindingContext, values: string): Promise<Record<string, any>> {
   const [_, target] = engine.split("/");
@@ -25,19 +24,22 @@ async function applyWingTerraform(workdir: string, host: RuntimeContext, values:
   await wingcli(host, ["compile", "-t", target, entrypoint], { cwd: workdir });
   
   const targetdir = join(workdir, "target/main.tfaws");
-  const tfjson = join(targetdir, "main.tf.json");
-  const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
 
-  tf.terraform.backend = {
-    s3: {
-      bucket: host.getenv("TF_BACKEND_BUCKET"),
-      region: host.getenv("TF_BACKEND_REGION"),
-      key: renderTerraformStateKey(host, ctx),
-      dynamodb_table: host.tryGetenv("TF_BACKEND_DYNAMODB"),
-    }
-  };
-
-  fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
+  // if the backend bucket is set, we configure the Terraform backend to use it
+  const s3Backend = tryGetTerraformS3Backend(host, ctx);
+  if (s3Backend) {
+    const tfjson = join(targetdir, "main.tf.json");
+    const tf = JSON.parse(fs.readFileSync(tfjson, "utf8"));
+    
+    tf.terraform.backend = { 
+      s3: s3Backend
+    };
+    
+    fs.writeFileSync(tfjson, JSON.stringify(tf, null, 2));
+    host.logger.info(`Terraform S3 backend: ${JSON.stringify(tf.terraform.backend, null, 2)}`);
+  } else {
+    host.logger.info("Terraform S3 backend not configured, using Kubernetes as backend");
+  }
 
   return await applyTerraform(host, targetdir, ctx);
 }

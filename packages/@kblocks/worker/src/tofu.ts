@@ -1,26 +1,31 @@
 import fs from "fs";
 import { join } from "path";
-import { applyTerraform } from "./tf.js";
+import { applyTerraform, tryGetTerraformS3Backend } from "./tf.js";
 import { getenv, tryGetenv } from "./util.js";
 import type { BindingContext } from "@kblocks/api";
 import { RuntimeContext } from "./host.js";
 
 export async function applyTofu(workdir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
-  const key = renderTerraformStateKey(host, ctx);
+  const s3Backend = tryGetTerraformS3Backend(host, ctx);
+  if (s3Backend) {
+    const dynamodb = s3Backend.dynamodb_table;
+    const tableLine = dynamodb ? `dynamodb_table = "${dynamodb}"` : "";
 
-  const dynamodb = tryGetenv("TF_BACKEND_DYNAMODB");
-  const tableLine = dynamodb ? `dynamodb_table = "${dynamodb}"` : "";
-
-  fs.writeFileSync(join(workdir, "backend.tf"), `
+    fs.writeFileSync(join(workdir, "backend.tf"), `
 terraform {
   backend "s3" {
-    bucket         = "${getenv("TF_BACKEND_BUCKET")}"
-    key            = "${key}"
-    region         = "${getenv("TF_BACKEND_REGION")}"
+    bucket         = "${s3Backend.bucket}"
+    key            = "${s3Backend.key}"
+    region         = "${s3Backend.region}"
     ${tableLine}
   }
 }
-  `);
+    `);
+
+    host.logger.info(`Terraform S3 backend: ${JSON.stringify(s3Backend)}`);
+  } else {
+    host.logger.info("Terraform S3 backend not configured, using Kubernetes as backend");
+  }
 
   const values = JSON.parse(fs.readFileSync(valuesFile, "utf-8"));
 
@@ -33,11 +38,9 @@ terraform {
   for (const [key, value] of Object.entries(values)) {
     tfvars.push(`${key} = ${JSON.stringify(value)}`);
   }
-  
+
   fs.writeFileSync(join(workdir, "terraform.tfvars"), tfvars.join("\n"));
   return await applyTerraform(host, workdir, ctx);
 }
 
-export function renderTerraformStateKey(host: RuntimeContext, ctx: BindingContext) {
-  return `${getenv("TF_BACKEND_KEY")}/${host.system}/${ctx.object.kind}/${ctx.object.metadata.namespace}/${ctx.object.metadata.name}`;
-}
+

@@ -6,3 +6,6 @@ cd $dirname
 
 # deploy with port-forward
 (cd .. && skaffold run --port-forward)
+
+cd tests
+npm run test
