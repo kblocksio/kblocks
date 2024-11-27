@@ -44,3 +44,30 @@ export async function applyTerraform(host: RuntimeContext, workdir: string, ctx:
 
   return results;
 }
+
+/**
+ * Try to get the Terraform S3 backend configuration from the environment variables.
+ * If the environment variables are not set, return undefined.
+ * 
+ * @param host - The runtime context.
+ * @param ctx - The binding context.
+ * @returns The Terraform S3 backend configuration or undefined if the environment variables are not set.
+ */
+export function tryGetTerraformS3Backend(host: RuntimeContext, ctx: BindingContext) {
+  // if the backend bucket is set, we configure the Terraform backend to use it
+  const bucket = host.tryGetenv("TF_BACKEND_BUCKET");
+  if (!bucket) {
+    return undefined;
+  }
+
+  const key = `${host.getenv("TF_BACKEND_KEY")}/${host.system}/${ctx.object.kind}/${ctx.object.metadata.namespace}/${ctx.object.metadata.name}`;
+  const region = host.getenv("TF_BACKEND_REGION");
+  const dynamodb_table = host.tryGetenv("TF_BACKEND_DYNAMODB");
+
+  return {
+    bucket,
+    region,
+    key,
+    dynamodb_table,
+  };
+}
