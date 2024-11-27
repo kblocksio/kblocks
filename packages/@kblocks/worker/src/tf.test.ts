@@ -151,7 +151,7 @@ const createHost = (exec: (command: string, args: string[], options: any) => Pro
     chatCompletion: notImplemented,
     emitEvent: notImplemented,
     system,
-    logger: createLogger(objUri, objType, requestId),
+    logger: createLogger(objUri, objType, requestId, { emitEvent: false }),
     requestId,
   } satisfies RuntimeContext;
 }
