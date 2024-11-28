@@ -166,6 +166,15 @@ export function renderStatusSchema(block: Manifest): JsonSchemaProps {
     throw new Error("'status' attribute must be of type 'object' and have a `properties` field");
   }
 
+  // validate that all outputs defined in the `status` section of the schema are also defined in the
+  // `outputs` section of the kblocks definition
+  for (const k of Object.keys(props)) {
+    if (!outputs.includes(k)) {
+      console.log({props});
+      throw new Error(`output '${k}' is defined in the schema's 'status' section but not in the 'outputs' section of the block manifest`);
+    }
+  }
+
   props[LAST_STATE_HASH_ATTRIBUTE] = {
     type: "string",
     description: "The hash of the last object state.\n\n@ui kblocks.io/hidden",
@@ -183,6 +192,10 @@ export function renderStatusSchema(block: Manifest): JsonSchemaProps {
   };
 
   const conditions = props.conditions.items;
+
+  if (!conditions) {
+    throw new Error("'conditions' attribute must be of type 'array' and have an 'items' field");
+  }
 
   conditions.push({
     type: "object",
