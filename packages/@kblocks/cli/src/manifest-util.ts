@@ -25,13 +25,19 @@ export async function getManifest(opts: { dir: string, manifest: string, outdir:
     throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
   }
 
-  const tmpSrc = createTmpSrc(opts.dir, opts.outdir, blockObject.spec.definition.kind);
+  const tmpSrc = createTmpSrc(opts.dir, opts.outdir, blockObject.spec?.definition?.kind);
   
-  const manifest: Manifest = await resolveExternalAssets(opts.dir, blockObject.spec, tmpSrc);
+  // if this block only includes other blocks, we don't need to lint the schema
+  const manifest: Manifest = await resolveExternalAssets(opts.dir, blockObject.spec, tmpSrc, !tmpSrc);
   return { manifest, additionalObjects, tmpSrc };
 }
 
-function createTmpSrc(dir: string, outdir: string, kind: string) {
+function createTmpSrc(dir: string, outdir: string, kind: string | undefined) {
+  // if this is an inclusion block, it doesn't have a kind and we don't need to create a temp src for the main block which is empty
+  if (!kind) {
+    return undefined;
+  }
+
   // Ensure the source directory exists
   const srcDir = path.join(dir, 'src');
   if (!fs.existsSync(srcDir)) {
