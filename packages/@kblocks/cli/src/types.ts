@@ -4,6 +4,7 @@ import { PodEnvironment } from "./configmap.js";
 export interface BlockRequest {
   block: Manifest;
   source?: string;
+  tmpSrc?: string;
 }
 
 export interface DeploymentProps {
