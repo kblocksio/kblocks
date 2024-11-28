@@ -120,7 +120,6 @@ export class Block extends Chart {
 
     // add the "status" schema to the all blocks
     for (const req of blockRequests) {
-      req.block.definition.schema = req.block.definition.schema;
       req.block.definition.schema.properties = req.block.definition.schema.properties ?? {};
       req.block.definition.schema.properties.status = renderStatusSchema(req.block);
     }
