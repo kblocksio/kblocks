@@ -83,12 +83,6 @@ test("minimal block snapshot", () => {
   expect(objects).toMatchSnapshot();
 });
 
-
-// test("operator configuration", () => {
-//   const objects = synthBlock([fixtures.with_operator_settings]);
-//   expect(objects).toMatchSnapshot();
-// });
-
 test("multiple blocks", () => {
   const objects = synthBlock(fixtures.with_includes, [fixtures.with_operator_settings, fixtures.with_operator_settings_2]);
   expect(objects).toMatchSnapshot();
@@ -113,8 +107,6 @@ test("all non-cluster objects are namespaced and cluster-scoped are not", () => 
     }
   }
 });
-
-
 
 // -----------------------------------------------------------------------------------------------------------
 

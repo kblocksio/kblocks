@@ -17,3 +17,6 @@ export const ENGINES: Record<string, Engine> = {
 
 // the name of the attribute that contains the Terraform state for Terraform-based blocks
 export const TFSTATE_ATTRIBUTE = "tfstate";
+
+// the name of the attribute that contains the last state hash for all blocks
+export const LAST_STATE_HASH_ATTRIBUTE = "lastStateHash";
