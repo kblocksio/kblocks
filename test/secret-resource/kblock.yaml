@@ -14,7 +14,7 @@ spec:
   operator:
     namespace: kblocks-test
     env:
-      KBLOCKS_HOST: "test-redis.kblocks-test.svc.cluster.local"
+      KBLOCKS_PUBSUB_HOST: "test-redis.kblocks-test.svc.cluster.local"
       KBLOCKS_API_KEY: "pass1234"
       KBLOCKS_SYSTEM_ID: test-system
     skipCrd: true

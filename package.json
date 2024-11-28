@@ -12,6 +12,7 @@
     "packages/**/*",
     "scripts/bump-pack",
     "test/test-resource/src",
-    "test/tests"
+    "test/tests",
+    "test/testserver"
   ]
 }

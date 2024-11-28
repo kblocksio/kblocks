@@ -12,7 +12,7 @@ export function emitEvent(event: WorkerEvent) {
 
 export async function emitEventAsync(event: WorkerEvent) {
   const redisClient = redisConnection.getClient();
-  return redisClient.publish(getEndpoints().channels.events, JSON.stringify(event));
+  return redisClient.xadd(getEndpoints().channels.events, '*', 'message', JSON.stringify(event));
 }
 
 export async function closeEvents() {

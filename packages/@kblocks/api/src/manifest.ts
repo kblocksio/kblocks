@@ -54,6 +54,7 @@ export const Manifest = z.object({
       z.record(z.object({
           key: z.string(),
           secret: z.string(),
+          optional: z.optional(z.boolean().default(false)),
         }),
       ),
     ])),

@@ -5,7 +5,7 @@ exports[`minimal block snapshot 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNqVUk1r20AQ/SvLnGWXXnVqEhtqnBATGUpoihlLY2lqa1edGRlEyH8vK7mN3Yi20VFv3qf0DORL9gQp+BAaSKCgHXs2Dh7SZygltA2ksA2hnuahhgSOJNqjcPwICezZF5DCdejB5tAKHk4EhQQ0r6jGKGVdE23C9jvlFk8lNCTGpBH1WNPZlZqwL+ElATW0Vv8tcEC1zNDoM2r1VikW01y4GZrBuiJXoVYu7JxV5CLdDdIuWtL0yT/5Ty27/fYQ8r1OOXyouCjIx1R58EU/0nkyFMFu1On1/JefkIZW8r/ZJMBG9Wj1S4eFLzhHI3V8Ke5YnRAW3Zu1BsH/mfsVihOtBb32TdY89sES2AWp0SCFAo0mFq9O3JWELb2PVpMqluNJhVCHn/QPqMd+tCxUQPp1QH8XG63x7WV4EogboQWJsuSPN8HvuLzDpl9keX17f7PMNtljtp7fbRYzSOH02SbaqVEdc5E/ZpQL2QXnarXYLOeP8dWeOkjhYT5bZJvVVZZ9uX+YxYA96UwSG57oSSmm+wm+Z0Xu",
+      "block.json": "eNqdk0Fv00AQhf/Kas5LEFefaCDQKKBYsStRUWRN7Em8xN41M+tIUeX/jtZO24QY2uKj38z39r2174Hs1liCCKxzDWgoaGOs8cZZiO5hy65tIIK1c/UkdzVo2BNLr8L+HWjYGVtABFPXi03VMlbHBQENkpdUY0D5QxNs3Pon5T6MsmuIvSEJqsWaTqbEs7Fb6DSIR9/K84AKxScePV2jlJekEExyNs2QDNKSVIlSKrdRviQV1tWAVsGSJnf2zr5vjdqtK5fvZGLc29IUBdlwqtzZoi/p9GTIjIdRp6fxBz8mcS3n/7LRYDzVo9HPHea2MDl6EmXO4cqIYsLicNHWAHxJ3U9SqChltNInSc3YhWnYOK7RQwQFenrjw9RxN2a3ptet1SSC2/GTMqEMH+kfUq/9ag1TAdH3QX0MNhrjRzc8GkJH6B0HLNl9QjmT7+tYTL8sPyySLLlN0tnXbP4xvNzRAaIRSYP0mxDB8V4hsINh+Ds2WAl1+nHxKp5ni9ntJfFBeCUvvpkmN9Psepmkl8xT8f+48XL1d24vPsP13J5ik3S5uvo8y+LV7NP820iv5/pL4F3X/QbnjaRf",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -82,7 +82,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-operator",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e0c10b5c2d11ceae9bda28837489cbad53c58ada04c4b1cf622d6c77195233",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-operator",
@@ -108,7 +108,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e0c10b5c2d11ceae9bda28837489cbad53c58ada04c4b1cf622d6c77195233",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -118,20 +118,52 @@ exports[`minimal block snapshot 1`] = `
             {
               "env": [
                 {
-                  "name": "KBLOCKS_API_KEY",
+                  "name": "KBLOCKS_SYSTEM_ID",
                   "valueFrom": {
                     "secretKeyRef": {
-                      "key": "REDIS_PASSWORD",
-                      "name": "kblocks-api-secrets",
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
                     },
                   },
                 },
                 {
-                  "name": "KBLOCKS_SYSTEM_ID",
+                  "name": "KBLOCKS_API_KEY",
                   "valueFrom": {
-                    "configMapKeyRef": {
-                      "key": "KBLOCKS_SYSTEM_ID",
-                      "name": "kblocks-system",
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
                     },
                   },
                 },
@@ -342,7 +374,7 @@ exports[`minimal block snapshot 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e0c10b5c2d11ceae9bda28837489cbad53c58ada04c4b1cf622d6c77195233",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-worker",
@@ -362,7 +394,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e0c10b5c2d11ceae9bda28837489cbad53c58ada04c4b1cf622d6c77195233",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -372,20 +404,52 @@ exports[`minimal block snapshot 1`] = `
             {
               "env": [
                 {
-                  "name": "KBLOCKS_API_KEY",
+                  "name": "KBLOCKS_SYSTEM_ID",
                   "valueFrom": {
                     "secretKeyRef": {
-                      "key": "REDIS_PASSWORD",
-                      "name": "kblocks-api-secrets",
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
                     },
                   },
                 },
                 {
-                  "name": "KBLOCKS_SYSTEM_ID",
+                  "name": "KBLOCKS_API_KEY",
                   "valueFrom": {
-                    "configMapKeyRef": {
-                      "key": "KBLOCKS_SYSTEM_ID",
-                      "name": "kblocks-system",
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
                     },
                   },
                 },
@@ -556,7 +620,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-control",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e0c10b5c2d11ceae9bda28837489cbad53c58ada04c4b1cf622d6c77195233",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-control",
@@ -582,7 +646,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "e0c10b5c2d11ceae9bda28837489cbad53c58ada04c4b1cf622d6c77195233",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -592,20 +656,52 @@ exports[`minimal block snapshot 1`] = `
             {
               "env": [
                 {
-                  "name": "KBLOCKS_API_KEY",
+                  "name": "KBLOCKS_SYSTEM_ID",
                   "valueFrom": {
                     "secretKeyRef": {
-                      "key": "REDIS_PASSWORD",
-                      "name": "kblocks-api-secrets",
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
                     },
                   },
                 },
                 {
-                  "name": "KBLOCKS_SYSTEM_ID",
+                  "name": "KBLOCKS_API_KEY",
                   "valueFrom": {
-                    "configMapKeyRef": {
-                      "key": "KBLOCKS_SYSTEM_ID",
-                      "name": "kblocks-system",
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
                     },
                   },
                 },
@@ -804,7 +900,7 @@ exports[`multiple blocks 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNqVU9uO2jAQ/ZVongPV8pinspC2iHIRQVutdis0OANxIXY641BFK/69sgOF7aJe8mafOZcZT16AzFYbggSMtRXEkNNGG+20NZC8wJZtXUECa2vLrrIlxHAgloDC4Q5i2GmTQwL3NoDVvmbcnwgCMYgqqEQv5ZrK29j1N1LOl7KtiJ0m8ajBkq6qxLE2WzjGIA5dLX8X2KO4zKGjTyjFWyXfmCjWVdsZLAuKCpQispvIFRR5etRKR96Sus/m2byvdbRb763aSVfbd4XOczI+lbImD0O6TobM2Nx0upSf/ZjE1qz+ZBODdlTebP21w8jkWqEjifRr8UhLxIR582ZareC/jPsC+REtGY2ETpb61oPFsLFcooMEcnTUcb7qxJ2zXdP/0UoSwe3tpEwo7ZL+BgXse62ZckieWvRXYzfb+Hpsvxj8jNBZPq+kVKi8dtl0LscYyBwyUkwuTCpLB4t0eecjhMuO/y/ay97lsgcxjO8/zwbjbNWfj1bj9NGTd9RAAot0OMpW836WfZkthj5uIEECp73oYKU7cvL0SckcBtZs9HaCVUgxmE0/jD5O+nMfRAWoxCpkOdtmj9kynaxGwytdacRRCa2i10mnD16BzCFw0+lD73Ts+aoflnfEAknvePwJxMlwqg==",
+      "block.json": "eNqdk99v2jAQx/+V6J4NU3nM04ClLWJARNJq1Toh4xzEg9jZ2WFCVf73yQ4MGNnazm/29+5zP/0CqNZSIYSgtC6BQYYrqaSVWkH4AmvSVQkhLLUuukIXwGCHZLwKuxtgsJEqgxAG2ovltiK+PTgYYGBEjgV3KLsvXRi9/I7COlPSJZKVaJyqeIFnVsaSVGuoGRjLbWVeB2y5sYnlFu+5ya9JrjAjSJZNZZDmGOTc5IFeBTbHwLkHDTpwIbH7rJ7Vx0oGm+VWi43pSv0hl1mGymUltMp8k84z40R83xrpZH6MR2h0ReJfYRhIi0Vr6ZcRRiqTgls0gbyEB9IEhDzbX3WrAb6l3SfJtSglroyvJJVtA2Ow0lRwCyFk3GLHOquDb0x6ie9zK9AYvm7PlJCbZkn/kLz2o5KEGYRfG/V3Ya1lfKubw8D1iFtNx5U0JReOXew7pysDVLsEBaH1nUqi4TxKb1wK/rHj/kXz2Ds99oDBePB5Nhwni+QpSaPJYvTJuW9wD2GLxA6eEMJhOcAl6LJ2X2zFtwbrE7Mfjxbj6OmaeBTeyYsfBsnDYHE/S9Jr5rn4f9x4Nv8714uvcC1V59gknc37d9Einke3oy8tfb3U3wKv/aCHWq3kesJLP+vhbHo7upv0Yzdu4aWCl50baIydSTR9dCKqnV+EaPrYO1x7zuqnpg2SgbBX178Atf7VwQ==",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -816,7 +912,7 @@ exports[`multiple blocks 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNqVU9uO2jAQ/ZVongPV8pinUki3iHIRQVutuhUanIG4EDv1OFTRin+vxoHC7qJe8mafOZcZT56BzFYbggSMtRXEkNNGG+21NZA8w9bZuoIEcmvLrrIlxHAgxwGFwx3EsNMmhwSGNoDVvna4PxEYYmBVUIki5ZtKbOz6Oykvpc5W5LwmFtRgSVdV7J02WzjGwB59zX8X2CP7zKOnT8jFWyVpjJXTVdsZLAuKCuQispvIFxQJPWqlI7Gk7pN5Mu9rHe3We6t23NX2XaHznIykUtbkYUjXydA5bG46XcrPfo7Y1k79ySYG7am82fpLh5HJtUJPHOmX4pHmyBHmzZtptYL/Mu4LJCNaOjQcOlnqWw8Ww8a6Er1sAHrqeKk6cefOrun/aCUx4/Z2UkfI7ZK+ggL2o9aOcki+tujvxm628e3YfjHIjNBbd15JrlCJdtl0LscYyBwyUo58mFSWDhbp8k4ihMuO/BftZe9y2YMYxh8+zwbjbNWfj1bj9FHIO2oggUU6HGWreT/LvswWQ4kbSJDAaS86WOkOnzwlKZnDwJqN3k6wCikGs+nH0f2kP5cgKkAlViHL2TZ7zJbpZDUaXulyw55KaBVFJ50+iAKZQ+Cm04fe6diTqp/W7cgxJL3j8RfcqXCw",
+      "block.json": "eNqdk99v2jAQx/+V6J4DEzzmaUDTFjEgImm1qp2QcQ7iQezMdphQlf99OgcWGNnazm/29+5zP/0KKDdCIgQglSrAhxTXQgorlITgFTZalQUEkCqVd7nKwYc9auNU2PfAh62QKQRwo5xY7ErNdkcHAz4YnmHOCGUPBYVRq+/ILZlqVaC2Ag2pkuV4ZmWsFnIDlQ/GMluatwE7ZmxsmcV7ZrJrEhVmuBZFXRkkGXoZM5mn1p7N0CN3r0Z7FBK7L/JFfi6Ft13tFN+arlCfMpGmKCkrrmTqmnSeGdOaHVojNeaneBqNKjX/VxgfhMW8tfTLCGOZCs4sGk9cwj1hPI0sPVx1qwa+p92NRC1KNJPGVZKItoH5sFY6Z5Y2gFnsWLI6+kZarfBjbjkawzbtmWpkpl7SPySn/SiFxhSC51r9XVhrGd+q+vhAPWJW6dNKmoJxYueHTnP1AeU+Rq7Ruk7F4WgRJj1KwT126F/Uj/3msQ8+TIZf5qNJvIyf4iScLsc35L7FAwQtkn/0hACOywGUIGVNX2zNdgarhjmIxstJ+HRNPAkf5EUPw/hhuLyfx8k181z8P240X/yd68Q3uFaX59g4mS8Gd+EyWoS3468tfb3U3wOv3KBHSq7FZsoKN+vRfHY7vpsOIho3d1LOik4PamMyCWePJKLcu0UIZ4/947VPVj+V3qI2EPSr6hfVZNXH",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -893,8 +989,8 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-operator",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "3c545dcadc938e402e39994cb1d3b18f24f5f9cba5ad5115e41fda8fb9c7c0",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "6a83021ea28d19778d6fee5b17e8cba44ccb062f298efa5fd9e4a91aa73334",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-operator",
@@ -920,8 +1016,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Operator-Deployment-c81ed77e",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "3c545dcadc938e402e39994cb1d3b18f24f5f9cba5ad5115e41fda8fb9c7c0",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "6a83021ea28d19778d6fee5b17e8cba44ccb062f298efa5fd9e4a91aa73334",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -949,11 +1045,52 @@ exports[`multiple blocks 1`] = `
                   },
                 },
                 {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
                   "name": "KBLOCKS_API_KEY",
                   "valueFrom": {
                     "secretKeyRef": {
-                      "key": "REDIS_PASSWORD",
-                      "name": "kblocks-api-secrets",
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
                     },
                   },
                 },
@@ -963,15 +1100,6 @@ exports[`multiple blocks 1`] = `
                     "configMapKeyRef": {
                       "key": "CONFIGMAP1",
                       "name": "configmap-1",
-                    },
-                  },
-                },
-                {
-                  "name": "KBLOCKS_SYSTEM_ID",
-                  "valueFrom": {
-                    "configMapKeyRef": {
-                      "key": "KBLOCKS_SYSTEM_ID",
-                      "name": "kblocks-system",
                     },
                   },
                 },
@@ -1200,8 +1328,8 @@ exports[`multiple blocks 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "3c545dcadc938e402e39994cb1d3b18f24f5f9cba5ad5115e41fda8fb9c7c0",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "6a83021ea28d19778d6fee5b17e8cba44ccb062f298efa5fd9e4a91aa73334",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-worker",
@@ -1221,8 +1349,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Worker-WorkerStatefulSet-c8da4c4c",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "3c545dcadc938e402e39994cb1d3b18f24f5f9cba5ad5115e41fda8fb9c7c0",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "6a83021ea28d19778d6fee5b17e8cba44ccb062f298efa5fd9e4a91aa73334",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -1250,11 +1378,52 @@ exports[`multiple blocks 1`] = `
                   },
                 },
                 {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
                   "name": "KBLOCKS_API_KEY",
                   "valueFrom": {
                     "secretKeyRef": {
-                      "key": "REDIS_PASSWORD",
-                      "name": "kblocks-api-secrets",
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
                     },
                   },
                 },
@@ -1264,15 +1433,6 @@ exports[`multiple blocks 1`] = `
                     "configMapKeyRef": {
                       "key": "CONFIGMAP1",
                       "name": "configmap-1",
-                    },
-                  },
-                },
-                {
-                  "name": "KBLOCKS_SYSTEM_ID",
-                  "valueFrom": {
-                    "configMapKeyRef": {
-                      "key": "KBLOCKS_SYSTEM_ID",
-                      "name": "kblocks-system",
                     },
                   },
                 },
@@ -1465,8 +1625,8 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-control",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "3c545dcadc938e402e39994cb1d3b18f24f5f9cba5ad5115e41fda8fb9c7c0",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "6a83021ea28d19778d6fee5b17e8cba44ccb062f298efa5fd9e4a91aa73334",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-control",
@@ -1492,8 +1652,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Control-Deployment-c87e3b0f",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "3c545dcadc938e402e39994cb1d3b18f24f5f9cba5ad5115e41fda8fb9c7c0",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "6a83021ea28d19778d6fee5b17e8cba44ccb062f298efa5fd9e4a91aa73334",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -1521,11 +1681,52 @@ exports[`multiple blocks 1`] = `
                   },
                 },
                 {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
                   "name": "KBLOCKS_API_KEY",
                   "valueFrom": {
                     "secretKeyRef": {
-                      "key": "REDIS_PASSWORD",
-                      "name": "kblocks-api-secrets",
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
                     },
                   },
                 },
@@ -1535,15 +1736,6 @@ exports[`multiple blocks 1`] = `
                     "configMapKeyRef": {
                       "key": "CONFIGMAP1",
                       "name": "configmap-1",
-                    },
-                  },
-                },
-                {
-                  "name": "KBLOCKS_SYSTEM_ID",
-                  "valueFrom": {
-                    "configMapKeyRef": {
-                      "key": "KBLOCKS_SYSTEM_ID",
-                      "name": "kblocks-system",
                     },
                   },
                 },

@@ -63,6 +63,13 @@ spec:
         image: {{ .Values.testServerImage }}
         ports:
         - containerPort: 3000
+        env:
+        - name: KBLOCKS_SYSTEM_ID
+          value: "test-system"
+        - name: KBLOCKS_PUBSUB_HOST
+          value: "test-redis.kblocks-test.svc.cluster.local"
+        - name: KBLOCKS_API_KEY
+          value: "pass1234"
         resources:
           limits:
             cpu: 1000m

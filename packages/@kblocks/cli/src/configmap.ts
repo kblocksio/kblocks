@@ -12,7 +12,7 @@ import { BlockRequest } from "./types";
 
 export interface PodEnvironment {
   namespace: string;
-  envSecrets?: Record<string, string> | Record<string, { key: string, secret: string }>;
+  envSecrets?: Record<string, string> | Record<string, { key: string, secret: string, optional?: boolean }>;
   envConfigMaps?: Record<string, string>;
   env?: Record<string, string>;
   configMaps: Record<string, k8s.ConfigMap>;
@@ -84,7 +84,7 @@ export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Contain
       container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key }));
     } else {
       const secret = k8s.Secret.fromSecretName(pod, `credentials-${key}-${value.secret}`, value.secret);
-      container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key: value.key }));
+      container.env.addVariable(key, k8s.EnvValue.fromSecretValue({ secret, key: value.key }, { optional: value.optional }));
     }
   }
 

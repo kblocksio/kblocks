@@ -16,11 +16,30 @@ RUN ARCH=$(uname -m); \
 RUN mkdir /app
 WORKDIR /app
 
-COPY package.json .
+# Copy package.json and package-lock.json of the root workspace
+COPY ./package.json ./package-lock.json ./
+
+# Copy the workspace packages' package.json files
+COPY ./packages/@kblocks/api/package.json ./packages/@kblocks/api/
+COPY ./packages/@kblocks/common/package.json ./packages/@kblocks/common/
+COPY ./test/testserver/package.json ./test/testserver/
+
 RUN npm install
 
-COPY src .
-COPY tsconfig.json .
+# Copy the workspace packages' source code
+COPY ./packages/@kblocks/api ./packages/@kblocks/api
+COPY ./packages/@kblocks/common ./packages/@kblocks/common
+COPY --link ./test/testserver/src ./test/testserver
+COPY ./test/testserver/tsconfig.json ./test/testserver
+
+WORKDIR /app/packages/@kblocks/api
+RUN npm run build
+
+WORKDIR /app/packages/@kblocks/common
+RUN npm run build
+
+# Set working directory to the app package
+WORKDIR /app/test/testserver
 
 RUN tsc
 

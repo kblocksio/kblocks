@@ -1,7 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
 import crypto from "crypto";
 import { blockTypeFromUri, ControlCommand, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "@kblocks/api";
-import { emitEvent, subscribeToControlUpdates } from "@kblocks/common";
+import { emitEvent, subscribeToControlStream } from "@kblocks/common";
 import { flush } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
@@ -14,7 +14,7 @@ const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 const client = kc.makeApiClient(k8s.CustomObjectsApi);
 
-export function start(system: string, manifest: Manifest) {
+export async function start(system: string, manifest: Manifest) {
   const group = manifest.definition.group;
   const version = manifest.definition.version;
   const plural = manifest.definition.plural;
@@ -22,12 +22,15 @@ export function start(system: string, manifest: Manifest) {
   const ctx: Context = { system, group, version, plural, requestId: generateRandomId() };
   const channel = `${group}/${version}/${plural}/${system}`;
 
-  const unsubscribe = subscribeToControlUpdates(channel, (message) => {
+  const unsubscribe = await subscribeToControlStream(channel, async (message) => {
     const { command, blockUri } = parseCommand(ctx, message);
 
-    handleCommandMessage(ctx, command)
-      .then(() => console.log(`Command ${command.type} for ${blockUri} succeeded`))
-      .catch((error) => handleError(ctx, blockUri, command, error))
+    try {
+      await handleCommandMessage(ctx, command);
+      return console.log(`Command ${command.type} for ${blockUri} succeeded`);
+    } catch (error) {
+      return handleError(ctx, blockUri, command, error);
+    }
   });
 
   flush(ctx, manifest);
