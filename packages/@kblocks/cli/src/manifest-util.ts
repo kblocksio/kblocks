@@ -146,6 +146,12 @@ export function renderStatusSchema(block: Manifest): JsonSchemaProps {
   const blockSchema = block.definition.schema;
   const outputs = block.definition.outputs ?? [];
 
+  // if this is a non-CRD block (e.g. "Pod"), then the schema is already complete and we can just
+  // return it as is.
+  if (block.operator?.skipCrd) {
+    return blockSchema.properties?.status;
+  }
+
   if (blockSchema.properties?.status && blockSchema.properties?.status.type !== "object") {
     throw new Error("'status' attribute must be of type 'object'");
   }
@@ -160,44 +166,44 @@ export function renderStatusSchema(block: Manifest): JsonSchemaProps {
     throw new Error("'status' attribute must be of type 'object' and have a `properties` field");
   }
 
-  // validate that all outputs defined in the `status` section of the schema are also defined in the
-  // `outputs` section of the kblocks definition
-  for (const k of Object.keys(props)) {
-    if (!outputs.includes(k)) {
-      console.log({props});
-      throw new Error(`output '${k}' is defined in the schema's 'status' section but not in the 'outputs' section of the block manifest`);
-    }
-  }
-
   props[LAST_STATE_HASH_ATTRIBUTE] = {
     type: "string",
     description: "The hash of the last object state.\n\n@ui kblocks.io/hidden",
   };
 
-  props["conditions"] = {
+  // if conditions are already defined in the schema, throw an error
+  if (props.conditions) {
+    throw new Error("'conditions' attribute is not allowed in the 'status' section of the schema unless the operator is configured with 'skipCrd: true'");
+  }
+
+  props.conditions = props.conditions ?? {
     type: "array",
+    items: [],
     description: "The conditions of the resource.\n\n@ui kblocks.io/hidden",
-    items: {
-      type: "object",
-      properties: {
-        type: { type: "string" },
-        status: { type: "string" },
-        lastTransitionTime: { type: "string", format: "date-time" },
-        lastProbeTime: { type: "string", format: "date-time" },
-        message: { type: "string" },
-        reason: { type: "string" },
-      },
-      required: ["type", "status", "lastTransitionTime"],
-    },
   };
- 
+
+  const conditions = props.conditions.items;
+
+  conditions.push({
+    type: "object",
+    description: "Indicates if the resource is ready",
+    properties: {
+      type: { type: "string" },
+      status: { type: "string" },
+      lastTransitionTime: { type: "string", format: "date-time" },
+      lastProbeTime: { type: "string", format: "date-time" },
+      message: { type: "string" },
+      reason: { type: "string" },
+    },
+    required: ["type", "status", "lastTransitionTime"],
+  })
+
   if (engine === "tofu" || engine.startsWith("wing/tf-")) {
     props[TFSTATE_ATTRIBUTE] = { 
       type: "string",
       description: "The last Terraform state of the resource.\n\n@ui kblocks.io/hidden",
     };
   }
-
 
   for (const o of outputs) {
     props[o] = { type: "string" };
