@@ -32,6 +32,9 @@ export function generateSchemaFromWingStruct(workdir: string, struct: string) {
 function cleanupSchema(schema: any) {
   delete schema.$id;
 
+  // if "metadata" is present, remove it because it is implicitly added to all objects in k8s anyway
+  delete schema.properties?.metadata;
+
   const visit = (node: any) => {
     if (typeof(node) === "object") {
       if (Array.isArray(node)) {

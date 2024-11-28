@@ -1,10 +1,10 @@
 import crypto from "crypto";
 import deepmerge from "deepmerge";
 import { patchObjectState, RuntimeContext } from "./host.js";
-import { ApiObject, Condition } from "@kblocks/api";
+import { ApiObject, Condition, LAST_STATE_HASH_ATTRIBUTE } from "@kblocks/api";
 
 export async function updateLastStateHash(statusUpdate: ReturnType<typeof statusUpdater>, obj: ApiObject) {
-  const oldValue = obj.status?.lastStateHash;
+  const oldValue = obj.status?.[LAST_STATE_HASH_ATTRIBUTE];
   const newValue = createHashFromObject(obj);
 
   if (oldValue === newValue) {
@@ -12,7 +12,7 @@ export async function updateLastStateHash(statusUpdate: ReturnType<typeof status
   }
 
   await statusUpdate({
-      lastStateHash: newValue,
+      [LAST_STATE_HASH_ATTRIBUTE]: newValue,
     },
     { quiet: true },
   );

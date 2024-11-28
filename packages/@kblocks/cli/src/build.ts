@@ -11,8 +11,9 @@ import { Control } from "./control";
 import { formatBlockTypeForEnv, IncludeManifest, Manifest } from "@kblocks/api";
 import { Construct } from "constructs";
 import yaml from 'yaml';
-import { getManifest } from "./manifest-util";
+import { getManifest, renderStatusSchema } from "./manifest-util";
 import { BlockRequest } from "./types";
+import cloneDeep from "lodash.clonedeep";
 
 export const buildCommand = async (opts: {
   DIR?: string;
@@ -108,9 +109,19 @@ export class Block extends Chart {
   constructor(scope: Construct, id: string, props: BlockProps) {
     super(scope, id);
 
-    const { env, blockRequests } = props;
+    const { env } = props;
+
+    // make a deep copy of the block requests so we can modify them
+    const blockRequests = cloneDeep(props.blockRequests);
+
     if (blockRequests.length === 0) {
       throw new Error("No block requests provided");
+    }
+
+    // add the "status" schema to the all blocks
+    for (const req of blockRequests) {
+      req.block.definition.schema.properties = req.block.definition.schema.properties ?? {};
+      req.block.definition.schema.properties.status = renderStatusSchema(req.block);
     }
 
     const mainBlock = blockRequests[0];
@@ -196,16 +207,13 @@ export class Block extends Chart {
         if (blockRequest.block.definition.color) {
           annotations["kblocks.io/color"] = blockRequest.block.definition.color;
         }
-  
-        const schema = resolveSchema(blockRequest.block);
     
         const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
 
         new CustomResourceDefinition(this, `CRD-${blockType}`, {
           ...blockRequest.block.definition,
-          engine: blockRequest.block.engine,
           annotations,
-          schema,
+          schema: blockRequest.block.definition.schema,
         });
       }
     }
@@ -221,10 +229,12 @@ export function synth(opts: SynthProps) {
   fs.mkdirSync(templatesdir, { recursive: true });
 
   const app = new App({ outdir: templatesdir });
+
   new Block(app, names, {
     ...opts,
     blockRequests,
   });
+
   app.synth();
 
   const chartFilePath = path.join(outputDir, 'Chart.yaml');

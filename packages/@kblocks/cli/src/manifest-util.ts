@@ -1,9 +1,10 @@
 import fs from "fs";
 import yaml from "yaml";
-import { ApiObject, IncludeManifest, Manifest } from "@kblocks/api";
+import { ApiObject, LAST_STATE_HASH_ATTRIBUTE, Manifest, TFSTATE_ATTRIBUTE } from "@kblocks/api";
 import { generateSchemaFromWingStruct } from "./wing-schema";
 import path from "path";
 import $RefParser from '@apidevtools/json-schema-ref-parser';
+import { JsonSchemaProps } from "../imports/k8s";
 
 export function writeManifest(manifest: string, blockObject: ApiObject, additionalObjects: ApiObject[]) {
   const docs = [
@@ -47,7 +48,7 @@ export function readManifest(manifest: string) {
 }
 
 
-export async function resolveExternalAssets(dir: string, spec: Record<string, any>) {
+export async function resolveExternalAssets(dir: string, spec: Manifest) {
   let readme;
   let schema;
   if (spec.definition) {
@@ -73,7 +74,7 @@ export async function resolveExternalAssets(dir: string, spec: Record<string, an
         readme,
       }
     } : {})
-  } as any as Manifest;
+  } satisfies Manifest;
 }
 
 async function resolveSchema(schema: string | undefined, kind: string) {
@@ -96,7 +97,7 @@ async function resolveSchema(schema: string | undefined, kind: string) {
     // Add order annotations to properties
     function addOrderAnnotations(properties: any, startIndex: number = 1, isAdditionalProperties: boolean = false  ): number {
       let currentIndex = startIndex;
-      for (const [key, value] of Object.entries(properties)) {
+      for (const value of Object.values(properties)) {
         if (typeof value === 'object' && value !== null) {
           const typedValue = value as { 
             type?: string, 
@@ -134,4 +135,73 @@ async function resolveSchema(schema: string | undefined, kind: string) {
   }
 
   throw new Error(`Unsupported schema file format: ${schema}. Only .schema.json and .w files are supported.`);
+}
+
+
+/**
+ * Adds the base schema to the block schema (status, conditions, etc.)
+ */
+export function renderStatusSchema(block: Manifest): JsonSchemaProps {
+  const engine = block.engine;
+  const blockSchema = block.definition.schema;
+  const outputs = block.definition.outputs ?? [];
+
+  if (blockSchema.properties?.status && blockSchema.properties?.status.type !== "object") {
+    throw new Error("'status' attribute must be of type 'object'");
+  }
+
+  const status = blockSchema.properties?.status ?? {
+    type: "object",
+    properties: {},
+  };
+
+  const props = status.properties;
+  if (!props) {
+    throw new Error("'status' attribute must be of type 'object' and have a `properties` field");
+  }
+
+  // validate that all outputs defined in the `status` section of the schema are also defined in the
+  // `outputs` section of the kblocks definition
+  for (const k of Object.keys(props)) {
+    if (!outputs.includes(k)) {
+      console.log({props});
+      throw new Error(`output '${k}' is defined in the schema's 'status' section but not in the 'outputs' section of the block manifest`);
+    }
+  }
+
+  props[LAST_STATE_HASH_ATTRIBUTE] = {
+    type: "string",
+    description: "The hash of the last object state.\n\n@ui kblocks.io/hidden",
+  };
+
+  props["conditions"] = {
+    type: "array",
+    description: "The conditions of the resource.\n\n@ui kblocks.io/hidden",
+    items: {
+      type: "object",
+      properties: {
+        type: { type: "string" },
+        status: { type: "string" },
+        lastTransitionTime: { type: "string", format: "date-time" },
+        lastProbeTime: { type: "string", format: "date-time" },
+        message: { type: "string" },
+        reason: { type: "string" },
+      },
+      required: ["type", "status", "lastTransitionTime"],
+    },
+  };
+ 
+  if (engine === "tofu" || engine.startsWith("wing/tf-")) {
+    props[TFSTATE_ATTRIBUTE] = { 
+      type: "string",
+      description: "The last Terraform state of the resource.\n\n@ui kblocks.io/hidden",
+    };
+  }
+
+
+  for (const o of outputs) {
+    props[o] = { type: "string" };
+  }
+
+  return status;
 }
