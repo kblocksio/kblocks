@@ -104,7 +104,7 @@ async function lintSchema(engine: string | undefined, tmpSrc: string) {
   if (engine === "helm") {
     // Run helm lint to validate the schema
     const lintResult = execSync("helm lint .", { stdio: "inherit", cwd: tmpSrc });
-    console.log(lintResult.toString());
+    console.log((lintResult ?? "").toString());
   }
 }
 
