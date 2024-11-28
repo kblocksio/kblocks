@@ -8,7 +8,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { resolveExternalAssets } from "./manifest-util";
 
 export async function enrich(dir: string, manifest: Manifest): Promise<Manifest> {
-  const resolved = await resolveExternalAssets(dir, manifest);
+  const resolved = await resolveExternalAssets(dir, manifest, undefined, true);
   const result = await enrichWithAi(dir, resolved);
 
   manifest.definition.icon = `heroicon://${result.icon}`;

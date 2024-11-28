@@ -18,6 +18,9 @@ export async function installCommand(argv: InstallOptions) {
     env: argv.env,
   });
 
+  // Run helm lint on the output directory before installing - this verifies that the CRD is valid
+  execSync("helm lint .", { stdio: "inherit", cwd: outdir });
+
   const command = [];
 
   command.push("helm", "upgrade", "--install");

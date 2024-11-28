@@ -32,10 +32,6 @@ export class ConfigMapFromDirectory extends Construct {
 
     this.configMaps = {};
 
-    // TODO (shaib): copy the source directory to a temporary location
-    // override the file under `values.schema.json` with the materialized schema
-    // which should be available `props.block.definition.schema`.
-
     for (const blockRequest of props.blockRequests) {
       const blockType = formatBlockTypeForEnv(blockRequest.block.definition);
       if (blockRequest.source) {
@@ -102,10 +98,9 @@ export function setupPodEnvironment(pod: k8s.AbstractPod, container: k8s.Contain
   }
 }
 
-export function createTgzBase64(rootDir: string): string {
-  const srcDir = join(rootDir, "src");
+export function createTgzBase64(srcDir: string): string {
   if (!fs.existsSync(srcDir)) {
-    throw new Error("No 'src' directory found in the provided directory. Please ensure that the source directory is named 'src'.");
+    throw new Error(`No ${srcDir} directory found. Please ensure that the source directory is named 'src'`);
   }
 
   const excludedFolders = ["node_modules", ".git", "target", ".DS_Store"];

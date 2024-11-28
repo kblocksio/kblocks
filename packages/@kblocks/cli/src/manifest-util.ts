@@ -5,6 +5,9 @@ import { generateSchemaFromWingStruct } from "./wing-schema";
 import path from "path";
 import $RefParser from '@apidevtools/json-schema-ref-parser';
 import { JsonSchemaProps } from "../imports/k8s";
+import { execSync } from "child_process";
+
+let tmpSrcCounter = 0;
 
 export function writeManifest(manifest: string, blockObject: ApiObject, additionalObjects: ApiObject[]) {
   const docs = [
@@ -15,15 +18,41 @@ export function writeManifest(manifest: string, blockObject: ApiObject, addition
   fs.writeFileSync(manifest, docs.join("\n---\n"));
 }
 
-export async function getManifest(opts: { dir: string, manifest: string }) {
+export async function getManifest(opts: { dir: string, manifest: string, outdir: string }) {
   const manifestPath = path.resolve(opts.dir, opts.manifest);
   const { blockObject, additionalObjects } = readManifest(manifestPath);
   if (!blockObject) {
     throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
   }
 
-  const manifest: Manifest = await resolveExternalAssets(opts.dir, blockObject.spec);
-  return { manifest, additionalObjects };
+  const tmpSrc = createTmpSrc(opts.dir, opts.outdir, blockObject.spec?.definition?.kind);
+  
+  // if this block only includes other blocks, we don't need to lint the schema
+  const manifest: Manifest = await resolveExternalAssets(opts.dir, blockObject.spec, tmpSrc, !tmpSrc);
+  return { manifest, additionalObjects, tmpSrc };
+}
+
+function createTmpSrc(dir: string, outdir: string, kind: string | undefined) {
+  // if this is an inclusion block, it doesn't have a kind and we don't need to create a temp src for the main block which is empty
+  if (!kind) {
+    return undefined;
+  }
+
+  // Ensure the source directory exists
+  const srcDir = path.join(dir, 'src');
+  if (!fs.existsSync(srcDir)) {
+    throw new Error(`No 'src' directory found in the provided directory. Please ensure that the source directory is named 'src'.`);
+  }
+
+  // Create a temporary source directory in the output
+  const tmpSrcDir = path.join(outdir, `tempSrc-${kind.toLowerCase()}-${tmpSrcCounter++}`);
+  fs.rmSync(tmpSrcDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpSrcDir, { recursive: true });
+
+  // Copy source directory to temporary location recursively
+  fs.cpSync(srcDir, tmpSrcDir, { recursive: true, dereference: true });
+
+  return tmpSrcDir;
 }
 
 export function readManifest(manifest: string) {
@@ -48,7 +77,7 @@ export function readManifest(manifest: string) {
 }
 
 
-export async function resolveExternalAssets(dir: string, spec: Manifest) {
+export async function resolveExternalAssets(dir: string, spec: Manifest, tmpSrc: string | undefined, skipLint: boolean = false) {
   let readme;
   let schema;
   if (spec.definition) {
@@ -58,7 +87,7 @@ export async function resolveExternalAssets(dir: string, spec: Manifest) {
       console.warn("No readme file");
     }
 
-    schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind);
+    schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind, spec.engine, tmpSrc, skipLint);
   }
 
   if (spec.include) {
@@ -77,7 +106,15 @@ export async function resolveExternalAssets(dir: string, spec: Manifest) {
   } satisfies Manifest;
 }
 
-async function resolveSchema(schema: string | undefined, kind: string) {
+async function lintSchema(engine: string | undefined, tmpSrc: string) {
+  if (engine === "helm") {
+    // Run helm lint to validate the schema
+    const lintResult = execSync("helm lint .", { stdio: "inherit", cwd: tmpSrc });
+    console.log((lintResult ?? "").toString());
+  }
+}
+
+async function resolveSchema(schema: string | undefined, kind: string, engine: string | undefined, tmpSrc: string | undefined, skipLint: boolean = false) {
   if (!schema || typeof(schema) !== "string") {
     throw new Error("No schema file found in kblock manifest. Please define the schema file under the 'schema' field of the 'definition' section of the manifest. Supported formats are .schema.json and .w files.");
   }
@@ -86,6 +123,9 @@ async function resolveSchema(schema: string | undefined, kind: string) {
     // Ensure schema is in src folder
     if (!schema.match(/\/src\/[^\/]+\.json$/)) {
       throw new Error(`Schema file must be located in the src directory ${schema}`);
+    }
+    if (engine === "helm" && !schema.endsWith("src/values.schema.json")) {
+      throw new Error(`Schema file must be named 'values.schema.json' when using the helm engine. ${schema}`);
     }
     const dereferencedSchema = await $RefParser.dereference(schema);
     if ('$defs' in dereferencedSchema) {
@@ -126,6 +166,19 @@ async function resolveSchema(schema: string | undefined, kind: string) {
     if (dereferencedSchema.properties) {
       addOrderAnnotations(dereferencedSchema.properties);
     }
+
+    // Write the materialized schema to the temporary src directory
+    if (tmpSrc) {
+      fs.writeFileSync(path.join(tmpSrc, path.basename(schema)), JSON.stringify(dereferencedSchema));
+    }
+
+    if (!skipLint) {
+      if (!tmpSrc) {
+        throw new Error("tmpSrc is required to lint the schema");
+      }
+      await lintSchema(engine, tmpSrc);
+    }
+
     return dereferencedSchema;
   }
 
