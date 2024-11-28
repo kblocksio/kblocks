@@ -44,7 +44,7 @@ function createTmpSrc(dir: string, outdir: string, kind: string) {
   fs.mkdirSync(tmpSrcDir, { recursive: true });
 
   // Copy source directory to temporary location recursively
-  fs.cpSync(srcDir, tmpSrcDir, { recursive: true });
+  fs.cpSync(srcDir, tmpSrcDir, { recursive: true, dereference: true });
 
   return tmpSrcDir;
 }
