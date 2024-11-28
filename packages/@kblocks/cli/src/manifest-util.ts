@@ -6,6 +6,8 @@ import path from "path";
 import $RefParser from '@apidevtools/json-schema-ref-parser';
 import { JsonSchemaProps } from "../imports/k8s";
 import { execSync } from "child_process";
+import os from "os";
+import crypto from "crypto";
 
 let tmpSrcCounter = 0;
 
@@ -25,14 +27,14 @@ export async function getManifest(opts: { dir: string, manifest: string, outdir:
     throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
   }
 
-  const tmpSrc = createTmpSrc(opts.dir, opts.outdir, blockObject.spec?.definition?.kind);
+  const tmpSrc = createTmpSrc(opts.dir, blockObject.spec?.definition?.kind);
   
   // if this block only includes other blocks, we don't need to lint the schema
   const manifest: Manifest = await resolveExternalAssets(opts.dir, blockObject.spec, tmpSrc, !tmpSrc);
   return { manifest, additionalObjects, tmpSrc };
 }
 
-function createTmpSrc(dir: string, outdir: string, kind: string | undefined) {
+function createTmpSrc(dir: string, kind: string | undefined) {
   // if this is an inclusion block, it doesn't have a kind and we don't need to create a temp src for the main block which is empty
   if (!kind) {
     return undefined;
@@ -44,10 +46,13 @@ function createTmpSrc(dir: string, outdir: string, kind: string | undefined) {
     throw new Error(`No 'src' directory found in the provided directory. Please ensure that the source directory is named 'src'.`);
   }
 
-  // Create a temporary source directory in the output
-  const tmpSrcDir = path.join(outdir, `tempSrc-${kind.toLowerCase()}-${tmpSrcCounter++}`);
+  // Create a temporary source directory with random suffix
+  // We don't want to use the outdir here because it inflates the size of the helm payload
+  const randomSuffix = crypto.randomBytes(6).toString('hex');
+  const tmpSrcDir = path.join(os.tmpdir(), `kblocks-${kind.toLowerCase()}-${randomSuffix}`);
   fs.rmSync(tmpSrcDir, { recursive: true, force: true });
   fs.mkdirSync(tmpSrcDir, { recursive: true });
+  console.log(`Created temporary source directory: ${tmpSrcDir}`);
 
   // Copy source directory to temporary location recursively
   fs.cpSync(srcDir, tmpSrcDir, { recursive: true, dereference: true });
