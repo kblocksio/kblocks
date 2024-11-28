@@ -52,7 +52,7 @@ export function readManifest(manifest: string) {
 }
 
 
-export async function resolveExternalAssets(dir: string, spec: Manifest, tmpSrc: string) {
+export async function resolveExternalAssets(dir: string, spec: Manifest, tmpSrc: string | undefined, skipLint: boolean = false) {
   let readme;
   let schema;
   if (spec.definition) {
@@ -64,7 +64,12 @@ export async function resolveExternalAssets(dir: string, spec: Manifest, tmpSrc:
 
     schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind, spec.engine);
     
-    await lintSchema(dir,schema, spec.engine, tmpSrc);
+    if (!skipLint) {
+      if (!tmpSrc) {
+        throw new Error("tmpSrc is required to lint the schema");
+      }
+      await lintSchema(dir,schema, spec.engine, tmpSrc);
+    }
   }
 
   if (spec.include) {
