@@ -1,4 +1,4 @@
-import { readFileSync} from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join } from 'path';
 import { RuntimeContext } from "./host.js";
 import type { BindingContext } from "@kblocks/api";
@@ -23,6 +23,9 @@ export async function applyCustom(dir: string, host: RuntimeContext, ctx: Bindin
   }
 
   await host.exec(script, [], { cwd: dir, env: { KBLOCKS_OBJECT: values, KBLOCKS_OUTPUTS: outputfile } });
-  const outputs = JSON.parse(readFileSync(outputfile, "utf8"));
+  let outputs = {};
+  if (existsSync(outputfile)) {
+    outputs = JSON.parse(readFileSync(outputfile, "utf8"));
+  }
   return outputs;
 }

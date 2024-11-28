@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 import { getEndpoints } from "./endpoints.js";
 
-export const getRedisConnection = () => {
+export const getRedisConnection = (): { getClient: () => Redis, quit: () => Promise<void> } => {
   let redisClient: Redis | undefined;
   return {
     getClient: () => {

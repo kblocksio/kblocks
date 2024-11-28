@@ -90,8 +90,8 @@ jobs:
           timeout_minutes: 5
           command: |
             kubectl create namespace kblocks 2> /dev/null || true
-            kubectl delete secret kblocks-api-secrets -n kblocks 2> /dev/null || true
-            kubectl create secret generic kblocks-api-secrets --from-literal=REDIS_PASSWORD=pass1234 -n kblocks
+            kubectl delete secret kblocks -n kblocks 2> /dev/null || true
+            kubectl create secret generic kblocks --from-literal=KBLOCKS_API_KEY=pass1234 --from-literal=KBLOCKS_SYSTEM_ID=test-system --from-literal=KBLOCKS_PUBSUB_HOST=test-redis.kblocks-test.svc.cluster.local -n kblocks
 
       
       - name: Start skaffold

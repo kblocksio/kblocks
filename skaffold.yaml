@@ -27,9 +27,11 @@ build:
     sync:
       infer: ["packages/@kblocks/control/src/**/*.ts"]
   - image: wingcloudbot/kblocks-testserver
-    context: ./test/testserver
+    docker:
+      dockerfile: ./test/testserver/Dockerfile
+    context: .
     sync:
-      infer: ["src/**/*.ts"]
+      infer: ["test/testserver/src/**/*.ts"]
 
 deploy:
   helm:

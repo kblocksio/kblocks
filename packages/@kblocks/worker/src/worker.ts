@@ -163,7 +163,7 @@ async function main() {
     console.log(`Listening for messages on worker-${workerIndex} with id: `, lastId);
     const results = await redisClient.xread("COUNT", 1, "BLOCK", 0, "STREAMS", `worker-${workerIndex}`, lastId);
     if (!results) {
-      setTimeout(listenForMessage, 1000, lastId);
+      setTimeout(listenForMessage, 10, lastId);
       return;
     }
 
@@ -196,7 +196,7 @@ async function main() {
     }
 
     if (!isShuttingDown) {
-      setTimeout(listenForMessage, 1000, messages[messages.length - 1][0]);
+      setTimeout(listenForMessage, 10, messages[messages.length - 1][0]);
     }
   }
 
