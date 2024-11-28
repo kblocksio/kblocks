@@ -25,9 +25,28 @@ export async function getManifest(opts: { dir: string, manifest: string, outdir:
     throw new Error(`Unable to find a kblocks.io/v1 Block object in ${manifestPath}`);
   }
 
-  const tmpSrc = path.join(opts.outdir, `tempSrc-${blockObject.spec.definition.kind.toLowerCase()}-${tmpSrcCounter++}`);
+  const tmpSrc = createTmpSrc(opts.dir, opts.outdir, blockObject.spec.definition.kind);
+  
   const manifest: Manifest = await resolveExternalAssets(opts.dir, blockObject.spec, tmpSrc);
   return { manifest, additionalObjects, tmpSrc };
+}
+
+function createTmpSrc(dir: string, outdir: string, kind: string) {
+  // Ensure the source directory exists
+  const srcDir = path.join(dir, 'src');
+  if (!fs.existsSync(srcDir)) {
+    throw new Error(`No 'src' directory found in the provided directory. Please ensure that the source directory is named 'src'.`);
+  }
+
+  // Create a temporary source directory in the output
+  const tmpSrcDir = path.join(outdir, `tempSrc-${kind.toLowerCase()}-${tmpSrcCounter++}`);
+  fs.rmSync(tmpSrcDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpSrcDir, { recursive: true });
+
+  // Copy source directory to temporary location recursively
+  fs.cpSync(srcDir, tmpSrcDir, { recursive: true });
+
+  return tmpSrcDir;
 }
 
 export function readManifest(manifest: string) {
@@ -62,14 +81,7 @@ export async function resolveExternalAssets(dir: string, spec: Manifest, tmpSrc:
       console.warn("No readme file");
     }
 
-    schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind, spec.engine);
-    
-    if (!skipLint) {
-      if (!tmpSrc) {
-        throw new Error("tmpSrc is required to lint the schema");
-      }
-      await lintSchema(dir,schema, spec.engine, tmpSrc);
-    }
+    schema = await resolveSchema(path.join(dir, spec.definition.schema), spec.definition.kind, spec.engine, tmpSrc, skipLint);
   }
 
   if (spec.include) {
@@ -88,31 +100,15 @@ export async function resolveExternalAssets(dir: string, spec: Manifest, tmpSrc:
   } satisfies Manifest;
 }
 
-async function lintSchema(dir: string, schema: string, engine: string, tmpSrc: string) {
+async function lintSchema(engine: string | undefined, tmpSrc: string) {
   if (engine === "helm") {
-    // Create a temporary source directory in the output
-    if (fs.existsSync(tmpSrc)) {
-      fs.rmSync(tmpSrc, { recursive: true, force: true });
-    }
-    fs.mkdirSync(tmpSrc, { recursive: true });
-
-    // Copy source directory to temporary location recursively
-    const srcDir = path.join(dir, 'src');
-    if (!fs.existsSync(srcDir)) {
-      throw new Error(`No 'src' directory found in the provided directory. Please ensure that the source directory is named 'src'.`);
-    }
-    fs.cpSync(srcDir, tmpSrc, { recursive: true });
-
-    // Write the materialized schema to the temporary location
-    fs.writeFileSync(path.join(tmpSrc, "values.schema.json"), JSON.stringify(schema));
-
     // Run helm lint to validate the schema
     const lintResult = execSync("helm lint .", { stdio: "inherit", cwd: tmpSrc });
     console.log(lintResult.toString());
   }
 }
 
-async function resolveSchema(schema: string | undefined, kind: string, engine: string | undefined) {
+async function resolveSchema(schema: string | undefined, kind: string, engine: string | undefined, tmpSrc: string | undefined, skipLint: boolean = false) {
   if (!schema || typeof(schema) !== "string") {
     throw new Error("No schema file found in kblock manifest. Please define the schema file under the 'schema' field of the 'definition' section of the manifest. Supported formats are .schema.json and .w files.");
   }
@@ -164,6 +160,19 @@ async function resolveSchema(schema: string | undefined, kind: string, engine: s
     if (dereferencedSchema.properties) {
       addOrderAnnotations(dereferencedSchema.properties);
     }
+
+    // Write the materialized schema to the temporary src directory
+    if (tmpSrc) {
+      fs.writeFileSync(path.join(tmpSrc, path.basename(schema)), JSON.stringify(dereferencedSchema));
+    }
+
+    if (!skipLint) {
+      if (!tmpSrc) {
+        throw new Error("tmpSrc is required to lint the schema");
+      }
+      await lintSchema(engine, tmpSrc);
+    }
+
     return dereferencedSchema;
   }
 

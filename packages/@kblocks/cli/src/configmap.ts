@@ -40,7 +40,7 @@ export class ConfigMapFromDirectory extends Construct {
             namespace: props.namespace,
           },
           data: {
-            "archive.tgz": createTgzBase64(blockRequest.tmpSrc ?? join(blockRequest.source, "src")),
+            "archive.tgz": createTgzBase64(blockRequest.source),
           },
         });
       }

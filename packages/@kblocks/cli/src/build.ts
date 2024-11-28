@@ -46,9 +46,7 @@ export async function build(opts: {
   const outdir = path.resolve(process.cwd(),opts.output);
 
   // create the output directory and clean it up if it already exists
-  if (fs.existsSync(outdir)) {
-    fs.rmSync(outdir, { recursive: true, force: true });
-  }
+  fs.rmSync(outdir, { recursive: true, force: true });
   fs.mkdirSync(outdir, { recursive: true });
 
   const dir = path.resolve(process.cwd(), opts.dir);
@@ -76,14 +74,13 @@ export async function build(opts: {
 
     blockRequests.push({
       block: included.manifest,
-      source: path.dirname(includePath),
-      tmpSrc: included.tmpSrc,
+      source: included.tmpSrc,
     });
     moreObjects.push(...included.additionalObjects);
   }
 
   const names = synth({
-    mainBlock: { block: manifest, source: dir, tmpSrc },
+    mainBlock: { block: manifest, source: tmpSrc },
     included: blockRequests,
     output: outdir,
     env: opts.env,
