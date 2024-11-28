@@ -5,7 +5,7 @@ exports[`minimal block snapshot 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNqVUtFq20AQ/JVjn2WXvuqpSWyocUNMZCghCWYtraWtrVt192QQIf9eTnIaJzZtco83O3Mzs/cE5Ev2BCl4kQYSKGjDngOLh/QJSpW2gRTWIvU4lxoS2JNaj8L+KySwZV9ACpfSg82uVdwdCAYJWF5RjVEqdE18Rta/KA9xVKUhDUwWUY81HU1ZUPYlPCdgAUNr/xfYoYUsYKDvaNWpUgxmuXIzJINlRa5Cq5xsXKjIRbobpF18ksYP/sF/a9lt1zvJtzZm+VJxUZCPrnLxRV/SsTNUxQ4S4EC1QXp/avmth5kvOMdA5ngwoWTSak6OzSlh0Z2kHAQ/UtMrFKMtFb31hpd8rugENqI1BkihwECjEKcO3IXKmj5Hq8kMy/NOldCGz/UO6rHfLSsVkN4P6N9gZ2M8Pj+e2+vrcl62+1Lsv5banwRi2xhEo0Hy+yvxGy6vsem7nV/+uLmaZ6vsLltOr1ezCaRwkBpZZ4HqmJD8PqNcKbzhXCxmq/n0Ll5tqYMUbqeTWbZaXGTZz5vbSYzak44kseGRHZSiuz/7aEam",
+      "block.json": "eNqVUk1r20AQ/SvLnGWXXnVqEhtqnBATGUpoihlLY2lqa1edGRlEyH8vK7mN3Yi20VFv3qf0DORL9gQp+BAaSKCgHXs2Dh7SZygltA2ksA2hnuahhgSOJNqjcPwICezZF5DCdejB5tAKHk4EhQQ0r6jGKGVdE23C9jvlFk8lNCTGpBH1WNPZlZqwL+ElATW0Vv8tcEC1zNDoM2r1VikW01y4GZrBuiJXoVYu7JxV5CLdDdIuWtL0yT/5Ty27/fYQ8r1OOXyouCjIx1R58EU/0nkyFMFu1On1/JefkIZW8r/ZJMBG9Wj1S4eFLzhHI3V8Ke5YnRAW3Zu1BsH/mfsVihOtBb32TdY89sES2AWp0SCFAo0mFq9O3JWELb2PVpMqluNJhVCHn/QPqMd+tCxUQPp1QH8XG63x7WV4EogboQWJsuSPN8HvuLzDpl9keX17f7PMNtljtp7fbRYzSOH02SbaqVEdc5E/ZpQL2QXnarXYLOeP8dWeOkjhYT5bZJvVVZZ9uX+YxYA96UwSG57oSSmm+wm+Z0Xu",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -82,7 +82,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-operator",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "04a76c15ad0c0e338cbc50a5646e4069660f67c90d226a1f0d129ac13c5217",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-operator",
@@ -108,7 +108,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Operator-Deployment-c810923d",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "04a76c15ad0c0e338cbc50a5646e4069660f67c90d226a1f0d129ac13c5217",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -342,7 +342,7 @@ exports[`minimal block snapshot 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "04a76c15ad0c0e338cbc50a5646e4069660f67c90d226a1f0d129ac13c5217",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-worker",
@@ -362,7 +362,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Worker-WorkerStatefulSet-c8e7278a",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "04a76c15ad0c0e338cbc50a5646e4069660f67c90d226a1f0d129ac13c5217",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -556,7 +556,7 @@ exports[`minimal block snapshot 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-control",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "04a76c15ad0c0e338cbc50a5646e4069660f67c90d226a1f0d129ac13c5217",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
         "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
       },
       "name": "kblocks-boom-control",
@@ -582,7 +582,7 @@ exports[`minimal block snapshot 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-Control-Deployment-c8e74eae",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "04a76c15ad0c0e338cbc50a5646e4069660f67c90d226a1f0d129ac13c5217",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "2f5afcc2f3f07a4a3228f21e9ad2785d06c3351012d1ae8ccb15a074b68012",
             "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
           },
         },
@@ -741,39 +741,37 @@ exports[`minimal block snapshot 1`] = `
                       "description": "The conditions of the resource.
 
 @ui kblocks.io/hidden",
-                      "items": [
-                        {
-                          "description": "Indicates if the resource is ready",
-                          "properties": {
-                            "lastProbeTime": {
-                              "format": "date-time",
-                              "type": "string",
-                            },
-                            "lastTransitionTime": {
-                              "format": "date-time",
-                              "type": "string",
-                            },
-                            "message": {
-                              "type": "string",
-                            },
-                            "reason": {
-                              "type": "string",
-                            },
-                            "status": {
-                              "type": "string",
-                            },
-                            "type": {
-                              "type": "string",
-                            },
+                      "items": {
+                        "description": "Indicates if the resource is ready",
+                        "properties": {
+                          "lastProbeTime": {
+                            "format": "date-time",
+                            "type": "string",
                           },
-                          "required": [
-                            "type",
-                            "status",
-                            "lastTransitionTime",
-                          ],
-                          "type": "object",
+                          "lastTransitionTime": {
+                            "format": "date-time",
+                            "type": "string",
+                          },
+                          "message": {
+                            "type": "string",
+                          },
+                          "reason": {
+                            "type": "string",
+                          },
+                          "status": {
+                            "type": "string",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
                         },
-                      ],
+                        "required": [
+                          "type",
+                          "status",
+                          "lastTransitionTime",
+                        ],
+                        "type": "object",
+                      },
                       "type": "array",
                     },
                     "lastStateHash": {
@@ -806,7 +804,7 @@ exports[`multiple blocks 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNqVU12P2jAQ/CvRPgeq4zFP5bi0RZQPEXTV6e6EFmchLsROdx2q6MR/r+xAoQX1I2/27MzO7DpvQGajDUECxtoKYshprY122hpI3mDDtq4ggZW1ZVfZEmLYE0tAYX8HMWy1ySGBexvAalcz7o4EgRhEFVSil3JN5dvY1VdSzpeyrYidJvGowZIuqsSxNhs4xCAOXS1/F9ihuMyho08oxbWSDyaKddUmg0VBUYFSRHYduYIiT49a6ci3pO6LeTHvax1tVzurttLV9l2h85yMd6WsycOQLp0hMzYQg3ZUCiTP15Z/9TA0uVboSCLdmmASW7OiSEvEhHlzlbIV/JcxnSEfbcFoJBhe6FuDjmFtuUQHCeToqON81ZE7Y7ui/6OVJIKb206ZUNrH9RsUsG+1ZsoheW7Rn8Fuxng9vN7a63k5p+2eBvunpYYvBj9tdJZPj1IqVN5l2XTOxxjI7DNSTC7MPEsH83Rx58OEy47/M9rL3vmyBzGM7j9PB6Ns2Z8Nl6P0yZO31EAC8/RhmC1n/Sz7Mp0/+OCBBAkcvXaw0h059vROyewH1qz1ZoxVcDGYTj4MP477M29EBajEKng5tc2eskU6Xg4fLnSlEUcltIpeJ508egUy+8BNJ4+947Hnq75b3hILJL3D4QdqyXFi",
+      "block.json": "eNqVU9uO2jAQ/ZVongPV8pinspC2iHIRQVutdis0OANxIXY641BFK/69sgOF7aJe8mafOZcZT16AzFYbggSMtRXEkNNGG+20NZC8wJZtXUECa2vLrrIlxHAgloDC4Q5i2GmTQwL3NoDVvmbcnwgCMYgqqEQv5ZrK29j1N1LOl7KtiJ0m8ajBkq6qxLE2WzjGIA5dLX8X2KO4zKGjTyjFWyXfmCjWVdsZLAuKCpQispvIFRR5etRKR96Sus/m2byvdbRb763aSVfbd4XOczI+lbImD0O6TobM2Nx0upSf/ZjE1qz+ZBODdlTebP21w8jkWqEjifRr8UhLxIR582ZareC/jPsC+REtGY2ETpb61oPFsLFcooMEcnTUcb7qxJ2zXdP/0UoSwe3tpEwo7ZL+BgXse62ZckieWvRXYzfb+Hpsvxj8jNBZPq+kVKi8dtl0LscYyBwyUkwuTCpLB4t0eecjhMuO/y/ay97lsgcxjO8/zwbjbNWfj1bj9NGTd9RAAot0OMpW836WfZkthj5uIEECp73oYKU7cvL0SckcBtZs9HaCVUgxmE0/jD5O+nMfRAWoxCpkOdtmj9kynaxGwytdacRRCa2i10mnD16BzCFw0+lD73Ts+aoflnfEAknvePwJxMlwqg==",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -818,7 +816,7 @@ exports[`multiple blocks 1`] = `
   {
     "apiVersion": "v1",
     "data": {
-      "block.json": "eNqVU12P2jAQ/CvRPgeq4zFPpZBrEeVDF3TV6e6EFmchLsROvQ5VdOK/V+tAoQX1I2/27MzO7DpvQGajDUECxtoKYshprY322hpI3mDjbF1BArm1ZVfZEmLYk+OAwv4OYthqk0MCQxvAalc73B0JDDGwKqhEkfJNJW3s6ispL6XOVuS8JhbUYEkXVeydNhs4xMAefc1/F9gh+8yjp0/IxbWSBGPldNUmg0VBUYFcRHYd+YIioUetdCQtqftiXsz7Wkfb1c6qLXe1fVfoPCcjrpQ1eRjSpTN0DhuIQXsqGZLna8u/ehiZXCv0xJFuTThiWztFkebIEebNVcpW8F/GdIYk2sKh4WB4oW8NOoa1dSV62Rx66nipOnLnzq7o/2glMePmtlNHyO3j+g0K2LdaO8oheW7Rn8Fuxng9vN7a63k5p+2eBvunpYYvBpk2eutOj5IrVOKybDrnYwxk9hkpRz7MPEsHD+niTsKEy478Ge1l73zZgxjGHz7PBuNs2Z+PluP0SchbaiCBh3Q4ypbzfpZ9mT0MJXggQQJHrx2sdIePPcUpmf3AmrXeTLAKLgaz6f3o46Q/FyMqQCVWwcupbfaULdLJcjS80OWGPZXQKopOOn0UBTL7wE2nj73jsSdV363bkmNIeofDD4K1cWg=",
+      "block.json": "eNqVU9uO2jAQ/ZVongPV8pinUki3iHIRQVutuhUanIG4EDv1OFTRin+vxoHC7qJe8mafOZcZT56BzFYbggSMtRXEkNNGG+21NZA8w9bZuoIEcmvLrrIlxHAgxwGFwx3EsNMmhwSGNoDVvna4PxEYYmBVUIki5ZtKbOz6Oykvpc5W5LwmFtRgSVdV7J02WzjGwB59zX8X2CP7zKOnT8jFWyVpjJXTVdsZLAuKCuQispvIFxQJPWqlI7Gk7pN5Mu9rHe3We6t23NX2XaHznIykUtbkYUjXydA5bG46XcrPfo7Y1k79ySYG7am82fpLh5HJtUJPHOmX4pHmyBHmzZtptYL/Mu4LJCNaOjQcOlnqWw8Ww8a6Er1sAHrqeKk6cefOrun/aCUx4/Z2UkfI7ZK+ggL2o9aOcki+tujvxm628e3YfjHIjNBbd15JrlCJdtl0LscYyBwyUo58mFSWDhbp8k4ihMuO/BftZe9y2YMYxh8+zwbjbNWfj1bj9FHIO2oggUU6HGWreT/LvswWQ4kbSJDAaS86WOkOnzwlKZnDwJqN3k6wCikGs+nH0f2kP5cgKkAlViHL2TZ7zJbpZDUaXulyw55KaBVFJ50+iAKZQ+Cm04fe6diTqp/W7cgxJL3j8RfcqXCw",
     },
     "immutable": false,
     "kind": "ConfigMap",
@@ -895,8 +893,8 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-operator",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "8b9a9c8ea6e18a45dbc57e08f5bcb0e2a42f840baab6020b5e88216d391599",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "fa515bdbd839330271e6bbe896662fb47ddfd4af930e77e3583259f32a6688",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-operator",
@@ -922,8 +920,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Operator-Deployment-c81ed77e",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "8b9a9c8ea6e18a45dbc57e08f5bcb0e2a42f840baab6020b5e88216d391599",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "fa515bdbd839330271e6bbe896662fb47ddfd4af930e77e3583259f32a6688",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -1202,8 +1200,8 @@ exports[`multiple blocks 1`] = `
     "kind": "StatefulSet",
     "metadata": {
       "labels": {
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "8b9a9c8ea6e18a45dbc57e08f5bcb0e2a42f840baab6020b5e88216d391599",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "fa515bdbd839330271e6bbe896662fb47ddfd4af930e77e3583259f32a6688",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-worker",
@@ -1223,8 +1221,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Worker-WorkerStatefulSet-c8da4c4c",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "8b9a9c8ea6e18a45dbc57e08f5bcb0e2a42f840baab6020b5e88216d391599",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "fa515bdbd839330271e6bbe896662fb47ddfd4af930e77e3583259f32a6688",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -1467,8 +1465,8 @@ exports[`multiple blocks 1`] = `
     "metadata": {
       "labels": {
         "app.kubernetes.io/name": "kblocks-boom-doom-control",
-        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "8b9a9c8ea6e18a45dbc57e08f5bcb0e2a42f840baab6020b5e88216d391599",
-        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "fa515bdbd839330271e6bbe896662fb47ddfd4af930e77e3583259f32a6688",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
         "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
       },
       "name": "kblocks-boom-doom-control",
@@ -1494,8 +1492,8 @@ exports[`multiple blocks 1`] = `
         "metadata": {
           "labels": {
             "cdk8s.io/metadata.addr": "boom-doom-Control-Deployment-c87e3b0f",
-            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "8b9a9c8ea6e18a45dbc57e08f5bcb0e2a42f840baab6020b5e88216d391599",
-            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "fa515bdbd839330271e6bbe896662fb47ddfd4af930e77e3583259f32a6688",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "928b04eaf6500a6b67c48b08ddc661ecf4846a27b41f7bbd47ffd6b3403bf8",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "1979f0d88d8edb37ec6963d7b5735916726f8d040233bccafd229220756e85",
             "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
           },
         },
@@ -1699,39 +1697,37 @@ exports[`multiple blocks 1`] = `
                       "description": "The conditions of the resource.
 
 @ui kblocks.io/hidden",
-                      "items": [
-                        {
-                          "description": "Indicates if the resource is ready",
-                          "properties": {
-                            "lastProbeTime": {
-                              "format": "date-time",
-                              "type": "string",
-                            },
-                            "lastTransitionTime": {
-                              "format": "date-time",
-                              "type": "string",
-                            },
-                            "message": {
-                              "type": "string",
-                            },
-                            "reason": {
-                              "type": "string",
-                            },
-                            "status": {
-                              "type": "string",
-                            },
-                            "type": {
-                              "type": "string",
-                            },
+                      "items": {
+                        "description": "Indicates if the resource is ready",
+                        "properties": {
+                          "lastProbeTime": {
+                            "format": "date-time",
+                            "type": "string",
                           },
-                          "required": [
-                            "type",
-                            "status",
-                            "lastTransitionTime",
-                          ],
-                          "type": "object",
+                          "lastTransitionTime": {
+                            "format": "date-time",
+                            "type": "string",
+                          },
+                          "message": {
+                            "type": "string",
+                          },
+                          "reason": {
+                            "type": "string",
+                          },
+                          "status": {
+                            "type": "string",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
                         },
-                      ],
+                        "required": [
+                          "type",
+                          "status",
+                          "lastTransitionTime",
+                        ],
+                        "type": "object",
+                      },
                       "type": "array",
                     },
                     "lastStateHash": {
@@ -1801,39 +1797,37 @@ exports[`multiple blocks 1`] = `
                       "description": "The conditions of the resource.
 
 @ui kblocks.io/hidden",
-                      "items": [
-                        {
-                          "description": "Indicates if the resource is ready",
-                          "properties": {
-                            "lastProbeTime": {
-                              "format": "date-time",
-                              "type": "string",
-                            },
-                            "lastTransitionTime": {
-                              "format": "date-time",
-                              "type": "string",
-                            },
-                            "message": {
-                              "type": "string",
-                            },
-                            "reason": {
-                              "type": "string",
-                            },
-                            "status": {
-                              "type": "string",
-                            },
-                            "type": {
-                              "type": "string",
-                            },
+                      "items": {
+                        "description": "Indicates if the resource is ready",
+                        "properties": {
+                          "lastProbeTime": {
+                            "format": "date-time",
+                            "type": "string",
                           },
-                          "required": [
-                            "type",
-                            "status",
-                            "lastTransitionTime",
-                          ],
-                          "type": "object",
+                          "lastTransitionTime": {
+                            "format": "date-time",
+                            "type": "string",
+                          },
+                          "message": {
+                            "type": "string",
+                          },
+                          "reason": {
+                            "type": "string",
+                          },
+                          "status": {
+                            "type": "string",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
                         },
-                      ],
+                        "required": [
+                          "type",
+                          "status",
+                          "lastTransitionTime",
+                        ],
+                        "type": "object",
+                      },
                       "type": "array",
                     },
                     "lastStateHash": {
