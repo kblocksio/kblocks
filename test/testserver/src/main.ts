@@ -1,6 +1,7 @@
 import http from "http";
 import { execSync } from 'child_process';
 import Redis from 'ioredis';
+import { subscribeToStream, getEndpoints } from "@kblocks/common";
 
 const map: Record<string, any> = {};
 const events: Array<any> = [];
@@ -18,6 +19,37 @@ const redisEvents = new Redis({
   password: 'pass1234',
 });
 
+subscribeToStream(getEndpoints().channels.events, (message: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    console.log(`Received message on events stream: ${message}`);
+
+    const body = JSON.parse(message);
+    events.push(body);
+
+    if (body.type === "OBJECT") {
+      const key = body.objUri;
+
+      // delete managedFields
+      delete body.object?.metadata?.managedFields;
+
+      if (Object.keys(body.object).length === 0) {
+        delete map[key];
+      } else {
+        map[key] = body.object;
+      }
+    }
+
+    if (body.type === "PATCH") {
+      const key = body.objUri;
+      map[key] = {
+        ...map[key] ?? {},
+        ...body.patch,
+      };
+    }
+    resolve();
+  });
+});
+
 const controlChannel = "kblocks-events";
 redisEvents.subscribe(controlChannel);
 redisEvents.on("message", (channel, message) => {
@@ -26,29 +58,7 @@ redisEvents.on("message", (channel, message) => {
     return;
   }
 
-  const body = JSON.parse(message);
-  events.push(body);
-
-  if (body.type === "OBJECT") {
-    const key = body.objUri;
-
-    // delete managedFields
-    delete body.object?.metadata?.managedFields;
-
-    if (Object.keys(body.object).length === 0) {
-      delete map[key];
-    } else {
-      map[key] = body.object;
-    }
-  }
-
-  if (body.type === "PATCH") {
-    const key = body.objUri;
-    map[key] = {
-      ...map[key] ?? {},
-      ...body.patch,
-    };
-  }
+  
 });
 
 server.on("request", (req, res) => {
@@ -84,8 +94,7 @@ server.on("request", (req, res) => {
         const obj = JSON.parse(bodyString);
         const { system, group, version, plural } = obj;
         const channel = `kblocks-control:${group}/${version}/${plural}/${system}`;
-        await redis.publish(channel, bodyString)
-
+        await redis.xadd(channel, "*", "message", bodyString);
         return res.end();
       }
 

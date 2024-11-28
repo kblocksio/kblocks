@@ -16,9 +16,9 @@ async function main() {
     throw new Error("No blocks found");
   }
 
-  const connections: ReturnType<typeof start>[] = [];
+  const connections: Awaited<ReturnType<typeof start>>[] = [];
   for (const manifest of blocks) {
-    const connection = start(KBLOCKS_SYSTEM_ID, manifest);
+    const connection = await start(KBLOCKS_SYSTEM_ID, manifest);
     connections.push(connection);
   }
 

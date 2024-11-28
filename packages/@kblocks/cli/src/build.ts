@@ -112,7 +112,7 @@ export class Block extends Chart {
     const { env } = props;
 
     // make a deep copy of the block requests so we can modify them
-    const blockRequests = cloneDeep(props.blockRequests);
+    const blockRequests: BlockRequest[] = cloneDeep(props.blockRequests);
 
     if (blockRequests.length === 0) {
       throw new Error("No block requests provided");
@@ -130,7 +130,6 @@ export class Block extends Chart {
     const flushOnly = mainBlock.block.operator?.flushOnly ?? false;
 
     addSystemIfNotSet(mainBlock.block);
-    addRedisIfNotSet(mainBlock.block);
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       blockRequests,
@@ -291,37 +290,32 @@ function calculateImageName(serviceName: string) {
 }
 
 function addSystemIfNotSet(block: Manifest) {
-  const key = "KBLOCKS_SYSTEM_ID";
-  block.operator = block.operator ?? {};
-
-  // check if one of the "env" is KBLOCKS_SYSTEM_ID
-  if (key in (block.operator.env ?? {}) ||
-      key in (block.operator.envSecrets ?? {}) ||
-      key in (block.operator.envConfigMaps ?? {})) {
-    return;
+  function setEnv(key: string, optional: boolean) {
+    block.operator = block.operator ?? {};
+    // check if one of the "env" is KBLOCKS_API_KEY
+    if (key in (block.operator.env ?? {}) ||
+        key in (block.operator.envSecrets ?? {}) ||
+        key in (block.operator.envConfigMaps ?? {})) {
+      return;
+    }
+  
+    block.operator.envSecrets = block.operator.envSecrets ?? {};
+    block.operator.envSecrets[key] = {
+      key: key,
+      secret: "kblocks",
+      optional: optional,
+    };
   }
 
-  // if KBLOCKS_SYSTEM_ID is not set, read it from the "kblocks-system" ConfigMap by default.
-  block.operator.envConfigMaps = block.operator.envConfigMaps ?? {};
-  block.operator.envConfigMaps[key] = "kblocks-system";
-}
-
-function addRedisIfNotSet(block: Manifest) {
-  const key = "KBLOCKS_API_KEY";
-  block.operator = block.operator ?? {};
-
-  // check if one of the "env" is KBLOCKS_API_KEY
-  if (key in (block.operator.env ?? {}) ||
-      key in (block.operator.envSecrets ?? {}) ||
-      key in (block.operator.envConfigMaps ?? {})) {
-    return;
+  const keys = ["KBLOCKS_SYSTEM_ID", "KBLOCKS_API_KEY", "KBLOCKS_PUBSUB_HOST"];
+  for (const key of keys) {
+    setEnv(key, false);
   }
 
-  block.operator.envSecrets = block.operator.envSecrets ?? {};
-  block.operator.envSecrets[key] = {
-    key: "REDIS_PASSWORD",
-    secret: "kblocks-api-secrets",
-  };
+  const optionalKeys = ["KBLOCKS_PUBSUB_PORT", "KBLOCKS_STORAGE_PREFIX"];
+  for (const key of optionalKeys) {
+    setEnv(key, true);
+  }
 }
 
 export function calculateNames(blockRequests: BlockRequest[]) {
