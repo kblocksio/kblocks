@@ -185,31 +185,23 @@ export function renderStatusSchema(block: Manifest): JsonSchemaProps {
     throw new Error("'conditions' attribute is not allowed in the 'status' section of the schema unless the operator is configured with 'skipCrd: true'");
   }
 
-  props.conditions = props.conditions ?? {
+  props.conditions = {
     type: "array",
-    items: [],
     description: "The conditions of the resource.\n\n@ui kblocks.io/hidden",
-  };
-
-  const conditions = props.conditions.items;
-
-  if (!conditions) {
-    throw new Error("'conditions' attribute must be of type 'array' and have an 'items' field");
-  }
-
-  conditions.push({
-    type: "object",
-    description: "Indicates if the resource is ready",
-    properties: {
-      type: { type: "string" },
-      status: { type: "string" },
-      lastTransitionTime: { type: "string", format: "date-time" },
-      lastProbeTime: { type: "string", format: "date-time" },
-      message: { type: "string" },
-      reason: { type: "string" },
+    items: {
+      type: "object",
+      description: "Indicates if the resource is ready",
+      properties: {
+        type: { type: "string" },
+        status: { type: "string" },
+        lastTransitionTime: { type: "string", format: "date-time" },
+        lastProbeTime: { type: "string", format: "date-time" },
+        message: { type: "string" },
+        reason: { type: "string" },
+      },
+      required: ["type", "status", "lastTransitionTime"],
     },
-    required: ["type", "status", "lastTransitionTime"],
-  })
+  };
 
   if (engine === "tofu" || engine.startsWith("wing/tf-")) {
     props[TFSTATE_ATTRIBUTE] = { 
