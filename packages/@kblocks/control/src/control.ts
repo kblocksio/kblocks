@@ -1,7 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
 import crypto from "crypto";
 import { blockTypeFromUri, ControlCommand, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "@kblocks/api";
-import { emitEvent, subscribeToControlStream } from "@kblocks/common";
+import { emitEvent, subscribeToControlStream, getConfiguration, Access } from "@kblocks/common";
 import { flush } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
@@ -23,6 +23,11 @@ export async function start(system: string, manifest: Manifest) {
   const channel = `${group}/${version}/${plural}/${system}`;
 
   const unsubscribe = await subscribeToControlStream(channel, async (message) => {
+    if (getConfiguration().control.access === Access.Read) {
+      console.log(`Received control message for read-only channel ${channel}. Ignoring...`);
+      return;
+    }
+
     const { command, blockUri } = parseCommand(ctx, message);
 
     try {

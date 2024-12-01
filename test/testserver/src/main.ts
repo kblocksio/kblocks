@@ -1,7 +1,7 @@
 import http from "http";
 import { execSync } from 'child_process';
 import Redis from 'ioredis';
-import { subscribeToStream, getEndpoints } from "@kblocks/common";
+import { subscribeToStream, getConfiguration } from "@kblocks/common";
 
 const map: Record<string, any> = {};
 const events: Array<any> = [];
@@ -19,7 +19,7 @@ const redisEvents = new Redis({
   password: 'pass1234',
 });
 
-subscribeToStream(getEndpoints().channels.events, (message: string): Promise<void> => {
+subscribeToStream(getConfiguration().channels.events, (message: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     console.log(`Received message on events stream: ${message}`);
 

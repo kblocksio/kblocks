@@ -1,5 +1,5 @@
 import Redis from "ioredis";
-import { getEndpoints } from "./endpoints.js";
+import { getConfiguration } from "./config.js";
 
 export const getRedisConnection = (): { getClient: () => Redis, quit: () => Promise<void> } => {
   let redisClient: Redis | undefined;
@@ -9,7 +9,7 @@ export const getRedisConnection = (): { getClient: () => Redis, quit: () => Prom
         return redisClient;
       }
 
-      const redisEndpoint = getEndpoints().redis();
+      const redisEndpoint = getConfiguration().redis();
       redisClient = new Redis(redisEndpoint.port, redisEndpoint.host, {
         password: redisEndpoint.password,
         retryStrategy: (times: number) => {
