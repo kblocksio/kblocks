@@ -1,4 +1,4 @@
-import { getEndpoints } from "./endpoints.js";
+import { getConfiguration } from "./config.js";
 import { getRedisConnection } from "./redis.js";
 
 const redisConnection = getRedisConnection();
@@ -56,6 +56,6 @@ export async function subscribeToStream(stream: string, handler: (message: strin
 }
 
 export async function subscribeToControlStream(channel: string, handler: (message: string) => Promise<void>) {
-  const stream = `${getEndpoints().channels.control}:${channel}`;
+  const stream = `${getConfiguration().channels.control}:${channel}`;
   return subscribeToStream(stream, handler);
 }

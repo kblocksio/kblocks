@@ -315,7 +315,7 @@ function addSystemIfNotSet(block: Manifest) {
     setEnv(key, false);
   }
 
-  const optionalKeys = ["KBLOCKS_PUBSUB_PORT", "KBLOCKS_STORAGE_PREFIX"];
+  const optionalKeys = ["KBLOCKS_PUBSUB_PORT", "KBLOCKS_STORAGE_PREFIX", "KBLOCKS_ACCESS"];
   for (const key of optionalKeys) {
     setEnv(key, true);
   }

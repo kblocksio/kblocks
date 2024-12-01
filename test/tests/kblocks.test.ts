@@ -51,8 +51,9 @@ async function createResource(name: string, {
   kind = "TestResource",
   plural = "testresources",
   apiVersion = "testing.kblocks.io/v1",
-  data = { hello: "world1234" }
-}: { kind?: string, plural?: string, apiVersion?: string, data?: any } = {}) {
+  data = { hello: "world1234" },
+  timeout,
+}: { kind?: string, plural?: string, apiVersion?: string, data?: any, timeout?: number } = {}) {
   console.log("creating resource", name);
 
   const parts = apiVersion.split("/");
@@ -89,7 +90,7 @@ async function createResource(name: string, {
       return true;
     }
     return false;
-  });
+  }, timeout);
 
   console.log("object created", obj);
   return { obj, objUri };
@@ -370,6 +371,22 @@ test("flush resource", opts, async () => {
 
   await deleteResource(objUri);
   await waitForResourceToBeDeleted(objUri);
+});
+
+test("cant create resource with read access", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  try  {
+    await createResource(name, {
+      kind: "TerraformResource",
+      plural: "tfresources",
+      apiVersion: "kblocks.io/v1",
+      data: { input: "my_input_666" },
+      timeout: 10_000,
+    });
+  } catch (error) {
+    expect(error.message).toContain("Timeout");
+  }
 });
 
 async function waitUntilLastEvent(predicate: (event: any, events?: any[]) => boolean, timeout: number = 60_000) {
