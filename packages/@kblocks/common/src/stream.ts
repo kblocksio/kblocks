@@ -23,7 +23,7 @@ export async function subscribeToStream(stream: string, handler: (message: strin
   async function listenForMessage(lastId = ">") {
     if (isShuttingDown) return;
     console.log(`Listening for messages on ${stream} with id: `, lastId);
-    const results: any = await redisClient.xreadgroup("GROUP", GROUP_NAME, CONSUMER_NAME, "COUNT", 1, "BLOCK", 0, "STREAMS", stream, lastId);
+    const results: any = await redisClient.xreadgroup("GROUP", GROUP_NAME, CONSUMER_NAME, "COUNT", 1, "BLOCK", 0, "NOACK", "STREAMS", stream, lastId);
     if (!results) {
       setTimeout(listenForMessage, 10, lastId);
       return;
@@ -35,7 +35,7 @@ export async function subscribeToStream(stream: string, handler: (message: strin
     for (const message of messages) {
       if (isShuttingDown) break;
       try {
-        await redisClient.xack(key, GROUP_NAME, message[0]);
+        await redisClient.xdel(key, message[0]);
         const event: string = message[1][1];
         await handler(event);
       } catch (error) {
