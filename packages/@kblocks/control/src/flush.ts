@@ -65,10 +65,41 @@ async function flushType(ctx: Context, manifest: Manifest) {
   });
 }
 
+export async function unflushResource(ctx: Context, block: Manifest, resource: ApiObject) {
+  const objType = `${block.definition.group}/${block.definition.version}/${block.definition.plural}`;
+  const objUri = formatBlockUri({
+    group: block.definition.group,
+    version: block.definition.version,
+    plural: block.definition.plural,
+    system: ctx.system,
+    namespace: resource.metadata.namespace ?? "default",
+    name: resource.metadata.name,
+  });
+
+  console.log(`unflushing resource: ${objUri}`);
+  return emitEventAsync({
+    type: "OBJECT",
+    object: {},
+    reason: EventAction.Delete,
+    objUri,
+    objType,
+    timestamp: new Date(),
+    requestId: ctx.requestId,
+  });
+}
+
 export async function unflushType(ctx: Context, block: Manifest) {
   const name = `${block.definition.plural}.${block.definition.group}`;
   console.log(`Handling cleanup for system ${ctx.system} and block ${name}`);
 
+  let resources = [];
+  if (!isCoreGroup(block.definition.group)) {
+    resources = await listAllResources(block);
+  } else {
+    resources = await listAllCoreResources(block);
+  }
+
+  await Promise.all(resources.map(resource => unflushResource(ctx, block, resource)));
   const objUri = formatBlockUri({
     group: "kblocks.io",
     version: "v1",

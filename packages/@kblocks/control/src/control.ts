@@ -137,7 +137,7 @@ async function handleCommandMessage(ctx: Context, command: ControlCommand) {
 }
 
 export async function handleCleanup(blocks: Manifest[], systemId: string) {
-  for (const block of blocks) {
+  await Promise.all(blocks.map(block => {
     const ctx: Context = {
       system: systemId,
       group: block.definition.group,
@@ -145,8 +145,8 @@ export async function handleCleanup(blocks: Manifest[], systemId: string) {
       plural: block.definition.plural,
       requestId: generateRandomId(),
     };
-    await unflushType(ctx, block);
-  }
+    return unflushType(ctx, block);
+  }));
   console.log("Cleanup completed");
 }
 

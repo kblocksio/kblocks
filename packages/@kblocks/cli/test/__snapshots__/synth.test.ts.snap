@@ -848,7 +848,7 @@ exports[`minimal block snapshot 1`] = `
           },
         },
         "spec": {
-          "automountServiceAccountToken": false,
+          "automountServiceAccountToken": true,
           "containers": [
             {
               "env": [
@@ -977,6 +977,7 @@ exports[`minimal block snapshot 1`] = `
             "fsGroupChangePolicy": "Always",
             "runAsNonRoot": true,
           },
+          "serviceAccountName": "boom-control-serviceaccount-c867682d",
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [
@@ -2107,7 +2108,7 @@ exports[`multiple blocks 1`] = `
           },
         },
         "spec": {
-          "automountServiceAccountToken": false,
+          "automountServiceAccountToken": true,
           "containers": [
             {
               "env": [
@@ -2275,6 +2276,7 @@ exports[`multiple blocks 1`] = `
             "fsGroupChangePolicy": "Always",
             "runAsNonRoot": true,
           },
+          "serviceAccountName": "boom-doom-control-serviceaccount-c8607aa4",
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [

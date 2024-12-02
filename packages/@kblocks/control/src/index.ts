@@ -17,7 +17,11 @@ async function main() {
   }
 
   if (process.env.CLEANUP) {
-    await handleCleanup(blocks, KBLOCKS_SYSTEM_ID);
+    try {
+      await handleCleanup(blocks, KBLOCKS_SYSTEM_ID);
+    } catch (error) {
+      console.error("Error during cleanup:", error);
+    }
     process.exit(0);
   }
 

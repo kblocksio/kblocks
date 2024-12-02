@@ -81,6 +81,8 @@ export class Control extends Construct {
           "helm.sh/hook-weight": "0",
         }
       },
+      serviceAccount: serviceAccount,
+      automountServiceAccountToken: true,
     });
     const cleanupContainer = job.addContainer({
       name: "cleanup",
