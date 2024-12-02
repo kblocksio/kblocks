@@ -10,6 +10,13 @@ import { displayApiVersion, formatBlockTypeForEnv } from "@kblocks/api";
 import fs from "fs";
 import { BlockRequest } from "./types";
 
+export interface OperatorListener {
+  apiVersion: string;
+  kind: string;
+  executeHookOnEvent: string[];
+  labelSelector?: { matchLabels: Record<string, string> };
+}
+
 export interface PodEnvironment {
   namespace: string;
   envSecrets?: Record<string, string> | Record<string, { key: string, secret: string, optional?: boolean }>;
@@ -152,7 +159,7 @@ export function createTgzBase64(srcDir: string): string {
 }
 
 function readBlockJson(blockRequests: BlockRequest[], flushOnly: boolean) {
-  const kubernetes = blockRequests.map( b => ({
+  const kubernetes: OperatorListener[] = blockRequests.map( b => ({
     apiVersion: displayApiVersion(b.block),
     kind: b.block.definition.kind,
     executeHookOnEvent: ["Added", "Modified", "Deleted"]

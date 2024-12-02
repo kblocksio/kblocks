@@ -50,7 +50,6 @@ export class Operator extends Construct {
       automountServiceAccountToken: true,
     });
 
-   
     const container = operatorDeployment.addContainer({
       name: "operator",
       image: props.image,

@@ -1,4 +1,4 @@
-import { start } from "./control";
+import { start, handleCleanup } from "./control";
 import { Manifest } from "@kblocks/api";
 import { closeEvents } from "@kblocks/common";
 import fs from "fs";
@@ -14,6 +14,11 @@ async function main() {
   const blocks = await readAllBlocks();
   if (blocks.length === 0) {
     throw new Error("No blocks found");
+  }
+
+  if (process.env.CLEANUP) {
+    await handleCleanup(blocks, KBLOCKS_SYSTEM_ID);
+    process.exit(0);
   }
 
   const connections: Awaited<ReturnType<typeof start>>[] = [];

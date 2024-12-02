@@ -1,5 +1,5 @@
-import { ApiObject, Manifest, isCoreGroup } from "@kblocks/api";
-import { emitEvent } from "@kblocks/common";
+import { ApiObject, EventAction, Manifest, blockTypeFromUri, isCoreGroup, formatBlockUri } from "@kblocks/api";
+import { emitEvent, emitEventAsync } from "@kblocks/common";
 import * as k8s from "@kubernetes/client-node";
 import { Context } from "./context";
 import { listAllCoreResources } from "./client";
@@ -62,6 +62,31 @@ async function flushType(ctx: Context, manifest: Manifest) {
       ]
     },
     spec: manifest,
+  });
+}
+
+export async function unflushType(ctx: Context, block: Manifest) {
+  const name = `${block.definition.plural}.${block.definition.group}`;
+  console.log(`Handling cleanup for system ${ctx.system} and block ${name}`);
+
+  const objUri = formatBlockUri({
+    group: "kblocks.io",
+    version: "v1",
+    plural: "blocks",
+    system: ctx.system,
+    namespace: "default",
+    name: name,
+  });
+  const objType = blockTypeFromUri(objUri);
+
+  await emitEventAsync({
+    type: "OBJECT",
+    object: {},
+    reason: EventAction.Delete,
+    objUri,
+    objType,
+    timestamp: new Date(),
+    requestId: ctx.requestId,
   });
 }
 

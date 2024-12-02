@@ -823,6 +823,181 @@ exports[`minimal block snapshot 1`] = `
     },
   },
   {
+    "apiVersion": "batch/v1",
+    "kind": "Job",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-delete",
+        "helm.sh/hook-weight": "0",
+      },
+      "labels": {
+        "app.kubernetes.io/name": "kblocks-boom-cleanup",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "34c0963219bf6b2d085c4ba85eb3c8e191b02b4846b791fd37336b68884346",
+        "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
+      },
+      "name": "kblocks-boom-cleanup",
+      "namespace": "{{ .Release.Namespace }}",
+    },
+    "spec": {
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-Control-Cleanup-c87854d1",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "34c0963219bf6b2d085c4ba85eb3c8e191b02b4846b791fd37336b68884346",
+            "configmap-hash-kconfig": "2268192aabebb688bcfb05bdd7f0b25907a056f21afdda92209f1c7747cb02",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": false,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_API_KEY",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_ACCESS",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_ACCESS",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "REDIS_URL",
+                  "value": "redis://boom-redis.{{ .Release.Namespace }}.svc.cluster.local:6379",
+                },
+                {
+                  "name": "KBLOCKS_WORKER_IMAGE",
+                  "value": "dummy/test-worker-image:latest",
+                },
+                {
+                  "name": "KBLOCKS_OPERATOR_IMAGE",
+                  "value": "dummy/test-operator-image:latest",
+                },
+                {
+                  "name": "KBLOCKS_CONTROL_IMAGE",
+                  "value": "dummy/test-control-image:latest",
+                },
+                {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
+                },
+                {
+                  "name": "WORKERS",
+                  "value": "1",
+                },
+                {
+                  "name": "CLEANUP",
+                  "value": "true",
+                },
+              ],
+              "image": "dummy/test-control-image:latest",
+              "imagePullPolicy": "Always",
+              "name": "cleanup",
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+                },
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+                },
+              ],
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Never",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c86b2ad9",
+            },
+            {
+              "configMap": {
+                "name": "boom-configmapvolume-block-json-c8b85b34",
+              },
+              "name": "configmap-boom-configmapvolume-block-json-c8b85b34",
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
     "apiVersion": "apiextensions.k8s.io/v1",
     "kind": "CustomResourceDefinition",
     "metadata": {
@@ -1878,6 +2053,228 @@ exports[`multiple blocks 1`] = `
             "runAsNonRoot": true,
           },
           "serviceAccountName": "boom-doom-control-serviceaccount-c8607aa4",
+          "setHostnameAsFQDN": false,
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+              },
+              "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+            },
+            {
+              "configMap": {
+                "name": "configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+              },
+              "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+            },
+            {
+              "configMap": {
+                "name": "boom-doom-configmapvolume-block-json-c839368f",
+              },
+              "name": "configmap-boom-doom-configmapvolume-block-json-c839368f",
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    "apiVersion": "batch/v1",
+    "kind": "Job",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-delete",
+        "helm.sh/hook-weight": "0",
+      },
+      "labels": {
+        "app.kubernetes.io/name": "kblocks-boom-doom-cleanup",
+        "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "f27c4c17c6d8bab252325f4af9edb3af8ebe848b54742faf12bfcc8f0429d2",
+        "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "5f0e4a22bb04b52631068b034a4d7a6eaf547149fe66644549d9e84f788a9d",
+        "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
+      },
+      "name": "kblocks-boom-doom-cleanup",
+      "namespace": "my-namespace",
+    },
+    "spec": {
+      "template": {
+        "metadata": {
+          "labels": {
+            "cdk8s.io/metadata.addr": "boom-doom-Control-Cleanup-c83f6f9e",
+            "configmap-hash-kblock-BOOM-COM-V1-BOOMS": "f27c4c17c6d8bab252325f4af9edb3af8ebe848b54742faf12bfcc8f0429d2",
+            "configmap-hash-kblock-DOOM-COM-V1-DOOMS": "5f0e4a22bb04b52631068b034a4d7a6eaf547149fe66644549d9e84f788a9d",
+            "configmap-hash-kconfig": "c62f5ec5abfce93189ea13522d69d430372b88ecad137405dee39f2ea47da4",
+          },
+        },
+        "spec": {
+          "automountServiceAccountToken": false,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "SECRET1",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET1",
+                      "name": "secret-1",
+                    },
+                  },
+                },
+                {
+                  "name": "SECRET2",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "SECRET2",
+                      "name": "secret-2",
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_SYSTEM_ID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_SYSTEM_ID",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_API_KEY",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_API_KEY",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_HOST",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_HOST",
+                      "name": "kblocks",
+                      "optional": false,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_PUBSUB_PORT",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_PUBSUB_PORT",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_STORAGE_PREFIX",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_STORAGE_PREFIX",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "KBLOCKS_ACCESS",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "KBLOCKS_ACCESS",
+                      "name": "kblocks",
+                      "optional": true,
+                    },
+                  },
+                },
+                {
+                  "name": "CONFIGMAP1",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "key": "CONFIGMAP1",
+                      "name": "configmap-1",
+                    },
+                  },
+                },
+                {
+                  "name": "REDIS_URL",
+                  "value": "redis://boom-doom-redis.my-namespace.svc.cluster.local:6379",
+                },
+                {
+                  "name": "KBLOCKS_WORKER_IMAGE",
+                  "value": "dummy/test-worker-image:latest",
+                },
+                {
+                  "name": "KBLOCKS_OPERATOR_IMAGE",
+                  "value": "dummy/test-operator-image:latest",
+                },
+                {
+                  "name": "KBLOCKS_CONTROL_IMAGE",
+                  "value": "dummy/test-control-image:latest",
+                },
+                {
+                  "name": "ENV1",
+                  "value": "env-1",
+                },
+                {
+                  "name": "ENV2",
+                  "value": "env-2",
+                },
+                {
+                  "name": "ADDITIONAL_ENV",
+                  "value": "additional-env",
+                },
+                {
+                  "name": "WORKERS",
+                  "value": "2",
+                },
+                {
+                  "name": "CLEANUP",
+                  "value": "true",
+                },
+              ],
+              "image": "dummy/test-control-image:latest",
+              "imagePullPolicy": "Always",
+              "name": "cleanup",
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                },
+                "requests": {
+                  "cpu": "1m",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "privileged": false,
+                "readOnlyRootFilesystem": false,
+                "runAsNonRoot": false,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/kblock-BOOM-COM-V1-BOOMS",
+                  "name": "configmap-configmapvolume-block-json-boom-com-v1-booms-c8339f53",
+                },
+                {
+                  "mountPath": "/kblock-DOOM-COM-V1-DOOMS",
+                  "name": "configmap-configmapvolume-block-json-doom-com-v1-dooms-c80bbd8f",
+                },
+                {
+                  "mountPath": "/kconfig",
+                  "name": "configmap-boom-doom-configmapvolume-block-json-c839368f",
+                },
+              ],
+            },
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "hostNetwork": false,
+          "restartPolicy": "Never",
+          "securityContext": {
+            "fsGroupChangePolicy": "Always",
+            "runAsNonRoot": true,
+          },
           "setHostnameAsFQDN": false,
           "terminationGracePeriodSeconds": 30,
           "volumes": [

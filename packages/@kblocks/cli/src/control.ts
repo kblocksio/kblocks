@@ -68,5 +68,37 @@ export class Control extends Construct {
     setupPodEnvironment(controlDeployment, container, props.pod);
 
     container.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
+
+    const job = new k8s.Job(this, "Cleanup", {
+      metadata: {
+        namespace: props.namespace,
+        name: `kblocks-${name}-cleanup`,
+        labels: {
+          "app.kubernetes.io/name": `kblocks-${name}-cleanup`,
+        },
+        annotations: {
+          "helm.sh/hook": "pre-delete",
+          "helm.sh/hook-weight": "0",
+        }
+      },
+    });
+    const cleanupContainer = job.addContainer({
+      name: "cleanup",
+      image: props.image,
+      imagePullPolicy: k8s.ImagePullPolicy.ALWAYS,
+      resources: {
+        cpu: {
+          request: k8s.Cpu.millis(1),
+          limit: k8s.Cpu.units(1),
+        },
+      },
+      securityContext: {
+        readOnlyRootFilesystem: false,
+        ensureNonRoot: false,
+      },
+    });
+    setupPodEnvironment(job, cleanupContainer, props.pod);
+    cleanupContainer.env.addVariable("WORKERS", k8s.EnvValue.fromValue(props.workers.toString()));
+    cleanupContainer.env.addVariable("CLEANUP", k8s.EnvValue.fromValue("true"));
   }
 }

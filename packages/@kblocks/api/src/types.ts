@@ -31,6 +31,8 @@ export type ApiObject =  {
     labels?: Record<string, string>;
     ownerReferences?: OwnerReference[];
     managedFields?: any[];
+    deletionTimestamp?: string;
+    finalizers?: string[];
   };
 
   // current state

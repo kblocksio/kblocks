@@ -2,7 +2,7 @@ import * as k8s from "@kubernetes/client-node";
 import crypto from "crypto";
 import { blockTypeFromUri, ControlCommand, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "@kblocks/api";
 import { emitEvent, subscribeToControlStream, getConfiguration, Access } from "@kblocks/common";
-import { flush } from "./flush";
+import { flush, unflushType } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
 import { Context } from "./context";
@@ -134,6 +134,20 @@ async function handleCommandMessage(ctx: Context, command: ControlCommand) {
     default:
       throw new Error(`Unsupported control command: '${JSON.stringify(command)}'`);
   }
+}
+
+export async function handleCleanup(blocks: Manifest[], systemId: string) {
+  for (const block of blocks) {
+    const ctx: Context = {
+      system: systemId,
+      group: block.definition.group,
+      version: block.definition.version,
+      plural: block.definition.plural,
+      requestId: generateRandomId(),
+    };
+    await unflushType(ctx, block);
+  }
+  console.log("Cleanup completed");
 }
 
 function generateRandomId() {
