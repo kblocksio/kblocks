@@ -269,7 +269,9 @@ export function renderStatusSchema(block: Manifest): JsonSchemaProps {
   }
 
   for (const o of outputs) {
-    props[o] = { type: "string" };
+    if (!props[o]) {
+      props[o] = { type: "string" };
+    }
   }
 
   return status;
