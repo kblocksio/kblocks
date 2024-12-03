@@ -178,6 +178,11 @@ function readBlockJson(blockRequests: BlockRequest[], flushOnly: boolean) {
       crontab: "* * * * *",
       allowFailure: true,
     });
+    schedule.push({
+      name: "sync",
+      crontab: "*/5 * * * *",
+      allowFailure: true,
+    });
   }
 
   return JSON.stringify({

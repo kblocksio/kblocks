@@ -38,6 +38,7 @@ export async function readObject(client: k8s.CustomObjectsApi, ctx: Context, obj
     await sendContextToStream(workers, {
       object: obj as any,
       type: "request",
+      binding: "read",
       watchEvent: "Read",
     });
   } catch (e) {

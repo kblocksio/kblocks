@@ -1,7 +1,7 @@
 import fs from "fs";
 import zlib from "zlib";
 import Redis from "ioredis";
-import { BindingContext } from "./types";
+import { BindingContext } from "@kblocks/api";
 import { createHash } from 'crypto';
 import { listAllResources } from "./resources";
 import { EventAction, KConfig, Manifest, blockTypeFromUri, formatBlockUri, systemApiVersion, systemApiVersionFromDisplay } from "@kblocks/api";
@@ -49,15 +49,16 @@ async function main() {
 
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {
-    if (ctx.binding === "read") {
+    if (ctx.binding === "read" || ctx.binding === "sync") {
       const resources = await listAllNonFlushOnlyResourcesForOperator(blocks);
       for (const resource of resources) {
-        // we don't go through processEvent because we don't want to emit the READ event to the backend
+        // we don't go through processEvent because we don't want to emit the event to the backend
         await sendContextToStream(redisClient, workers, {
           ...ctx,
           object: resource,
           type: "schedule",
-          watchEvent: "Read",
+          binding: ctx.binding,
+          watchEvent: ctx.binding === "read" ? "Read" : "Sync",
         });
       }
     } else if (ctx.binding === "flush") {
@@ -67,7 +68,7 @@ async function main() {
           ...ctx,
           object: resource,
           type: "schedule",
-          watchEvent: "Flush",
+          watchEvent: "Sync",
         });
       }
     } else {
