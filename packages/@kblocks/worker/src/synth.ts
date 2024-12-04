@@ -9,7 +9,7 @@ import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
 import { publishNotification, RuntimeContext } from "./host.js";
 import { BindingContext, InvolvedObject, EventReason, StatusReason, ENGINES, EventType, EventAction } from "@kblocks/api";
-import { emitEvent } from "@kblocks/common";
+import { emitEventAsync } from "@kblocks/common";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
@@ -34,6 +34,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
   const isDeletion = ctx.watchEvent === "Deleted";
   const isReading = ctx.watchEvent === "Read";
+  const isQuiet = isReading || ctx.binding === "reconcile";
   const objType = `${objRef.apiVersion}/${plural}`;
   const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
 
@@ -45,14 +46,14 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
   // do not emit logs for read requests (if there will be an error, we will include the info there)
   const requestId = ctx.requestId ?? generateRandomId();
-  const logger = createLogger(objUri, objType, requestId, { emitEvent: !isReading });
+  const logger = createLogger(objUri, objType, requestId, { emitEvent: !isQuiet });
 
   const host: RuntimeContext = {
     getenv,
     tryGetenv,
     newSlackThread,
     chatCompletion,
-    emitEvent,
+    emitEventAsync,
     requestId,
     objUri,
     objType,
@@ -77,8 +78,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     // if we are deleting, we can't update the status at all because the object will be gone
     const statusUpdate = !isDeletion ? statusUpdater(host, ctx.object) : async () => {};
     const updateReadyCondition = async (ready: boolean, reason: StatusReason) => {
-      // do not update the ready condition for read to reduce spam
-      if (isReading) {
+      if (isQuiet) {
         return;
       }
 
@@ -135,13 +135,13 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     const slackStatus = (icon: string, reason: string) => `${icon} _${objRef.kind}_ *${objRef.namespace}/${objRef.name}*: ${reason}`;
 
     let slack: Awaited<ReturnType<typeof host.newSlackThread>> | undefined = undefined;
-    if (!isReading) {
+    if (!isQuiet) {
       slack = await host.newSlackThread(slackChannel, slackStatus("🟡", isDeletion ? "Deleting" : "Updating"));
     }
 
     try {
-      // reduce verbosity of the notification if we are just reading. otherwise we are doomed
-      if (!isReading) {
+      // reduce verbosity of the notification for quiet events
+      if (!isQuiet) {
         await publishNotification(host, {
           type: EventType.Normal,
           action: eventAction,
@@ -207,7 +207,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       }
 
       // reduce verbosity of the notification if we are just reading.
-      if (!isReading) {
+      if (!isQuiet) {
         await publishNotification(host, {
           type: EventType.Normal,
           action: eventAction,
@@ -217,7 +217,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       }
 
       if (isDeletion) {
-        host.emitEvent({
+        await host.emitEventAsync({
           type: "OBJECT",
           requestId,
           timestamp: new Date(),
@@ -255,7 +255,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       });
 
       // send the explanation as an ERROR event to the backend
-      host.emitEvent({
+      await host.emitEventAsync({
         type: "ERROR",
         objUri,
         requestId,

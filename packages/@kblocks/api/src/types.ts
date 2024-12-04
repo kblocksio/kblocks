@@ -4,6 +4,8 @@ export type BindingContext = {
   watchEvent: "Deleted" | "Modified" | "Added" | "Read";
   object: ApiObject;
   requestId?: string;
+  binding?: "read" | "reconcile" | "flush";
+  type?: "request" | "schedule";
 };
 
 

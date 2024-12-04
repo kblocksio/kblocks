@@ -1,6 +1,6 @@
 import * as k8s from "@kubernetes/client-node";
 import { blockTypeFromUri, isCoreGroup, parseBlockUri } from "@kblocks/api";
-import { emitEvent } from "@kblocks/common";
+import { emitEventAsync } from "@kblocks/common";
 import { Context } from "./context";
 import { getCoreResource } from "./client";
 
@@ -22,7 +22,7 @@ export async function refreshObject(client: k8s.CustomObjectsApi, ctx: Context, 
     });
   }
 
-  return emitEvent({
+  return emitEventAsync({
     type: "OBJECT",
     objType: blockTypeFromUri(objUri),
     objUri,
