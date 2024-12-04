@@ -1,7 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
 import crypto from "crypto";
 import { blockTypeFromUri, ControlCommand, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "@kblocks/api";
-import { emitEvent, subscribeToControlStream, getConfiguration, Access } from "@kblocks/common";
+import { emitEventAsync, subscribeToControlStream, getConfiguration, Access } from "@kblocks/common";
 import { flush, unflushType } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
@@ -34,7 +34,7 @@ export async function start(system: string, manifest: Manifest) {
       await handleCommandMessage(ctx, command);
       return console.log(`Command ${command.type} for ${blockUri} succeeded`);
     } catch (error) {
-      return handleError(ctx, blockUri, command, error);
+      await handleError(ctx, blockUri, command, error);
     }
   });
 
@@ -59,13 +59,13 @@ function handleError(ctx: Context, blockUri: string, command: ControlCommand, er
       reason: typeToReason(command.type),
     };
 
-    return emitEvent(obj);
+    return emitEventAsync(obj);
   }
 
   const message = (error.body as any)?.message ?? `unknown error while handling ${command.type} for ${blockUri}`;
   console.error(message);
   
-  emitEvent({
+  return emitEventAsync({
     requestId: ctx.requestId,
     type: "ERROR",
     objType: blockType,

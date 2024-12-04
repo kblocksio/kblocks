@@ -9,7 +9,7 @@ import { chatCompletion, explainError } from "./ai.js";
 import { applyTofu } from "./tofu.js";
 import { publishNotification, RuntimeContext } from "./host.js";
 import { BindingContext, InvolvedObject, EventReason, StatusReason, ENGINES, EventType, EventAction } from "@kblocks/api";
-import { emitEvent } from "@kblocks/common";
+import { emitEventAsync } from "@kblocks/common";
 import { createLogger } from "./logging.js";
 import { newSlackThread } from "./slack.js";
 import { applyCdk8s } from "./cdk8s.js";
@@ -34,7 +34,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
 
   const isDeletion = ctx.watchEvent === "Deleted";
   const isReading = ctx.watchEvent === "Read";
-  const isQuiet = isReading || ctx.binding === "sync";
+  const isQuiet = isReading || ctx.binding === "reconcile";
   const objType = `${objRef.apiVersion}/${plural}`;
   const objUri = `kblocks://${objType}/${KBLOCKS_SYSTEM_ID}/${objRef.namespace}/${objRef.name}`;
 
@@ -53,7 +53,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     tryGetenv,
     newSlackThread,
     chatCompletion,
-    emitEvent,
+    emitEventAsync,
     requestId,
     objUri,
     objType,
@@ -217,7 +217,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       }
 
       if (isDeletion) {
-        host.emitEvent({
+        await host.emitEventAsync({
           type: "OBJECT",
           requestId,
           timestamp: new Date(),
@@ -255,7 +255,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
       });
 
       // send the explanation as an ERROR event to the backend
-      host.emitEvent({
+      await host.emitEventAsync({
         type: "ERROR",
         objUri,
         requestId,

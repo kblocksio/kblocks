@@ -49,7 +49,7 @@ async function main() {
 
   console.log("EVENT:", JSON.stringify(context));
   for (const ctx of context) {
-    if (ctx.binding === "read" || ctx.binding === "sync") {
+    if (ctx.binding === "read" || ctx.binding === "reconcile") {
       const resources = await listAllNonFlushOnlyResourcesForOperator(blocks);
       for (const resource of resources) {
         // we don't go through processEvent because we don't want to emit the event to the backend

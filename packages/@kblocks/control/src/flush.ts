@@ -1,5 +1,5 @@
 import { ApiObject, EventAction, Manifest, blockTypeFromUri, isCoreGroup, formatBlockUri } from "@kblocks/api";
-import { emitEvent, emitEventAsync } from "@kblocks/common";
+import { emitEventAsync } from "@kblocks/common";
 import * as k8s from "@kubernetes/client-node";
 import { Context } from "./context";
 import { listAllCoreResources } from "./client";
@@ -34,7 +34,7 @@ async function flushAllResources(ctx: Context, manifest: Manifest) {
 
   for (const resource of resources) {
     const objType = `${manifest.definition.group}/${manifest.definition.version}/${manifest.definition.plural}`;
-    flushResource(ctx, objType, resource);
+    await flushResource(ctx, objType, resource);
   }
 }
 
@@ -126,7 +126,7 @@ async function flushResource(ctx: Context, objType: string, resource: ApiObject)
 
   console.log(`flushing resource: ${objUri}`);
 
-  emitEvent({
+  return emitEventAsync({
     type: "OBJECT",
     reason: "SYNC",
     objUri,

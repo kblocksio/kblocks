@@ -4,7 +4,7 @@ import child_process from "child_process";
 import { chatCompletion } from "./ai.js";
 import { newSlackThread } from "./slack.js";
 import { Event, InvolvedObject, formatBlockTypeForEnv, parseBlockUri } from "@kblocks/api";
-import { emitEvent } from "@kblocks/common";
+import { emitEventAsync } from "@kblocks/common";
 import { getenv, tryGetenv, tempdir, exec } from "./util.js";
 import { type createLogger } from "./logging.js";
 
@@ -14,7 +14,7 @@ export interface RuntimeContext {
   tryGetenv: typeof tryGetenv,
   exec: (command: string, args: string[], options?: child_process.SpawnOptions) => Promise<string>,
   chatCompletion: typeof chatCompletion;
-  emitEvent: typeof emitEvent;
+  emitEventAsync: typeof emitEventAsync;
   objUri: string;
   objRef: InvolvedObject;
   objType: string;
@@ -58,7 +58,7 @@ export async function publishNotification(host: RuntimeContext, event: Event) {
     const name = "kblock-event-" + Math.random().toString(36).substring(7);
     const eventJson = path.join(workdir, "event.json");
 
-    host.emitEvent({
+    await host.emitEventAsync({
       requestId: host.requestId,
       type: "LIFECYCLE",
       objUri: host.objUri,

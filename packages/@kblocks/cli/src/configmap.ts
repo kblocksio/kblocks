@@ -179,7 +179,7 @@ function readBlockJson(blockRequests: BlockRequest[], flushOnly: boolean) {
       allowFailure: true,
     });
     schedule.push({
-      name: "sync",
+      name: "reconcile",
       crontab: "*/5 * * * *",
       allowFailure: true,
     });

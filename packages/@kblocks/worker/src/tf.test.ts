@@ -149,7 +149,7 @@ const createHost = (exec: (command: string, args: string[], options: any) => Pro
     getenv: notImplemented,
     tryGetenv,
     chatCompletion: notImplemented,
-    emitEvent: notImplemented,
+    emitEventAsync: notImplemented,
     system,
     logger: createLogger(objUri, objType, requestId, { emitEvent: false }),
     requestId,
