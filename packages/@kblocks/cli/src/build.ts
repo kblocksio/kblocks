@@ -137,7 +137,7 @@ export class Block extends Chart {
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       blockRequests,
       namespace,
-      flushOnly,
+      operator: mainBlock.block.operator,
     });
   
     const redisServiceName = `${id}-redis`;

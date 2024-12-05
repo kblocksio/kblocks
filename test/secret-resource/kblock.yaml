@@ -20,5 +20,6 @@ spec:
       KBLOCKS_ACCESS: write
     skipCrd: true
     flushOnly: true
+    flushCrontab: "*/30 * * * * *"
 metadata:
   name: secrets.core

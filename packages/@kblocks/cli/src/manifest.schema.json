@@ -118,6 +118,9 @@
               "type": "boolean",
               "default": false
             },
+            "flushCrontab": {
+              "type": "string"
+            },
             "permissions": {
               "type": "array",
               "items": {
@@ -167,6 +170,32 @@
             "workers": {
               "type": "number",
               "default": 1
+            }
+          }
+        },
+        "control": {
+          "type": "object",
+          "properties": {
+            "git": {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "type": "string"
+                },
+                "branch": {
+                  "type": "string"
+                },
+                "directory": {
+                  "type": "string"
+                },
+                "createPullRequest": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "required": [
+                "repo"
+              ]
             }
           }
         }

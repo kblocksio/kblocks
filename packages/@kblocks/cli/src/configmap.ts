@@ -6,7 +6,7 @@ import crypto from "crypto";
 import { readdirSync } from "fs";
 import { relative, join } from "path";
 import * as k8s from "cdk8s-plus-30";
-import { displayApiVersion, formatBlockTypeForEnv } from "@kblocks/api";
+import { displayApiVersion, formatBlockTypeForEnv, Manifest } from "@kblocks/api";
 import fs from "fs";
 import { BlockRequest } from "./types";
 
@@ -28,7 +28,7 @@ export interface PodEnvironment {
 export interface ConfigMapVolumeProps {
   namespace: string;
   blockRequests: BlockRequest[];
-  flushOnly: boolean;
+  operator: Manifest["operator"];
 }
 
 export class ConfigMapFromDirectory extends Construct {
@@ -67,7 +67,7 @@ export class ConfigMapFromDirectory extends Construct {
         namespace: props.namespace,
       },
       data: {
-        "config.json": readBlockJson(props.blockRequests, props.flushOnly),
+        "config.json": readBlockJson(props.blockRequests, props.operator),
       },
     });
   }
@@ -158,7 +158,7 @@ export function createTgzBase64(srcDir: string): string {
   return data.toString("base64");
 }
 
-function readBlockJson(blockRequests: BlockRequest[], flushOnly: boolean) {
+function readBlockJson(blockRequests: BlockRequest[], operator: Manifest["operator"]) {
   const kubernetes: OperatorListener[] = blockRequests.map( b => ({
     apiVersion: displayApiVersion(b.block),
     kind: b.block.definition.kind,
@@ -166,10 +166,10 @@ function readBlockJson(blockRequests: BlockRequest[], flushOnly: boolean) {
   }));
 
   const schedule = [];
-  if (flushOnly) {
+  if (operator?.flushOnly) {
     schedule.push({
       name: "flush",
-      crontab: "*/5 * * * *",
+      crontab: operator.flushCrontab ?? "*/5 * * * *",
       allowFailure: false,
     });
   } else {

@@ -44,6 +44,7 @@ export const Manifest = z.object({
     namespace: z.optional(z.string()),
     skipCrd: z.optional(z.boolean().default(false)),
     flushOnly: z.optional(z.boolean().default(false)),
+    flushCrontab: z.optional(z.string()),
     permissions: z.optional(z.array(z.object({
       apiGroups: z.array(z.string()),
       resources: z.array(z.string()),
@@ -61,6 +62,15 @@ export const Manifest = z.object({
     envConfigMaps: z.optional(z.record(z.string())),
     env: z.optional(z.record(z.string())),
     workers: z.optional(z.number().default(1)),
+  })),
+
+  control: z.optional(z.object({
+    git: z.optional(z.object({
+      repo: z.string(),
+      branch: z.optional(z.string()),
+      directory: z.optional(z.string()),
+      createPullRequest: z.optional(z.boolean().default(false)),
+    })),
   })),
 });
 
