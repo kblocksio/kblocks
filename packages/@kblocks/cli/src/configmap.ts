@@ -169,7 +169,7 @@ function readBlockJson(blockRequests: BlockRequest[], flushOnly: boolean) {
   if (flushOnly) {
     schedule.push({
       name: "flush",
-      crontab: "0,30 * * * * *",
+      crontab: "*/5 * * * *",
       allowFailure: false,
     });
   } else {
