@@ -1,7 +1,8 @@
 import * as k8s from "@kubernetes/client-node";
 import crypto from "crypto";
-import { blockTypeFromUri, ControlCommand, formatBlockUri, Manifest, ObjectEvent, parseBlockUri } from "@kblocks/api";
-import { emitEventAsync, subscribeToControlStream, getConfiguration, Access } from "@kblocks/common";
+import path from "path";
+import { blockTypeFromUri, ControlCommand, formatBlockUri, ForwardCommand, Manifest, ObjectEvent, parseBlockUri } from "@kblocks/api";
+import { emitEventAsync, subscribeToControlStream, getConfiguration, Access, sendControlRequest } from "@kblocks/common";
 import { flush, unflushType } from "./flush";
 import { applyObject } from "./apply";
 import { deleteObject } from "./delete";
@@ -19,7 +20,7 @@ export async function start(system: string, manifest: Manifest) {
   const version = manifest.definition.version;
   const plural = manifest.definition.plural;
 
-  const ctx: Context = { system, group, version, plural, requestId: generateRandomId() };
+  const ctx: Context = { system, group, version, plural, requestId: generateRandomId(), manifest };
   const channel = `${group}/${version}/${plural}/${system}`;
 
   const unsubscribe = await subscribeToControlStream(channel, async (message) => {
@@ -91,13 +92,88 @@ function parseCommand(ctx: Context, message: string) {
   }
 
   const blockUri = blockUriFromCommand(ctx, command);
-  const { system: targetSystem } = parseBlockUri(blockUri);
+  const { system: targetSystem, name, namespace, plural } = parseBlockUri(blockUri);
 
   if (ctx.system !== targetSystem) {
     throw new Error(`Control message sent to wrong system. My system is ${ctx.system} but the message is for ${targetSystem}`);
   }
 
+  if (ctx.manifest.control?.git) {
+    return parseGitCommand(ctx, { command, blockUri, plural, namespace, name });
+  }
+
   return { command, blockUri };
+}
+
+function parseGitCommand(ctx: Context, {
+  command,
+  blockUri,
+  plural,
+  namespace,
+  name,
+}: {
+  command: ControlCommand;
+  blockUri: string;
+  plural: string;
+  namespace: string;
+  name: string;
+}) {
+  if (!ctx.manifest.control?.git) {
+    throw new Error("Git control is not enabled");
+  }
+
+  const newName = `${plural}-${namespace}-${name}`;
+  const [owner, repoName] = ctx.manifest.control.git.repo.split("/");
+  const directory = ctx.manifest.control.git.directory;
+  if (command.type === "APPLY" || command.type === "PATCH") {
+    command.object = {
+      apiVersion: "kblocks.io/v1",
+      kind: "GitContent",
+      metadata: {
+        name: newName,
+        namespace,
+      },
+      name: repoName,
+      owner,
+      branch: ctx.manifest.control.git.branch,
+      createPullRequest: ctx.manifest.control.git.createPullRequest,
+      files: [
+        {
+          path: path.join(directory ?? "", `${newName}.yaml`),
+          content: k8s.dumpYaml(command.object),
+        },
+      ],
+      status: {
+        objUri: blockUri,
+      }
+    };
+  }
+
+  const newblockUri = formatBlockUri({
+    group: "kblocks.io",
+    version: "v1",
+    plural: "gitcontents",
+    system: ctx.system,
+    namespace,
+    name: newName,
+  });
+
+  if (command.type !== "APPLY") {
+    command.objUri = newblockUri;
+  }
+
+  const newCommand = {
+    type: "FORWARD",
+    objUri: newblockUri,
+    command,
+  } as ForwardCommand;
+
+  console.log("command", JSON.stringify(newCommand, null, 2));
+
+  return {
+    command: newCommand as ForwardCommand,
+    blockUri: newblockUri,
+  };
 }
 
 function blockUriFromCommand(ctx: Context, command: ControlCommand): string {
@@ -131,6 +207,16 @@ async function handleCommandMessage(ctx: Context, command: ControlCommand) {
     case "READ":
       return await readObject(client, ctx, command.objUri);
 
+    case "FORWARD":
+      const parts = parseBlockUri(command.objUri);
+      return await sendControlRequest({
+        system: parts.system,
+        group: parts.group,
+        version: parts.version,
+        plural: parts.plural,
+        message: JSON.stringify(command.command),
+      });
+
     default:
       throw new Error(`Unsupported control command: '${JSON.stringify(command)}'`);
   }
@@ -144,6 +230,7 @@ export async function handleCleanup(blocks: Manifest[], systemId: string) {
       version: block.definition.version,
       plural: block.definition.plural,
       requestId: generateRandomId(),
+      manifest: block,
     };
     return unflushType(ctx, block);
   }));

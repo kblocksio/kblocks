@@ -1,0 +1,31 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: gitcontents.kblocks.io
+spec:
+  engine: noop
+  definition:
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: A git content synchronizer
+    group: kblocks.io
+    version: v1
+    kind: GitContent
+    categories:
+      - cicd
+    plural: gitcontents
+    icon: Boxes
+    singular: gitcontent
+    outputs:
+      - objUri
+      - merged
+      - commit
+      - pullrequest
+  operator:
+    namespace: kblocks-test
+    workers: 1
+    env:
+      KBLOCKS_PUBSUB_HOST: "test-redis.kblocks-test.svc.cluster.local"
+      KBLOCKS_API_KEY: "pass1234"
+      KBLOCKS_SYSTEM_ID: test-system
+      KBLOCKS_ACCESS: write

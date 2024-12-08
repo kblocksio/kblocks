@@ -103,6 +103,10 @@ server.on("request", (req, res) => {
         console.log("testresources deleted");
         execSync('kubectl delete customresources --all --all-namespaces');
         console.log("customresources deleted");
+        execSync('kubectl delete gitresources --all --all-namespaces');
+        console.log("gitresources deleted");
+        execSync('kubectl delete gitcontents --all --all-namespaces');
+        console.log("gitcontents deleted");
         execSync('kubectl delete secrets --selector kblocks.io/system=test-system --all-namespaces');
         console.log("secrets deleted");
         for (const key of Object.keys(map)) {

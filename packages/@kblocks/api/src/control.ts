@@ -44,4 +44,10 @@ export type ReadCommand = {
   objUri: string;
 };
 
-export type ControlCommand = ApplyCommand | PatchCommand | DeleteCommand | RefreshCommand | ReadCommand;
+export type ForwardCommand = {
+  type: "FORWARD";
+  objUri: string;
+  command: ControlCommand;
+};
+
+export type ControlCommand = ApplyCommand | PatchCommand | DeleteCommand | RefreshCommand | ReadCommand | ForwardCommand;
