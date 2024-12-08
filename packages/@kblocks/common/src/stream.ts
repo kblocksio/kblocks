@@ -59,3 +59,23 @@ export async function subscribeToControlStream(channel: string, handler: (messag
   const stream = `${getConfiguration().channels.control}:${channel}`;
   return subscribeToStream(stream, handler);
 }
+
+function createChannelFor(
+  system: string,
+  group: string,
+  version: string,
+  plural: string,
+) {
+  return `${getConfiguration().channels.control}:${group}/${version}/${plural}/${system}`;
+}
+
+export async function sendControlRequest({
+  system,
+  group,
+  version,
+  plural,
+  message
+}: { system: string, group: string, version: string, plural: string, message: string }) {
+  const stream = createChannelFor(system, group, version, plural);
+  return redisConnection.getClient().xadd(stream, "*", "message", message);
+}

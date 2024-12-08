@@ -1,0 +1,30 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: git-resource
+spec:
+  engine: noop
+  definition: 
+    group: testing.kblocks.io
+    version: v1
+    kind: GitResource
+    plural: gitresources
+    outputs:
+      - message
+    readme: README.md
+    icon: heroicon://sparkles
+    color: green
+    description: kblock git resource
+    schema: ./src/values.schema.json
+  operator:
+    namespace: kblocks-test
+    workers: 1
+    env:
+      KBLOCKS_PUBSUB_HOST: "test-redis.kblocks-test.svc.cluster.local"
+      KBLOCKS_API_KEY: "pass1234"
+      KBLOCKS_SYSTEM_ID: test-system
+      KBLOCKS_ACCESS: write
+  control:
+      git:
+        repo: myorg/myrepo
+        createPullRequest: true

@@ -1,4 +1,5 @@
 import { test, expect, beforeEach } from "vitest";
+import * as k8s from "@kubernetes/client-node";
 import crypto from "crypto";
 import { ControlCommand, parseBlockUri } from "@kblocks/api";
 
@@ -53,7 +54,8 @@ async function createResource(name: string, {
   apiVersion = "testing.kblocks.io/v1",
   data = { hello: "world1234" },
   timeout,
-}: { kind?: string, plural?: string, apiVersion?: string, data?: any, timeout?: number } = {}) {
+  nowait = false,
+}: { kind?: string, plural?: string, apiVersion?: string, data?: any, timeout?: number, nowait?: boolean } = {}) {
   console.log("creating resource", name);
 
   const parts = apiVersion.split("/");
@@ -81,6 +83,10 @@ async function createResource(name: string, {
   const objUri = `kblocks://${version}/${plural}/test-system/default/${name}`;
 
   let obj: any = undefined;
+
+  if (nowait) {
+    return { objUri };
+  }
 
   console.log(`waiting for ${objUri} resource to be created...`);
   await waitUntil(async () => {
@@ -368,6 +374,47 @@ test("flush resource", opts, async () => {
   expect(obj.kind).toBe("Secret");
   expect(obj.metadata.name).toBe(name);
   expect(obj.data.username).toBe("YWRtaW4=");
+
+  await deleteResource(objUri);
+  await waitForResourceToBeDeleted(objUri);
+});
+
+test("git resource", opts, async () => {
+  const name = `my-resource-${crypto.randomUUID()}`;
+
+  await createResource(name, {
+    kind: "GitResource",
+    plural: "gitresources",
+    apiVersion: "testing.kblocks.io/v1",
+    data: { hello: "world" },
+    nowait: true,
+  });
+
+  let obj: any = undefined;
+  const objUri = `kblocks://kblocks.io/v1/gitcontents/test-system/default/gitresources-default-${name}`;
+  await waitUntil(async () => {
+    const resources = await getResources();
+    obj = resources[objUri];
+    if (obj && obj.apiVersion) {
+      return true;
+    }
+    return false;
+  }, 60_000);
+  
+  // get the resource from the server
+  expect(obj.apiVersion).toBe("kblocks.io/v1");
+  expect(obj.kind).toBe("GitContent");
+  expect(obj.metadata.name).toBe(`gitresources-default-${name}`);
+  expect(obj.owner).toBe("myorg");
+  expect(obj.name).toBe("myrepo");
+  expect(obj.createPullRequest).toBe(true);
+  expect(obj.files[0].path).toBe(`gitresources-default-${name}.yaml`);
+
+  const resource = k8s.loadYaml(obj.files[0].content) as any;
+  expect(resource.apiVersion).toBe("testing.kblocks.io/v1");
+  expect(resource.kind).toBe("GitResource");
+  expect(resource.metadata.name).toBe(name);
+  expect(resource.hello).toBe("world");
 
   await deleteResource(objUri);
   await waitForResourceToBeDeleted(objUri);
