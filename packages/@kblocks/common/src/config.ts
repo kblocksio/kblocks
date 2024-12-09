@@ -16,6 +16,7 @@ function stringToEnum<T extends { [key: string]: string }>(enumObj: T, str?: str
 }
 
 export const getConfiguration = () => {
+  const KBLOCKS_PORTAL_SYSTEM = process.env.KBLOCKS_PORTAL_SYSTEM;
   const KBLOCKS_STORAGE_PREFIX = process.env.KBLOCKS_STORAGE_PREFIX ?? "";
   const KBLOCKS_API_KEY = process.env.KBLOCKS_API_KEY;
   const KBLOCKS_PUBSUB_HOST = process.env.KBLOCKS_PUBSUB_HOST;
@@ -52,6 +53,7 @@ export const getConfiguration = () => {
     },
     control: {
       access: KBLOCKS_ACCESS,
+      portalSystem: KBLOCKS_PORTAL_SYSTEM,
     }
   }
 };

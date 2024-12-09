@@ -153,7 +153,7 @@ function parseGitCommand(ctx: Context, {
     group: "kblocks.io",
     version: "v1",
     plural: "gitcontents",
-    system: ctx.system,
+    system: getConfiguration().control.portalSystem ?? ctx.system,
     namespace,
     name: newName,
   });
@@ -168,7 +168,7 @@ function parseGitCommand(ctx: Context, {
     command,
   } as ForwardCommand;
 
-  console.log("command", JSON.stringify(newCommand, null, 2));
+  console.log("forward command", JSON.stringify(newCommand, null, 2));
 
   return {
     command: newCommand as ForwardCommand,
