@@ -382,7 +382,7 @@ test("flush resource", opts, async () => {
 test("git resource", opts, async () => {
   const name = `my-resource-${crypto.randomUUID()}`;
 
-  await createResource(name, {
+  const { objUri: resourceUri } = await createResource(name, {
     kind: "GitResource",
     plural: "gitresources",
     apiVersion: "testing.kblocks.io/v1",
@@ -405,6 +405,7 @@ test("git resource", opts, async () => {
   expect(obj.apiVersion).toBe("kblocks.io/v1");
   expect(obj.kind).toBe("GitContent");
   expect(obj.metadata.name).toBe(`gitresources-default-${name}`);
+  expect(obj.metadata.annotations["kblocks.io/owner"]).toBe(resourceUri);
   expect(obj.owner).toBe("myorg");
   expect(obj.name).toBe("myrepo");
   expect(obj.createPullRequest).toBe(true);
