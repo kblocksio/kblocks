@@ -132,6 +132,9 @@ function parseGitCommand(ctx: Context, {
       metadata: {
         name: newName,
         namespace,
+        annotations: {
+          "kblocks.io/owner": blockUri,
+        },
       },
       name: repoName,
       owner,
@@ -143,9 +146,6 @@ function parseGitCommand(ctx: Context, {
           content: k8s.dumpYaml(command.object),
         },
       ],
-      status: {
-        objUri: blockUri,
-      }
     };
   }
 
