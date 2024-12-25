@@ -1,8 +1,8 @@
 let logged = false;
 
 export enum Access {
-  Read = "read",
-  Write = "write",
+  Read = "read_only",
+  Write = "read_write",
 }
 
 function stringToEnum<T extends { [key: string]: string }>(enumObj: T, str?: string): T[keyof T] | undefined {
@@ -23,7 +23,7 @@ export const getConfiguration = () => {
   const KBLOCKS_PUBSUB_PORT = process.env.KBLOCKS_PUBSUB_PORT ? parseInt(process.env.KBLOCKS_PUBSUB_PORT) : 18284;
   const KBLOCKS_EVENTS_CHANNEL = process.env.KBLOCKS_EVENTS_CHANNEL ?? `${KBLOCKS_STORAGE_PREFIX}kblocks-events`;
   const KBLOCKS_CONTROL_CHANNEL = process.env.KBLOCKS_CONTROL_CHANNEL ?? `${KBLOCKS_STORAGE_PREFIX}kblocks-control`;
-  const KBLOCKS_ACCESS = stringToEnum(Access, process.env.KBLOCKS_ACCESS) ?? Access.Read;
+  const KBLOCKS_ACCESS = stringToEnum(Access, process.env.KBLOCKS_ACCESS) ?? Access.Write;
 
   if (!logged) {
     console.log("configuration", { KBLOCKS_PUBSUB_HOST, KBLOCKS_PUBSUB_PORT, KBLOCKS_EVENTS_CHANNEL, KBLOCKS_CONTROL_CHANNEL, KBLOCKS_ACCESS });
