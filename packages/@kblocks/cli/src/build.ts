@@ -132,7 +132,7 @@ export class Block extends Chart {
     const workers = mainBlock.block.operator?.workers ?? 1;
     const flushOnly = mainBlock.block.operator?.flushOnly ?? false;
 
-    addSystemIfNotSet(mainBlock.block);
+    addSystemIfNotSet(mainBlock.block, env);
 
     const configmap = new ConfigMapFromDirectory(this, "ConfigMapVolume", {
       blockRequests,
@@ -292,13 +292,14 @@ function calculateImageName(serviceName: string) {
   return `${imagePrefix}${serviceName}:${packageJson.version}`;
 }
 
-function addSystemIfNotSet(block: Manifest) {
+function addSystemIfNotSet(block: Manifest, additionalEnv: Record<string, string>) {
   function setEnv(key: string, optional: boolean) {
     block.operator = block.operator ?? {};
-    // check if one of the "env" is KBLOCKS_API_KEY
+
     if (key in (block.operator.env ?? {}) ||
         key in (block.operator.envSecrets ?? {}) ||
-        key in (block.operator.envConfigMaps ?? {})) {
+        key in (block.operator.envConfigMaps ?? {}) ||
+        key in additionalEnv) {
       return;
     }
   
@@ -310,12 +311,12 @@ function addSystemIfNotSet(block: Manifest) {
     };
   }
 
-  const keys = ["KBLOCKS_SYSTEM_ID", "KBLOCKS_API_KEY", "KBLOCKS_PUBSUB_HOST"];
+  const keys = ["KBLOCKS_SYSTEM_ID"];
   for (const key of keys) {
     setEnv(key, false);
   }
 
-  const optionalKeys = ["KBLOCKS_PUBSUB_PORT", "KBLOCKS_STORAGE_PREFIX", "KBLOCKS_ACCESS", "KBLOCKS_PORTAL_SYSTEM"];
+  const optionalKeys = ["KBLOCKS_API_KEY", "KBLOCKS_PUBSUB_HOST", "KBLOCKS_PUBSUB_PORT", "KBLOCKS_STORAGE_PREFIX", "KBLOCKS_ACCESS", "KBLOCKS_PORTAL_SYSTEM"];
   for (const key of optionalKeys) {
     setEnv(key, true);
   }
