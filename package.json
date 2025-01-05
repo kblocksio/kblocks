@@ -6,10 +6,10 @@
     "dev": "skaffold run --port-forward --tail",
     "start": "skaffold run --port-forward",
     "build": "npm run --if-present -ws build",
-    "test": "./test/test.sh"
+    "test": "./test/test.sh",
+    "docs": "cd docs && mdbook serve"
   },
   "workspaces": [
-    "docs/",
     "packages/**/*",
     "scripts/bump-pack",
     "test/test-resource/src",
