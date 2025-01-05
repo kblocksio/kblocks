@@ -25,6 +25,6 @@ To create a new block, all you need is:
 
 ## Quick Links
 
-- [Getting Started](getting-started/index.md)
-- [CLI Reference](cli-reference/index.md)
+- [Installation](guide/installation.md)
+- [CLI Reference](cli/index.md)
 - [Supported Engines](engines/index.md) 
