@@ -1,4 +1,4 @@
-name: Deploy mkbook Docs to GitHub Pages
+name: Deploy mdBook to GitHub Pages
 
 on:
   push:
