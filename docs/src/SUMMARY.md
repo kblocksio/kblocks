@@ -32,3 +32,7 @@
   - [No-Op](./engines/noop.md)
   - [Custom](./engines/custom.md)
 
+
+---
+
+[Contributing to Kblocks](CONTRIBUTING.md)
