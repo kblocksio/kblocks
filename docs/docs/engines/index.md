@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Supported Engines
 
-KBlocks supports multiple provisioning engines for implementing block controllers:
+Kblocks supports multiple provisioning engines for implementing block controllers:
 
 - **Helm**: Use Helm charts to template Kubernetes resources
 - **Terraform**: Provision cloud resources using Terraform

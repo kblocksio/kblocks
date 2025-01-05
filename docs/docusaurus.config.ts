@@ -5,7 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'KBlocks',
+  title: 'Kblocks',
   tagline: 'Build Kubernetes operators using familiar infrastructure tools',
   favicon: 'img/favicon.ico',
 
@@ -52,9 +52,9 @@ const config: Config = {
   themeConfig: {
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: 'KBlocks',
+      title: 'Kblocks',
       logo: {
-        alt: 'KBlocks Logo',
+        alt: 'Kblocks Logo',
         src: 'img/logo.svg',
       },
       items: [

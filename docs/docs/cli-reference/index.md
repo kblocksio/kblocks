@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # CLI Reference
 
-The KBlocks CLI provides several commands for working with blocks.
+The Kblocks CLI provides several commands for working with blocks.
 
 - [init](./init.md)
 - [build](./build.md)

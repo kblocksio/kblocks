@@ -4,16 +4,19 @@ sidebar_position: 1
 
 # Introduction
 
-KBlocks is a framework for building Kubernetes operators using familiar infrastructure tools like Helm, Terraform, OpenTofu and Wing.
+Kblocks is a framework for building Kubernetes *custom resource operators* using familiar
+infrastructure tools like [Helm](https://helm.sh/), [Terraform](https://www.terraform.io/),
+[OpenTofu](https://opentofu.org/), [CDK8s](https://cdk8s.io/) and [Winglang](https://winglang.io/).
 
-## What is KBlocks?
+## How does it work?
 
-KBlocks allows you to create custom Kubernetes resources (CRDs) and implement their controllers using infrastructure tools you already know. Instead of writing complex Go operators, you can:
+To create a new block, all you need is:
 
-- Use Helm charts to template Kubernetes resources
-- Use Terraform/OpenTofu to provision cloud resources 
-- Use Wing to write type-safe infrastructure code
-- Implement custom logic using any programming language
+1. Define the block API through a JSON Schema.
+2. Choose the backing engine (e.g. Helm, Terraform, OpenTofu, Winglang, etc.)
+3. Implement the block logic in the engine's language (e.g. Helm templates, Terraform config)
+4. Run `kb build` to create an operator that can be deployed to a Kubernetes cluster.
+5. Done!
 
 ## Features
 
@@ -22,9 +25,10 @@ KBlocks allows you to create custom Kubernetes resources (CRDs) and implement th
 - **Schema Validation**: Automatic validation of custom resource inputs
 - **Output Management**: Structured handling of block outputs
 - **Kubernetes Native**: Fully integrated with Kubernetes custom resources
+- **LLM-based Enrichment**: Automatically create documentation and other resources with information from LLM
 
 ## Quick Links
 
-- [Getting Started](getting-started.md)
-- [CLI Reference](cli-reference.md)
-- [Block Types](block-types/index.md) 
+- [Getting Started](getting-started/index.md)
+- [CLI Reference](cli-reference/index.md)
+- [Supported Engines](engines/index.md) 

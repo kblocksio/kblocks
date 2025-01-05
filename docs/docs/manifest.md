@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Block Manifest
 
-The `block.yaml` file defines the structure and configuration for a block. Below is a detailed
+The `kblock.yaml` file defines the structure and configuration for a block. Below is a detailed
 description of each field:
 
 ## Fields

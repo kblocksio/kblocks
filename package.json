@@ -9,6 +9,7 @@
     "test": "./test/test.sh"
   },
   "workspaces": [
+    "docs/",
     "packages/**/*",
     "scripts/bump-pack",
     "test/test-resource/src",
