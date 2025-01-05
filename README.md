@@ -1,17 +1,36 @@
 # Kblocks
 
-Kblocks is a tool for creating platform building blocks using any IAC engine or Helm charts and
-packaging them as Kubernetes custom resources.
+Kblocks is a tool for creating Kubernetes [custom
+resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources
+(CRDs) operators backed by Terraform configurations or Helm charts. In the future, Kblocks will also
+support CloudFormation/CDK, Pulumi and other IaC engines.
+
+Kblocks is ideal for allowing platform engineering teams to vend standard components to application
+teams which codify security, compliance and operational best practices and expose them as native
+Kubernetes resources.
+
+Let's say I want to create a CRD that represents an Amazon SQS queue and implement it using a
+Terraform configuration. All I need to do is:
+
+1. Define the CRD schema
+2. Write the Terraform configuration
+
+Then, I can run `kb build` and Kblocks will produce a self-contained Helm package that can be rolled
+out to any Kubernetes cluster and includes the CRD and a Kubernetes operator that manages the
+lifecycle of these SQS queue resources.
+
+Kblocks is shipped with a CLI tool (called `kb`) which can be used to create, build and deploy
+blocks into Kubernetes clusters.
 
 ## Prerequisites
 
-Install the following:
+The CLI requires the following prerequisites:
 
-- node
-- docker
-- kind
+- Node.js (v18+)
+- Docker
 - kubectl
-- helm
+- Helm
+- Terraform
 
 ## Installation
 
@@ -25,19 +44,20 @@ Verify installation:
 
 ```sh
 kb --version
-0.223.0
+0.5.32
 ```
 
-## Creating new blocks
+## CLI Reference
 
-The `kb init` command can be used to create a new block project from a variety of project types.
+### `kb init`
 
-To view the list of possible project types, run:
+The `kb init` command can be used to create a new block project from a variety of project templates.
+
+To view the list of possible project templates, run:
 
 ```sh
 kb init --help
-
-...
+Supported project templates:
 
 custom: Block implemented using custom hooks for "create", "update" and "delete"
 
@@ -54,10 +74,10 @@ wing-k8s: Winglang is an open-source programming language that enables you to
 build cloud applications.
 ```
 
-After you create a block project, check out it's **README** file. It will include detailed
-information on how to define and implement your block, based on the underlying engine.
+After you create a project, check out it's **README** file. It will include detailed information on
+how to define and implement your block, based on the underlying engine.
 
-## Building and installing your block to a cluster
+### `kb build`
 
 The following command will build a Helm chart for your block:
 
@@ -67,19 +87,15 @@ kb build
 
 The chart will go under `dist/` and can be installed using Helm.
 
+### `kb install`
+
 You can also use this command to build and install/upgrade:
 
 ```sh
 kb install
 ```
 
-## Creating resources
-
-Once a block is installed to your cluster, it becomes a native Kubernetes resource and can be used
-from the Kubernetes control plane. For example, you can apply it using `kubectl apply`, put it in
-Helm charts, view it in [k9s](https://k9scli.io/), etc.
-
-## Development
+## Contributing
 
 Clone this repo:
 

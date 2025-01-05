@@ -11,12 +11,7 @@ spec:
       - myOutput
   operator:
     # the engine reads these environment variables to configure the provisioning engine
-    envConfigMaps:
-      AWS_DEFAULT_REGION: tf-backend-config
-      TF_BACKEND_BUCKET: tf-backend-config
-      TF_BACKEND_REGION: tf-backend-config
-      TF_BACKEND_KEY: tf-backend-config
-      TF_BACKEND_DYNAMODB: tf-backend-config
     envSecrets:
+      AWS_DEFAULT_REGION: aws-credentials
       AWS_ACCESS_KEY_ID: aws-credentials
       AWS_SECRET_ACCESS_KEY: aws-credentials
