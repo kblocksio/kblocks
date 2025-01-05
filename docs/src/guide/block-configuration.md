@@ -1,0 +1,53 @@
+# Block Configuration
+
+The `kblock.yaml` file is used to configure the block's metadata and operator settings. To learn
+more about the configuration manifest, see the [block configuration reference](../manifest).
+
+Let's edit the `kblock.yaml` file to define our queue block:
+
+```yaml
+apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: tofu
+  definition:
+    description: An Amazon SQS queue
+    icon: heroicon://queue-list
+    readme: ./README.md
+    schema: src/values.schema.json
+    outputs:
+      - queueUrl
+    group: example.com
+    version: v1
+    kind: Queue
+    plural: queues
+    singular: queue
+  operator:
+    envSecrets:
+      AWS_DEFAULT_REGION: aws-credentials
+      AWS_ACCESS_KEY_ID: aws-credentials
+      AWS_SECRET_ACCESS_KEY: aws-credentials
+metadata:
+  name: queues.example.com
+```
+
+Here is a breakdown of the configuration:
+
+- `engine`: The engine to use for the block. In our case we are using the `tofu` engine.
+- `definition`: The block's metadata and schema:
+  - `description`: A short description of the block.
+  - `icon`: An icon to use for this block in UI systems and portals.
+  - `readme`: A reference to the README file in the block's project directory.
+  - `schema`: A reference to the schema file in the block's `src` directory.
+  - `outputs`: A list of output names that will be exposed by the block.
+  - `group`: The [Kubernetes API group](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-api/#api-groups) to use for the block.
+  - `version`: The [Kubernetes API version](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-api/#api-versioning) to use for the block.
+  - `kind`: The [Kubernetes API kind](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-api/#api-groups) to use for the block.
+  - `plural`: The [plural](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-api/#api-groups) form of the block's kind.
+  - `singular`: The [singular](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-api/#api-groups) form of the block's kind.
+- `operator`: Environment settings for the block operator.
+  - `envSecrets`: A map of environment variables to secrets in the cluster. The operator will read
+    the values from the specified secrets and set the environment variables. In our example, we
+    are using the `aws-credentials` secret to set the AWS credentials for the Terraform AWS provider. 
+
+Next, let's move on to [defining the schema](./schema-definition.md).
