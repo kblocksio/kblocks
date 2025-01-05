@@ -8,9 +8,16 @@ Kblocks is ideal for allowing platform engineering teams to vend standard compon
 teams which codify security, compliance and operational best practices and expose them as native
 Kubernetes resources.
 
-## Docs
+## Documentation
 
-See [kblocks.io](https://kblocks.io/) for more information.
+ * [Installation](https://kblocks.io/guide/installation.html)
+ * [Block Manifest](https://kblocks.io/manifest.html)
+ * [CLI Reference](https://kblocks.io/cli/index.html)
+ * [Supported Engines](https://kblocks.io/engines/index.html)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
 
 ## License
 
