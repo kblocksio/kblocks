@@ -12,7 +12,8 @@ To create a new block, all you need is:
 2. Choose the backing engine (e.g. Helm, Terraform, OpenTofu, Winglang, etc.)
 3. Implement the block logic in the engine's language (e.g. Helm templates, Terraform config)
 4. Run `kb build` to create an operator that can be deployed to a Kubernetes cluster.
-5. Done!
+5. Install the operator to your Kubernetes cluster through Helm.
+6. Done! Now your cluster has a new resource backed by Helm or Terraform.
 
 ## Features
 
