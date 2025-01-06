@@ -15,7 +15,7 @@ kubectl create secret generic kblocks --from-literal=KBLOCKS_SYSTEM_ID=my-cluste
 
 The following optional keys can also be specified:
 
-- `KBLOCKS_API_KEY` - The API key for the Kblocks portal.
+- `KBLOCKS_PUBSUB_KEY` - The API key for the Kblocks pubsub service.
 - `KBLOCKS_PUBSUB_HOST` and `KBLOCKS_PUBSUB_PORT` - The host and port for the Kblocks pubsub service.
 - `KBLOCKS_ACCESS` - indicates if the operator is restricted to only read from the cluster or can
   also write to it (i.e. create/modify resources). Valid values are: `read_only` or `read_write`

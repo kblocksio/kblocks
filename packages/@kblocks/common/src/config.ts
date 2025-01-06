@@ -18,12 +18,12 @@ function stringToEnum<T extends { [key: string]: string }>(enumObj: T, str?: str
 export const getConfiguration = () => {
   const KBLOCKS_PORTAL_SYSTEM = process.env.KBLOCKS_PORTAL_SYSTEM;
   const KBLOCKS_STORAGE_PREFIX = process.env.KBLOCKS_STORAGE_PREFIX ?? "";
-  const KBLOCKS_API_KEY = process.env.KBLOCKS_API_KEY;
+  const KBLOCKS_PUBSUB_KEY = process.env.KBLOCKS_PUBSUB_KEY;
   const KBLOCKS_PUBSUB_HOST = process.env.KBLOCKS_PUBSUB_HOST;
   const KBLOCKS_PUBSUB_PORT = process.env.KBLOCKS_PUBSUB_PORT ? parseInt(process.env.KBLOCKS_PUBSUB_PORT) : 18284;
   const KBLOCKS_EVENTS_CHANNEL = process.env.KBLOCKS_EVENTS_CHANNEL ?? `${KBLOCKS_STORAGE_PREFIX}kblocks-events`;
   const KBLOCKS_CONTROL_CHANNEL = process.env.KBLOCKS_CONTROL_CHANNEL ?? `${KBLOCKS_STORAGE_PREFIX}kblocks-control`;
-  const KBLOCKS_ACCESS = stringToEnum(Access, process.env.KBLOCKS_ACCESS) ?? Access.Write;
+  const KBLOCKS_ACCESS = stringToEnum(Access, process.env.KBLOCKS_ACCESS) ?? Access.Read;
 
   if (!logged) {
     console.log("configuration", { KBLOCKS_PUBSUB_HOST, KBLOCKS_PUBSUB_PORT, KBLOCKS_EVENTS_CHANNEL, KBLOCKS_CONTROL_CHANNEL, KBLOCKS_ACCESS });
@@ -32,8 +32,8 @@ export const getConfiguration = () => {
 
   return {
     redis: () => {
-      if (!KBLOCKS_API_KEY) {
-        console.log("KBLOCKS_API_KEY is not set");
+      if (!KBLOCKS_PUBSUB_KEY) {
+        console.log("KBLOCKS_PUBSUB_KEY is not set");
         return;
       }
 
@@ -45,7 +45,7 @@ export const getConfiguration = () => {
       return {
         host: KBLOCKS_PUBSUB_HOST,
         port: KBLOCKS_PUBSUB_PORT,
-        password: KBLOCKS_API_KEY,
+        password: KBLOCKS_PUBSUB_KEY,
         // username: process.env.KBLOCKS_SYSTEM_ID,
       };
     },

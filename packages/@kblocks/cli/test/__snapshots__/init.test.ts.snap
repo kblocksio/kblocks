@@ -4,33 +4,7 @@ exports[`custom template 1`] = `
 {
   "README.md": "# Bang Block
 
-This project is an example block implemented by a set of custom hooks. You can do anything with it!
-
-## Manifest
-
-The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
-such as names, icons and description as well as optional operator environment settings.
-
-## Inputs
-
-The file \`src/values.schema.json\` is where the input JSON schema of the block is defined.
-
-Within the script, the \`KBLOCKS_OBJECT\` environment variable points to a JSON file that contains the
-object's full state (for \`create\` and \`update\`).
-
-## Implementation
-
-The engine calls an executable program under \`src\` based on the lifecycle event:
-
-* \`create\` is called when an object was created.
-* \`update\` is called when an object was updated.
-* \`delete\` is called when an object is deleted.
-
-## Outputs
-
-The environment variable \`KBLOCKS_OUTPUTS\` is the path where a file should be written by the program
-with a JSON object that contains the outputs listed in the \`outputs\` section fo the block.
-",
+TODO: Add a description of the block or run \`kb enrich\` to generate one.",
   "kblock.yaml": "apiVersion: kblocks.io/v1
 kind: Block
 spec:
@@ -116,52 +90,7 @@ exports[`helm template 1`] = `
 {
   "README.md": "# Bang Block
 
-This project is an example block backed by a Helm chart. You can expose any [Helm](https://helm.sh/) chart as a kblock.
-
-When a resource is created/updated, Kblocks will call \`helm upgrade\` and populate the \`{{ Values }}\`
-object based on the Kubernetes object desired state.
-
-## Manifest
-
-The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
-such as names, icons and description as well as optional operator environment settings.
-
-## Inputs
-
-The file \`src/values.schema.json\` is where the input JSON schema of the block is defined. The schema
-fields are mapped to [Helm Values](https://helm.sh/docs/chart_template_guide/values_files/).  For
-example, if the schema contains a field called \`myValue\`, it can be refereced through \`{{
-.Values.myValue }}\` in your Helm templates.
-
-Inputs will be validated against the schem with [helm lint](https://helm.sh/docs/helm/helm_lint/)
-which will be executed before \`upgrade\`.
-
-The \`{{ .Values.kblocks.system }}\` value will be set to include the kblocks system identity.
-
-## Implementation
-
-The file \`src/Chart.yaml\` is a standard [Helm chart
-manifest](https://helm.sh/docs/topics/charts/#the-chartyaml-file) and should define the name,
-version and dependencies of the chart.
-
-The \`src/templates\` directory is where you can put your YAML templates.
-
-## Outputs
-
-The set of outputs is defined in your \`kblock.yaml\` under \`outputs\`, and Kblocks expects to read
-them by parsing the \`src/templates/NOTES.txt\` output as a \`JSON\` object.
-
-> Yes, it's a bit of a hack.
-
-For example, if our \`kblocks.yaml\` defines \`outputs: ["myOutput"]\` then the \`NOTES.txt\` file should
-look like this:
-
-\`\`\`txt
-{
-  "myOutput": "{{ .Release.Name }}-is-the-awesome-output"
-}
-\`\`\`
-",
+TODO: Add a description of the block or run \`kb enrich\` to generate one.",
   "kblock.yaml": "apiVersion: kblocks.io/v1
 kind: Block
 spec:
@@ -221,25 +150,7 @@ exports[`noop template 1`] = `
 {
   "README.md": "# Secret Block
 
-This project is an example block with no operations.
-
-## Manifest
-
-The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
-such as names, icons and description as well as optional operator environment settings.
-
-## Inputs
-
-The file \`src/values.schema.json\` is where the input JSON schema of the block is defined.
-
-## Implementation
-
-The engine is set to \`noop\` so no operations are performed.
-
-## Outputs
-
-No outputs are defined.
-",
+TODO: Add a description of the block or run \`kb enrich\` to generate one.",
   "kblock.yaml": "apiVersion: kblocks.io/v1
 kind: Block
 spec:
@@ -312,28 +223,7 @@ exports[`terraform template 1`] = `
 {
   "README.md": "# Bang Block
 
-This project is an example of a block backed by the [Terraform](https://www.terraform.io/) engine.
-
-## Manifest
-
-The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
-such as names, icons and description as well as optional operator environment settings.
-
-## Inputs
-
-The file \`src/values.schema.json\` is where the input JSON schema of the block is defined. The schema
-fields are mapped to [Terraform Variables](https://developer.hashicorp.com/terraform/language/values/variables) defined under \`src/variables.tf\`.
-
-## Implementation
-
-The \`src/main.tf\` is the entrypoint of the Terraform configuration. This is a completely standard
-Terraform HCL config.
-
-## Outputs
-
-The set of outputs is defined in your \`kblock.yaml\` under \`outputs\`, and Kblocks expects to read
-them as [Terraform Outputs](https://developer.hashicorp.com/terraform/language/values/outputs).
-",
+TODO: Add a description of the block or run \`kb enrich\` to generate one.",
   "kblock.yaml": "apiVersion: kblocks.io/v1
 kind: Block
 spec:
@@ -359,13 +249,8 @@ spec:
       - cat2
     singular: bang
   operator:
-    envConfigMaps:
-      AWS_DEFAULT_REGION: tf-backend-config
-      TF_BACKEND_BUCKET: tf-backend-config
-      TF_BACKEND_REGION: tf-backend-config
-      TF_BACKEND_KEY: tf-backend-config
-      TF_BACKEND_DYNAMODB: tf-backend-config
     envSecrets:
+      AWS_DEFAULT_REGION: aws-credentials
       AWS_ACCESS_KEY_ID: aws-credentials
       AWS_SECRET_ACCESS_KEY: aws-credentials
 metadata:
@@ -405,30 +290,7 @@ exports[`tofu template 1`] = `
 {
   "README.md": "# Bang Block
 
-This project is an example of a block backed by the [OpenTofu](https://opentofu.org/) engine.
-
-## Manifest
-
-The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
-such as names, icons and description as well as optional operator environment settings.
-
-## Inputs
-
-The file \`src/values.schema.json\` is where the input JSON schema of the block is defined. The schema
-fields are mapped to [Terraform
-Variables](https://developer.hashicorp.com/terraform/language/values/variables) defined under
-\`src/variables.tf\`.
-
-## Implementation
-
-The \`src/main.tf\` is the entrypoint of the Terraform configuration. This is a completely standard
-Terraform HCL config.
-
-## Outputs
-
-The set of outputs is defined in your \`kblock.yaml\` under \`outputs\`, and Kblocks expects to read
-them as [Terraform Outputs](https://developer.hashicorp.com/terraform/language/values/outputs).
-",
+TODO: Add a description of the block or run \`kb enrich\` to generate one.",
   "kblock.yaml": "apiVersion: kblocks.io/v1
 kind: Block
 spec:
@@ -454,13 +316,8 @@ spec:
       - cat2
     singular: bang
   operator:
-    envConfigMaps:
-      AWS_DEFAULT_REGION: tf-backend-config
-      TF_BACKEND_BUCKET: tf-backend-config
-      TF_BACKEND_REGION: tf-backend-config
-      TF_BACKEND_KEY: tf-backend-config
-      TF_BACKEND_DYNAMODB: tf-backend-config
     envSecrets:
+      AWS_DEFAULT_REGION: aws-credentials
       AWS_ACCESS_KEY_ID: aws-credentials
       AWS_SECRET_ACCESS_KEY: aws-credentials
 metadata:
@@ -500,58 +357,7 @@ exports[`wing-k8s template 1`] = `
 {
   "README.md": "# Bang Block
 
-This is a block backed by a [Wing for Kubernetes](https://winglang.io) program which uses
-[CDK8s](https://cdk8s.io) to synthesize Kubernets manifests from Wing classes.
-
-## Block Manifest
-
-The \`kblock.yaml\` file defines the block manifest. This is where you can find the block definitions
-such as names, icons and description as well as optional operator environment settings.
-
-## Inputs
-
-The input schema for your block is automatically dervied from the Wing struct by the name of
-\`<Kind>Spec\`. For example, if your resource kind is \`Bing\`, then the CLI will look for a struct
-named \`BingSpec\` and create a JSON schema from it.
-
-The \`KBLOCKS_SYSTEM_ID\` environment variable includes the name of the kblocks system.
-
-## Implementation
-
-Wing source code (\`.w\`) is expected under \`src/\`, and must include a public class named after the
-"kind" of the resource.
-
-\`\`\`js
-pub struct BingSpec {
-  myInput: str;
-}
-
-pub class Bing {
-  new(spec: BingSpec) {
-    // implementation goes here...
-  }
-}
-\`\`\`
-
-## Dependencies
-
-The engine will run npm install from \`src/\`. You can install any Wing-compatible dependencies using
-npm (the \`@winglibs/k8s\` dependency is required by the engine, so keep it).
-
-## Outputs
-
-The outputs specified in your \`kblock.yaml\` must have a corresponding pub fields in your class.
-
-\`\`\`js
-pub class Bing {
-  pub myOutput: str;
-
-  new() {
-    this.myOutput = "hello"
-  }
-}
-\`\`\`
-",
+TODO: Add a description of the block or run \`kb enrich\` to generate one.",
   "kblock.yaml": "apiVersion: kblocks.io/v1
 kind: Block
 spec:

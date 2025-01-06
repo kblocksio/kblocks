@@ -316,7 +316,7 @@ function addSystemIfNotSet(block: Manifest, additionalEnv: Record<string, string
     setEnv(key, false);
   }
 
-  const optionalKeys = ["KBLOCKS_API_KEY", "KBLOCKS_PUBSUB_HOST", "KBLOCKS_PUBSUB_PORT", "KBLOCKS_STORAGE_PREFIX", "KBLOCKS_ACCESS", "KBLOCKS_PORTAL_SYSTEM"];
+  const optionalKeys = ["KBLOCKS_PUBSUB_KEY", "KBLOCKS_PUBSUB_HOST", "KBLOCKS_PUBSUB_PORT", "KBLOCKS_STORAGE_PREFIX", "KBLOCKS_ACCESS", "KBLOCKS_PORTAL_SYSTEM"];
   for (const key of optionalKeys) {
     setEnv(key, true);
   }

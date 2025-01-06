@@ -19,6 +19,6 @@ spec:
     workers: 2
     env:
       KBLOCKS_PUBSUB_HOST: "test-redis.kblocks-test.svc.cluster.local"
-      KBLOCKS_API_KEY: "pass1234"
+      KBLOCKS_PUBSUB_KEY: "pass1234"
       KBLOCKS_SYSTEM_ID: test-system
       KBLOCKS_ACCESS: read_write
