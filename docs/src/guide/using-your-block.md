@@ -64,7 +64,6 @@ kubectl describe queues.example.com my-first-queue
 Under the "Events" section, you can see the status of the resource.
 
 ```
-Events:
   Type    Reason   Age   From              Message
   ----    ------   ----  ----              -------
   Normal  Started  80s   kblocks/operator  Updating resource
@@ -75,7 +74,6 @@ Errors will also be reported in the events section.
 Once the resource has successfully been created, you should see something like this:
 
 ```
-kubectl get queues.example.com 
 NAME             READY   STATUS      QUEUEURL
 my-first-queue   True    Completed   https://sqs.us-east-1.amazonaws.com/111111111111/my-queue
 ```
