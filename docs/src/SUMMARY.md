@@ -11,6 +11,7 @@
 - [Block API Schema](guide/schema-definition.md)
 - [Infrastructure Code](guide/infrastructure.md)
 - [Deployment](guide/deployment.md)
+- [Using your Block](guide/using-your-block.md)
 
 # Reference
 

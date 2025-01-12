@@ -7,15 +7,21 @@ Let's define the schema for our custom resource and set up the required variable
     ```json
     {
       "type": "object",
-      "required": [ "queueName" ],
+      "required": [ "spec" ],
       "properties": {
-        "queueName": {
-          "type": "string",
-          "description": "The name of the queue"
-        },
-        "timeout": {
-          "type": "number",
-          "description": "Queue timeout in seconds"
+        "spec": {
+          "type": "object",
+          "required": [ "queueName" ],
+          "properties": {
+            "queueName": {
+              "type": "string",
+              "description": "The name of the queue"
+            },
+            "timeout": {
+              "type": "number",
+              "description": "Queue timeout in seconds"
+            }
+          }
         }
       }
     }
