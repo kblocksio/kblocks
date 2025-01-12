@@ -8,7 +8,7 @@
 - [Cluster Configuration](guide/cluster-configuration.md)
 - [Project Setup](guide/project-setup.md)
 - [Block Configuration](guide/block-configuration.md)
-- [Schema Definition](guide/schema-definition.md)
+- [Block API Schema](guide/schema-definition.md)
 - [Infrastructure Code](guide/infrastructure.md)
 - [Deployment](guide/deployment.md)
 
