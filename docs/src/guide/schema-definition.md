@@ -1,4 +1,4 @@
-# Schema Definition
+# Block API Schema
 
 Let's define the schema for our custom resource and set up the required variables.
 
