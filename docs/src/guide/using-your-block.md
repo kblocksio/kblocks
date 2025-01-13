@@ -64,9 +64,9 @@ kubectl describe queues.example.com my-first-queue
 Under the "Events" section, you can see the status of the resource.
 
 ```
-  Type    Reason   Age   From              Message
-  ----    ------   ----  ----              -------
-  Normal  Started  80s   kblocks/operator  Updating resource
+Type    Reason   Age   From              Message
+----    ------   ----  ----              -------
+Normal  Started  80s   kblocks/operator  Updating resource
 ```
 
 Errors will also be reported in the events section.
