@@ -8,6 +8,11 @@ RUN apk add --no-cache opentofu@community
 
 RUN apk add --no-cache helm curl npm nodejs git
 
+# install pulumi
+RUN curl -fsSL https://get.pulumi.com | sh 
+RUN mkdir /usr/bin/.pulumi && mv /root/.pulumi/* /usr/bin/.pulumi/ 
+ENV PATH "$PATH:/usr/bin/.pulumi/bin/"
+
 RUN ARCH=$(uname -m); \
     case $ARCH in \
         x86_64) KUBECTL_ARCH="amd64" ;; \

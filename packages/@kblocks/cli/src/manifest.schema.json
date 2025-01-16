@@ -19,6 +19,7 @@
             "wing/tf-aws",
             "wing/k8s",
             "cdk8s",
+            "pulumi",
             "noop",
             "custom"
           ]

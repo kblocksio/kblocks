@@ -11,6 +11,7 @@ export const ENGINES: Record<string, Engine> = {
   "wing/tf-gcp":   { id: "wing/tf-gcp",    description: "Block is implemented through a Wing Terraform GCP program." },
   tofu:            { id: "tofu",           description: "Block is implemented through an OpenTofu program." },
   cdk8s:           { id: "cdk8s",          description: "Block is implemented through a CDK8s program (in TypeScript)." },
+  pulumi:          { id: "pulumi",         description: "Block is implemented through a Pulumi program." },
   noop:            { id: "noop",           description: "Block does nothing (just a declaration)." },
   custom:          { id: "custom",         description: "Block is implemented through a set of custom programs for CREATE/UPDATE and DELETE." },
 };

@@ -17,6 +17,7 @@ import { statusUpdater, updateLastStateHash } from "./state.js";
 import { applyCustom } from "./custom.js";
 import { execRead, hasReadScript } from "./read.js";
 import { getResource } from "./resources.js";
+import { applyPulumi } from "./pulumi.js";
 
 export async function synth(sourcedir: string | undefined, engine: keyof typeof ENGINES, plural: string, ctx: BindingContext) {
   const KBLOCKS_SYSTEM_ID = process.env.KBLOCKS_SYSTEM_ID;
@@ -177,6 +178,9 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
             break;
           case "cdk8s":
             outputs = await applyCdk8s(workdir, host, engine, ctx, values);
+            break;
+          case "pulumi":
+            outputs = await applyPulumi(workdir, host, engine, ctx, values);
             break;
           case "noop":
             outputs = {};
