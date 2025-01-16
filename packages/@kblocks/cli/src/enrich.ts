@@ -52,6 +52,9 @@ async function enrichWithAi(dir: string, manifest: Manifest): Promise<EnrichOutp
           case "cdk8s":
             return p.endsWith(".ts");
 
+          case "pulumi":
+            return p.endsWith(".ts");
+
           case "helm":
             return p.endsWith(".yaml") || p.endsWith(".yml");
 
