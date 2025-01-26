@@ -6,6 +6,7 @@ Kblocks supports multiple provisioning engines for implementing block controller
 - [**Terraform**](terraform.md): Provision cloud resources using Terraform
 - [**OpenTofu**](tofu.md): Use OpenTofu for cloud infrastructure
 - [**Wing**](wing.md): Write type-safe infrastructure code
+- [**Pulumi**](pulumi.md): Use Pulumi for cloud infrastructure
 - [**Custom**](custom.md): Implement custom logic in any language
 
 Select a block type from the sidebar to learn more about its specific implementation details. 
