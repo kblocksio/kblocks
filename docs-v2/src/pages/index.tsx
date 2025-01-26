@@ -19,7 +19,7 @@ export default function Home(): ReactNode {
 
 
       {/* Hero Section */}
-      <div className="relative isolate bg-white">
+      <div className="relative isolate bg-white overflow-hidden">
         <div className="mx-auto max-w-7xl pb-24 pt-10 sm:pb-32 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:px-8 lg:py-40">
           <div className="px-6 lg:px-0 lg:pt-4">
             <div className="mx-auto max-w-2xl">
