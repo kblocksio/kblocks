@@ -14,7 +14,7 @@ The input schema is defined in `src/values.schema.json`. Schema fields map to [H
 
 Inputs are validated using [helm lint](https://helm.sh/docs/helm/helm_lint/) before upgrades.
 
-The `{{ .Values.kblocks.system }}` value includes the kblocks system identity.
+The `{{ .Values.kblocks.system }}` value includes the Kblocks system identity.
 
 ## Implementation
 

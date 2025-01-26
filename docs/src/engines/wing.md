@@ -10,7 +10,7 @@ The `kblock.yaml` file defines the block manifest, containing block definitions 
 
 The input schema is automatically derived from the Wing struct named `<Kind>Spec`. For example, if your resource kind is `Bing`, the CLI looks for a struct named `BingSpec`.
 
-The `KBLOCKS_SYSTEM_ID` environment variable contains the kblocks system name.
+The `KBLOCKS_SYSTEM_ID` environment variable contains the Kblocks system name.
 
 ## Implementation
 

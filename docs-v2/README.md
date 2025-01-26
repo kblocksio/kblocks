@@ -1,6 +1,6 @@
-# KBlocks Documentation
+# Kblocks Documentation
 
-This is the documentation for the KBlocks project using docusaurus.
+This is the documentation for the Kblocks project using docusaurus.
 
 ## Installation
 

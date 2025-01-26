@@ -102,7 +102,7 @@ metadata:
         <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16 sm:py-24">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-              How does kblocks work?
+              How does Kblocks work?
             </h2>
             <p className="mt-6 text-lg leading-8 text-gray-600">
               You can create a new block in six simple steps.
@@ -191,7 +191,7 @@ metadata:
                 Deploy with your favorite tools
               </p>
               <p className="mt-6 text-lg leading-8 text-gray-600 max-w-2xl">
-                KBlocks supports multiple provisioning engines, allowing you to use the tools you're already familiar with to create powerful Kubernetes operators.
+                Kblocks supports multiple provisioning engines, allowing you to use the tools you're already familiar with to create powerful Kubernetes operators.
               </p>
             </div>
           </div>
@@ -208,7 +208,7 @@ metadata:
                   <h3 className="text-2xl font-semibold leading-7 text-gray-900">Helm</h3>
                 </div>
                 <p className="mt-4 text-base leading-7 text-gray-600">
-                  Use Helm charts to template Kubernetes resources. Perfect for managing Kubernetes-native applications and resources. Expose any Helm chart as a custom resource and let KBlocks handle the lifecycle management.
+                  Use Helm charts to template Kubernetes resources. Perfect for managing Kubernetes-native applications and resources. Expose any Helm chart as a custom resource and let Kblocks handle the lifecycle management.
                 </p>
               </Link>
 
@@ -284,10 +284,10 @@ metadata:
         <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16 sm:py-24">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Install kblocks now
+              Install Kblocks now
             </h2>
             <p className="mt-4 text-lg leading-8 text-gray-300">
-              KBlocks is installed by running one of the following commands in your terminal.
+              Kblocks is installed by running one of the following commands in your terminal.
             </p>
           </div>
           
