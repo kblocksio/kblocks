@@ -1,0 +1,9 @@
+{
+  "label": "User Guide",
+  "position": 2,
+  "collapsible": false,
+  "link": {
+    "type": "generated-index",
+    "description": "User Guide"
+  }
+}
