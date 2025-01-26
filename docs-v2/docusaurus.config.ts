@@ -97,8 +97,9 @@ const config: Config = {
     navbar: {
       title: "Kblocks",
       logo: {
-        alt: "My Site Logo",
-        src: "img/logo.png",
+        alt: "Kblocks Logo",
+        src: "img/wing-light.svg",
+        srcDark: "img/wing-dark.svg",
       },
       items: [
         {
