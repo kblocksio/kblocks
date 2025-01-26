@@ -18,25 +18,27 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      MDBOOK_VERSION: 0.4.36
     steps:
       - uses: actions/checkout@v4
-      - name: Install mdBook
-        run: |
-          curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -y | sh
-          rustup update
-          cargo install --version ${MDBOOK_VERSION} mdbook
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: docs-v2/package-lock.json
+      - name: Install dependencies
+        working-directory: ./docs-v2
+        run: npm ci
+      - name: Build website
+        working-directory: ./docs-v2
+        run: npm run build
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
-      - name: Build with mdBook
-        run: mdbook build
-        working-directory: ./docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs/book
+          path: ./docs-v2/build
 
   deploy:
     environment:
