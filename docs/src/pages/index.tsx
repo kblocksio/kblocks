@@ -194,18 +194,18 @@ metadata:
           </div>
           
           <div className="mx-auto mt-16 max-w-7xl">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Helm */}
               <Link 
                 to="/docs/reference/supported-engines/helm"
-                className="col-span-1 lg:col-span-2 row-span-2 rounded-3xl bg-gradient-to-br from-gray-50 to-white p-10 shadow-lg ring-1 ring-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-black cursor-pointer"
+                className="rounded-3xl bg-gradient-to-br from-gray-50 to-white p-10 shadow-lg ring-1 ring-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-black cursor-pointer"
               >
                 <div className="flex items-center gap-x-4">
                   <img src="/img/helm.svg" alt="Helm" className="h-12 w-12" />
-                  <h3 className="text-2xl font-semibold leading-7 text-gray-900">Helm</h3>
+                  <h3 className="text-2xl font-semibold leading-7 text-gray-900 my-auto">Helm</h3>
                 </div>
                 <p className="mt-4 text-base leading-7 text-gray-600">
-                  Use Helm charts to template Kubernetes resources. Perfect for managing Kubernetes-native applications and resources. Expose any Helm chart as a custom resource and let Kblocks handle the lifecycle management.
+                  Use Helm charts to template Kubernetes resources. Perfect for managing Kubernetes-native applications and resources.
                 </p>
               </Link>
 
@@ -216,7 +216,7 @@ metadata:
               >
                 <div className="flex items-center gap-x-4">
                   <img src="/img/terraform.svg" alt="Terraform" className="h-12 w-12" />
-                  <h3 className="text-2xl font-semibold leading-7 text-gray-900">Terraform</h3>
+                  <h3 className="text-2xl font-semibold leading-7 text-gray-900 my-auto">Terraform</h3>
                 </div>
                 <p className="mt-4 text-base leading-7 text-gray-600">
                   Provision cloud resources using Terraform. Turn your existing Terraform configurations into Kubernetes custom resources.
@@ -230,7 +230,7 @@ metadata:
               >
                 <div className="flex items-center gap-x-4">
                   <img src="/img/tofu.svg" alt="OpenTofu" className="h-12 w-12" />
-                  <h3 className="text-2xl font-semibold leading-7 text-gray-900">OpenTofu</h3>
+                  <h3 className="text-2xl font-semibold leading-7 text-gray-900 my-auto">OpenTofu</h3>
                 </div>
                 <p className="mt-4 text-base leading-7 text-gray-600">
                   Use OpenTofu for infrastructure provisioning. A fully open source alternative to Terraform with complete compatibility.
@@ -240,14 +240,28 @@ metadata:
               {/* Wing */}
               <Link 
                 to="/docs/reference/supported-engines/wing"
-                className="col-span-1 lg:col-span-2 rounded-3xl bg-gradient-to-br from-gray-50 to-white p-10 shadow-lg ring-1 ring-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-black cursor-pointer"
+                className="rounded-3xl bg-gradient-to-br from-gray-50 to-white p-10 shadow-lg ring-1 ring-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-black cursor-pointer"
               >
                 <div className="flex items-center gap-x-4">
                   <img src="/img/winglang-symbol-dark.svg" alt="Wing" className="h-12 w-12" />
-                  <h3 className="text-2xl font-semibold leading-7 text-gray-900">Wing & CDK8s</h3>
+                  <h3 className="text-2xl font-semibold leading-7 text-gray-900 my-auto">Wing & CDK8s</h3>
                 </div>
                 <p className="mt-4 text-base leading-7 text-gray-600">
-                  Write type-safe infrastructure code using Wing and CDK8s. Perfect for teams that prefer a programmatic approach to infrastructure. Use modern programming languages to define your resources.
+                  Write type-safe infrastructure code using Wing and CDK8s. Perfect for teams that prefer a programmatic approach.
+                </p>
+              </Link>
+
+              {/* Pulumi */}
+              <Link 
+                to="/docs/reference/supported-engines/pulumi"
+                className="rounded-3xl bg-gradient-to-br from-gray-50 to-white p-10 shadow-lg ring-1 ring-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-black cursor-pointer"
+              >
+                <div className="flex items-center gap-x-4">
+                  <img src="/img/pulumi.svg" alt="Pulumi" className="h-12 w-12" />
+                  <h3 className="text-2xl font-semibold leading-7 text-gray-900 my-auto">Pulumi</h3>
+                </div>
+                <p className="mt-4 text-base leading-7 text-gray-600">
+                  Ship faster with infrastructure as code in any programming language. Perfect for multi-language development teams.
                 </p>
               </Link>
 
@@ -264,10 +278,10 @@ metadata:
                       </svg>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-semibold leading-7 text-gray-900">Custom</h3>
+                  <h3 className="text-2xl font-semibold leading-7 text-gray-900 my-auto">Custom</h3>
                 </div>
                 <p className="mt-4 text-base leading-7 text-gray-600">
-                  Implement custom logic in any language through lifecycle hooks. Perfect for unique use cases and specialized requirements that need custom implementation.
+                  Implement custom logic in any language through lifecycle hooks. Perfect for unique use cases and specialized requirements.
                 </p>
               </Link>
             </div>
