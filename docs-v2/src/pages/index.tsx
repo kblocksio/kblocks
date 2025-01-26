@@ -1,14 +1,8 @@
 import type {ReactNode} from 'react';
-import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import Heading from '@theme/Heading';
 import CodeBlock from '@theme/CodeBlock';
-import Markdown from './markdown-page.mdx';
-
-
-import styles from './index.module.css';
 
 export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
@@ -58,13 +52,16 @@ export default function Home(): ReactNode {
                     <div className="w-screen overflow-hidden rounded-tl-xl bg-gray-900">
                       <div className="flex bg-gray-800/40 ring-1 ring-white/5">
                         <div className="-mb-px flex text-sm font-medium leading-6 text-gray-400">
-                          <div className="border-b border-r border-b-white/20 border-r-white/10 bg-white/5 px-4 py-2 text-white">
-                            kblock.yaml
-                          </div>
+
                         </div>
                       </div>
-                      <div className="">
-                        <pre className="text-sm text-gray-300 bg-black"><code>{`apiVersion: kblocks.io/v1
+                        <CodeBlock 
+                          language="yaml"
+                          className="!mb-0"
+                          showLineNumbers={true}
+                          title="kblock.yaml"
+                        >
+{`apiVersion: kblocks.io/v1
 kind: Block
 spec:
   engine: tofu
@@ -86,8 +83,9 @@ spec:
       AWS_ACCESS_KEY_ID: aws-credentials
       AWS_SECRET_ACCESS_KEY: aws-credentials
 metadata:
-  name: queues.example.com`}</code></pre>
-                      </div>
+  name: queues.example.com`}
+                        </CodeBlock>
+                      </div>  
                     </div>
                   </div>
                 </div>
@@ -95,7 +93,6 @@ metadata:
             </div>
           </div>
         </div>
-      </div>
 
       {/* How it Works Section */}
       <div className="bg-gray-50">
