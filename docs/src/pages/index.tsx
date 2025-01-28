@@ -64,7 +64,7 @@ export default function Home(): ReactNode {
 {`apiVersion: kblocks.io/v1
 kind: Block
 spec:
-  engine: tofu
+  engine: terraform
   definition:
     description: An Amazon SQS queue
     icon: heroicon://queue-list
