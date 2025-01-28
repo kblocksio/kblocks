@@ -19,7 +19,7 @@ export default function Home(): ReactNode {
             <div className="mx-auto max-w-2xl">
               <div className="max-w-lg">
                 <h1 className="mt-10 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                  Build Kubernetes Operators with Familiar Tools
+                  Create Kubernetes Custom Resource Operators using Familiar Tools
                 </h1>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
                   Create <Link className="text-indigo-600 hover:text-indigo-500" to="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">custom resource</Link> operators using familiar tools like <Link className="text-indigo-600 hover:text-indigo-500" to="https://helm.sh/">Helm</Link>, <Link className="text-indigo-600 hover:text-indigo-500" to="https://www.terraform.io/">Terraform</Link>, <Link className="text-indigo-600 hover:text-indigo-500" to="https://opentofu.org/">OpenTofu</Link>, <Link className="text-indigo-600 hover:text-indigo-500" to="https://cdk8s.io/">CDK8s</Link> and <Link className="text-indigo-600 hover:text-indigo-500" to="https://www.winglang.io/">Winglang</Link>. Turn your infrastructure code into Kubernetes native resources in minutes.
