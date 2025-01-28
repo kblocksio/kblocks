@@ -5,11 +5,11 @@ id: introduction
 slug: /
 sidebar_label: Introduction
 description: Understanding Kblocks, how it works and how to get started
-keywords: [Kblocks, Kubernetes, Helm, Terraform, OpenTofu, Winglang]
+keywords: [Kblocks, Kubernetes, Helm, Terraform, OpenTofu, Winglang, Pulumi]
 ---
 
 Kblocks is a framework for building Kubernetes *custom resource operators* using familiar
-infrastructure tools like [Helm](https://helm.sh/), [Terraform](https://www.terraform.io/),
+infrastructure tools like [Helm](https://helm.sh/), [Terraform](https://www.terraform.io/), [Pulumi](https://www.pulumi.com/),
 [OpenTofu](https://opentofu.org/), [CDK8s](https://cdk8s.io/) and [Winglang](https://winglang.io/).
 
 ### How does it work?
@@ -25,8 +25,8 @@ To create a new block, all you need is:
 
 ### Features
 
-- **Multiple Engines**: Support for Helm, Terraform, OpenTofu, Wing and custom implementations
-- **Simple CLI**: Easy-to-use command line interface for creating and managing blocks
+- **Multiple Engines**: Support for Helm, Terraform, Pulumi, OpenTofu, Wing and custom script implementations
+- **Simple CLI**: Easy-to-use command line interface for building and deploying blocks
 - **Schema Validation**: Automatic validation of custom resource inputs
 - **Output Management**: Structured handling of block outputs
 - **Kubernetes Native**: Fully integrated with Kubernetes custom resources
