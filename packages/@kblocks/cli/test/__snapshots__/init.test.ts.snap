@@ -219,6 +219,148 @@ metadata:
 }
 `;
 
+exports[`pulumi template 1`] = `
+{
+  "README.md": "# Bang Block
+
+TODO: Add a description of the block or run \`kb enrich\` to generate one.",
+  "kblock.yaml": "apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: pulumi
+  definition:
+    description: the bang bang description
+    icon: 🔥
+    readme: ./README.md
+    schema: src/values.schema.json
+    outputs:
+      - myOutput
+    group: bang.com
+    version: v99
+    kind: Bang
+    plural: bangs
+    color: red
+    listKind: BangList
+    shortNames:
+      - b
+      - ba
+    categories:
+      - cat1
+      - cat2
+    singular: bang
+  operator:
+    envSecrets:
+      PULUMI_ACCESS_TOKEN: credentials
+      AWS_DEFAULT_REGION: credentials
+      AWS_ACCESS_KEY_ID: credentials
+      AWS_SECRET_ACCESS_KEY: credentials
+metadata:
+  name: bangs.bang.com
+",
+  "src/.gitignore": "/bin/
+/node_modules/
+",
+  "src/Pulumi.dev.yaml": "config:
+  demo:myValue: default-value
+",
+  "src/Pulumi.yaml": "name: demo
+description: A minimal AWS TypeScript Pulumi program
+runtime:
+  name: nodejs
+  options:
+    packagemanager: npm
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-typescript
+",
+  "src/index.js": ""use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.myOutput = void 0;
+const pulumi = __importStar(require("@pulumi/pulumi"));
+const config = new pulumi.Config();
+// inputs must be defined in the values.schema.json file and read as Pulumi config.
+const myValue = config.require("myValue");
+// outputs must be defined in kblock.yaml and exported as a variable.
+exports.myOutput = myValue;
+",
+  "src/index.ts": "import * as pulumi from "@pulumi/pulumi";
+
+const config = new pulumi.Config();
+
+// inputs must be defined in the values.schema.json file and read as Pulumi config.
+const myValue = config.require("myValue");
+
+// outputs must be defined in kblock.yaml and exported as a variable.
+export const myOutput = myValue;
+",
+  "src/package.json": "{
+    "name": "demo",
+    "main": "index.ts",
+    "devDependencies": {
+        "@types/node": "^18",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "@pulumi/pulumi": "^3.113.0"
+    }
+}
+",
+  "src/tsconfig.json": "{
+    "compilerOptions": {
+        "strict": true,
+        "outDir": "bin",
+        "target": "es2020",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "experimentalDecorators": true,
+        "pretty": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "files": [
+        "index.ts"
+    ]
+}
+",
+  "src/values.schema.json": "{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "myValue": {
+      "type": "string",
+      "description": "An example of an input variable that will be used in the block"
+    }
+  }
+}",
+}
+`;
+
 exports[`terraform template 1`] = `
 {
   "README.md": "# Bang Block

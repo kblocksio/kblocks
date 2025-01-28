@@ -200,6 +200,10 @@ type ProjectTemplate = {
 function pasteTemplate(templateDir: string, targetDir: string, blockManifest: ApiObject & { spec: Manifest }) {
   const files = fs.readdirSync(templateDir);
   for (const file of files) {
+    if (file === "node_modules") {
+      continue;
+    }
+
     const filePath = path.join(templateDir, file);
     const targetPath = path.join(targetDir, file);
     const stat = fs.statSync(filePath);
@@ -211,7 +215,7 @@ function pasteTemplate(templateDir: string, targetDir: string, blockManifest: Ap
       fs.mkdirSync(targetPath, { recursive: true });
       pasteTemplate(filePath, targetPath, blockManifest);
     } else {  
-      const contents = fs.readFileSync(filePath, "utf-8");  
+      const contents = fs.readFileSync(filePath, "utf-8");
       const rendered = ejs.render(contents, blockManifest);
       fs.writeFileSync(targetPath, rendered);
     }

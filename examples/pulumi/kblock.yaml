@@ -12,6 +12,7 @@ spec:
   operator:
     # the engine reads these environment variables to configure the provisioning engine
     envSecrets:
-      AWS_DEFAULT_REGION: aws-credentials
-      AWS_ACCESS_KEY_ID: aws-credentials
-      AWS_SECRET_ACCESS_KEY: aws-credentials
+      PULUMI_ACCESS_TOKEN: credentials
+      AWS_DEFAULT_REGION: credentials
+      AWS_ACCESS_KEY_ID: credentials
+      AWS_SECRET_ACCESS_KEY: credentials
