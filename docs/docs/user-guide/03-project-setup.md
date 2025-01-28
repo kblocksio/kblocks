@@ -6,8 +6,7 @@ structure of the files created.
 
 ## Initialize a New Block Project Directory
 
-To begin, you'll need to initialize a new block project. This can be done using the `kb`
-command-line tool. The command below will create a new project with the specified parameters:
+To begin, you'll need to initialize a new block project. This can be done using the [Kblocks CLI](/docs/reference/command-line-tool/01-intro.md). The command below will create a new project with the specified parameters:
 
 ```bash
 kb init terraform queue --group example.com --kind Queue --plural queues
