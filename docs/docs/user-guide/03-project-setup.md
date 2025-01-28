@@ -10,10 +10,10 @@ To begin, you'll need to initialize a new block project. This can be done using 
 command-line tool. The command below will create a new project with the specified parameters:
 
 ```bash
-kb init tofu queue --group example.com --kind Queue --plural queues
+kb init terraform queue --group example.com --kind Queue --plural queues
 ```
 
-- **`tofu`**: This is the type of project you are creating. In our example, we will use the [`tofu`](/docs/reference/supported-engines/tofu) engine to implement our block.
+- **`terraform`**: This is the type of project you are creating. In our example, we will use the [`terraform`](/docs/reference/supported-engines/terraform) engine to implement our block.
 - **`queue`**: This is the directory name where your project files will be stored.
 - **`--group example.com`**: This specifies the [API
   group](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-api/#api-groups)
@@ -25,8 +25,6 @@ kb init tofu queue --group example.com --kind Queue --plural queues
   configurations and API endpoints (see
   [pluralization](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#plural-names)).
 
-## Navigate to the Project Directory
-
 Once the project is initialized, navigate to the newly created project directory:
 
 ```bash
@@ -36,15 +34,14 @@ cd queue
 ## Understanding the Project Structure
 
 After initialization, your project directory will contain several files and subdirectories. These
-are essential for the configuration and operation of your block. Here's a brief overview of what you
-might find:
+are essential for the configuration and operation of your block.
 
-- `kblock.yaml`: The main configuration file that defines your block's metadata, specifications, and operator settings.
+Here's a brief overview of what you might find in a Terraform-based block:
 
+- `kblock.yaml`: The main [configuration manifest](/docs/reference/01-manifest.md) that defines your block's metadata, specifications, and operator settings.
 - `README.md`: Documentation file that describes your block, its purpose, and usage instructions.
-
 - `src/` (the contents of this directory is engine-specific)
-  - `values.schema.json`: JSON Schema file that defines the structure and validation rules for your block's API.
+  - `values.schema.json`: JSON schema file that defines the structure and validation rules for your block's API.
   - `main.tf`: The main Terraform configuration file where you'll define your infrastructure resources.
   - `variables.tf`: Defines input variables used in your Terraform configuration. Must match the schema.
   - `outputs.tf`: Specifies the output values that will be exposed by your block. The list of
