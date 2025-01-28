@@ -150,6 +150,10 @@ const config: Config = {
               to: "/docs/reference/supported-engines/helm",
             },
             {
+              label: "Pulumi",
+              to: "/docs/reference/supported-engines/pulumi",
+            },
+            {
               label: "OpenTofu",
               to: "/docs/reference/supported-engines/tofu",
             },
