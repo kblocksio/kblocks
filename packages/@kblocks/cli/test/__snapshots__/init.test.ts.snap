@@ -259,7 +259,7 @@ metadata:
 ",
   "src/.gitignore": "/bin/
 /node_modules/
-",
+*.js",
   "src/Pulumi.dev.yaml": "config:
   demo:myValue: default-value
 ",
