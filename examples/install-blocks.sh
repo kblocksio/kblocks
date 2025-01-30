@@ -76,7 +76,7 @@ install_kblock() {
 blocks=$@
 
 if [ -z "$blocks" ]; then
-  blocks=$(find kblocks -maxdepth 1 -type d -not -path kblocks -not -path "*/dist")
+  blocks=$(find . -mindepth 2 -maxdepth 2 -type d -not -path "*/dist")
   echo "No arguments provided, installing all kblocks..."
 fi
 
