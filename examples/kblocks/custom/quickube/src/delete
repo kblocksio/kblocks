@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+const { delete: deleteCluster } = require("./commands.cjs");
+
+deleteCluster();

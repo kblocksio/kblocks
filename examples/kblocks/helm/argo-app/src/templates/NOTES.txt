@@ -1,0 +1,3 @@
+{
+  "argoConsole": "https://argo.localhost.kblocks.io/applications/default/{{ .Release.Name }}"
+}

@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: default
+  name: {{ .Release.Name }}
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/{{ .Values.repository }}.git
+    targetRevision: {{ default "main" .Values.branch }}
+    path: {{ default "." .Values.path }}
+    helm:
+      releaseName: {{ .Release.Name }}
+      parameters:
+      {{- range $key, $value := .Values.parameters }}
+      - name: {{ $key }}
+        value: {{ $value }}
+      {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Release.Namespace }}
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

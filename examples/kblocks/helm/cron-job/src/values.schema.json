@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/cron-schema.json",
+    "$defs": {
+      "commonDefs": {
+        "$ref": "../../../common.values.schema.json"
+      }
+    },
+    "type": "object",
+    "required": [
+      "schedule",
+      "source"
+    ],
+    "properties": {
+      "schedule": {
+        "type": "string",
+        "description": "The schedule for the command as a [cron expression](https://en.wikipedia.org/wiki/Cron#CRON_expression).\n@ui kblocks.io/cron-picker",
+        "default": "*/5 * * * *"
+      },
+      "source": {
+        "description": "The source code of the cron job.\n@ui kblocks.io/one-of",
+        "$ref": "#/$defs/commonDefs/source"
+      },
+      "environmentVariables": {
+        "$ref": "#/$defs/commonDefs/environmentVariables"
+      },
+      "instanceType": {
+        "$ref": "#/$defs/commonDefs/instanceType",
+        "default": "Small"
+      },
+      "region": {
+        "$ref": "#/$defs/commonDefs/region",
+        "description": "The region to deploy the cron job. Your services in the same [region](https://kblocks.io/docs/regions) can communicate over a [private network](https://kblocks.io/docs/private-network).",
+        "default": "us-east-1"
+      }
+    }
+  }

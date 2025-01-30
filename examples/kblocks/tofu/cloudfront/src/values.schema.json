@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "required": [
+    "region"
+  ],
+  "properties": {
+    "region": {
+      "type": "string",
+      "description": "AWS region for the CloudFront distribution."
+    },
+    "bucketName": {
+      "type": "string",
+      "description": "Name (ID) of the S3 bucket to be used as the origin."
+    },
+    "bucketArn": {
+      "type": "string",
+      "description": "ARN of the S3 bucket to be used as the origin."
+    },
+    "bucketDomainName": {
+      "type": "string",
+      "description": "Domain name of the S3 bucket to be used as the origin."
+    }
+  }
+}

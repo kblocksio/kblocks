@@ -1,0 +1,20 @@
+{{- if .Values.source }}
+{{- if .Values.source.fromRepository }}
+{{- if .Values.source.fromRepository.repository }}
+apiVersion: acme.com/v1
+kind: AutoBuild
+metadata:
+  name: {{ .Release.Name }}-web-service-autobuild
+  labels:
+    foo: web
+    hello: service
+repository: {{ .Values.source.fromRepository.repository }}
+branch: {{ .Values.source.fromRepository.branch }}
+rootDirectory: {{ .Values.source.fromRepository.rootDirectory }}
+dockerFilePath: {{ .Values.source.fromRepository.dockerFilePath }}
+deploy:
+  field: source.fromImage.image
+  blockUri: "acme.com/v1/webservices/{{ .Values.kblocks.system }}/{{ .Release.Namespace }}/{{ .Release.Name }}"
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,14 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: core-objects.acme.com
+spec:
+  include:
+    - pod/kblock.yaml
+    - replicaset/kblock.yaml
+    - service/kblock.yaml
+    - configmap/kblock.yaml
+    - secret/kblock.yaml
+  operator:
+    skipCrd: true
+    flushOnly: true

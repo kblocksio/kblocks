@@ -1,0 +1,5 @@
+apiVersion: v2
+name: githubworkflow-block
+description: Triggers a GitHub Workflow
+type: application
+version: 0.1.0

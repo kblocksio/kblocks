@@ -1,0 +1,12 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: app-objects.acme.com
+spec:
+  include:
+    - deployment/kblock.yaml
+    - statefulset/kblock.yaml
+    - ingress/kblock.yaml
+  operator:
+    skipCrd: true
+    flushOnly: true

@@ -1,0 +1,10 @@
+{
+  "name": "autobuild",
+  "version": "1.0.0",
+  "main": "index.js",
+  "description": "Builds and publishes a container image for a GitHub repository and optionally updates a Kubernetes resource with the new image tag.",
+  "dependencies": {
+    "@cdktf/provider-github": "^14.4.0",
+    "cdktf": "^0.20.10"
+  }
+}

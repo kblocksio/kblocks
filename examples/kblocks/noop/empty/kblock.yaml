@@ -1,0 +1,16 @@
+apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: noop
+  definition:
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: An empty demo block
+    group: acme.com
+    version: v1
+    kind: Empty
+    categories: ["demo"]
+    plural: empties
+    singular: empty
+metadata:
+  name: empties.acme.com

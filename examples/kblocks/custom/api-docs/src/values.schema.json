@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/api-docs-schema.json",
+  "type": "object",
+  "required": [
+    "repository"
+  ],
+  "properties": {
+    "repository": {
+      "description": "The GitHub repository to use for the API documentation (e.g. 'my-org/my-repo').\n@ui kblocks.io/repo-picker",
+      "type": "string"
+    },
+    "directory": {
+      "description": "The directory in the repository to use for the API documentation (e.g. 'backend').",
+      "type": "string"
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The URL of the generated API documentation.\n@ui kblocks.io/hidden"
+        },
+        "spec": {
+          "type": "string",
+          "description": "The generated API documentation.\n@ui kblocks.io/swagger-ui"
+        }
+      }
+    }
+  }
+}
