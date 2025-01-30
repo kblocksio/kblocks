@@ -1,7 +1,10 @@
-# Terraform
+# Terraform/OpenTofu
 
 [Terraform](https://www.terraform.io/) is a tool for building, changing, and versioning
 infrastructure safely and efficiently.
+
+[OpenTofu](https://opentofu.org/) is an open-source version of Terraform that is compatible with the
+Terraform language.
 
 Kblocks allows you to create Kubernetes Custom Resources (CRDs) that are backed by Terraform. When a
 resource is created, updated or deleted, Kblocks will use Terraform to manage the underlying
@@ -10,7 +13,7 @@ infrastructure.
 ## Block Manifest
 
 To create a Terraform block, the `engine` field in the [`kblock.yaml`](../01-manifest.md) should be
-set to `terraform`:
+set to `terraform` or `tofu` (based on the engine you want to use):
 
 ```yaml
 apiVersion: kblocks.io/v1
