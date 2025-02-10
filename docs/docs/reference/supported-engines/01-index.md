@@ -8,5 +8,6 @@ Kblocks supports multiple provisioning engines for implementing block controller
 - [**Wing**](/docs/reference/supported-engines/wing): Write type-safe infrastructure code
 - [**Pulumi**](/docs/reference/supported-engines/pulumi): Use Pulumi for cloud infrastructure
 - [**Custom**](/docs/reference/supported-engines/custom): Implement custom logic in any language
+- [**No-op**](/docs/reference/supported-engines/noop): Only defines a CRD without provisioning logic
 
 Select a block type from the sidebar to learn more about its specific implementation details. 

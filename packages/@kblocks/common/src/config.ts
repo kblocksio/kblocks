@@ -33,12 +33,10 @@ export const getConfiguration = () => {
   return {
     redis: () => {
       if (!KBLOCKS_PUBSUB_KEY) {
-        console.log("KBLOCKS_PUBSUB_KEY is not set");
         return;
       }
 
       if (!KBLOCKS_PUBSUB_HOST) {
-        console.log("KBLOCKS_PUBSUB_HOST is not set");
         return;
       }
 

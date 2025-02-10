@@ -29,6 +29,8 @@ Defines the engine to be used. See [Supported Engines](/docs/reference/supported
 - `wing/k8s`
 - `cdk8s`
 - `noop`
+- `terraform`
+- `pulumi`
 - `custom`
 
 ### `definition`
