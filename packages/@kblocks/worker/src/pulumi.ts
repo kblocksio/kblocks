@@ -30,7 +30,7 @@ export async function applyPulumi(workdir: string, host: RuntimeContext, engine:
     }
   }
 
- await host.exec("pulumi", ["up", "--json", "--yes", ...args], {
+ await host.exec("pulumi", ["up", "--yes", ...args], {
     cwd: workdir,
     env: {
       ...process.env,
