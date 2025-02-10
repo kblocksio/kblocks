@@ -4,25 +4,89 @@ This block type is backed by [Pulumi](https://pulumi.com/). It allows you to pro
 
 ## Block Manifest
 
-The `kblock.yaml` file defines the block manifest, containing block definitions like names, icons, description and optional operator environment settings.
+The `kblock.yaml` file defines the block manifest, containing block definitions like names, icons,
+description and optional operator environment settings.
 
 To use Pulumi to provision resources:
 
 1. Set `spec.engine` to `pulumi`
-2. Map the `PULUMI_ACCESS_TOKEN` environment varaible under `envSecrets` to a secret that contains the Pulumi access token.
-3. Specify any environment provider specific secrets such as AWS credentials via additional `envSecrets`.
+
+```yaml
+apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: pulumi
+```
+
+2. Upload the Pulumi access token to a Kubernetes secret and specify the secret name under
+   `envSecrets`:
+
+```yaml
+spec:
+  operator:
+    envSecrets:
+      PULUMI_ACCESS_TOKEN: pulumi-access-token
+```
 
 ## Input Schema
 
-The input schema is defined in `src/values.schema.json`. Schema fields map to [Pulumi Configurations](https://www.pulumi.com/docs/iac/concepts/config/) defined in the current project.
+The input schema is defined in `src/values.schema.json`. Schema fields map to [Pulumi
+Configurations](https://www.pulumi.com/docs/iac/concepts/config/) defined in the current project.
+
+For example, if your schema looks like this:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "foo": { "type": "string" }
+  }
+}
+```
+
+You can access it from your Pulumi code (in TypeScript) like this:
+
+```ts
+const foo = config.require("foo");
+```
 
 ## Implementation
 
-The implement is a standard Pulumi program, so you can use any supported language and settings. The implementation is currently creating a new stack per block instance.
+The implement is a standard Pulumi program, so you can use any supported language and settings. The
+implementation is currently creating a new stack per block instance.
+
+Specify any environment provider specific secrets such as AWS credentials via additional
+`envSecrets`.
+
+For example:
+
+```yaml
+spec:
+  operator:
+    envSecrets:
+      AWS_DEFAULT_REGION: aws-credentials
+      AWS_ACCESS_KEY_ID: aws-credentials
+      AWS_SECRET_ACCESS_KEY: aws-credentials
+```
 
 ## Outputs
 
-Outputs listed in `kblock.yaml` (under `outputs`) are read from [Pulumi Outputs](https://www.pulumi.com/docs/iac/concepts/inputs-outputs/) defined in your configuration. 
+Outputs listed in `kblock.yaml` (under `outputs`) are read from [Pulumi
+Outputs](https://www.pulumi.com/docs/iac/concepts/inputs-outputs/) defined in your configuration.
+
+For example, if your `kblock.yaml` has an `outputs` field like this:
+
+```yaml
+spec:
+  outputs:
+    - bar
+```
+
+You can define a Pulumi output like this:
+
+```ts
+export const bar = "this is my output";
+```
 
 ## Example
 
@@ -61,7 +125,8 @@ spec:
       AWS_DEFAULT_REGION: creds
 ```
 
-The `src/values.schema.json` files defines the input schema. In this case, we just define `bucket` as a single string field:
+The `src/values.schema.json` files defines the input schema. In this case, we just define `bucket`
+as a single string field:
 
 ```json
 {
