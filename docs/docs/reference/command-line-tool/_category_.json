@@ -2,6 +2,7 @@
   "label": "Command Line Tool",
   "position": 1,
   "link": {
-    "type": "generated-index"
+    "type": "doc",
+    "id": "reference/command-line-tool/intro"
   }
 }
