@@ -1,0 +1,20 @@
+instanceTypes:
+  Micro:
+    cpu: "100m"
+    memory: "256Mi"
+  Small:
+    cpu: "200m"
+    memory: "256Mi"
+  Medium:
+    cpu: "2"
+    memory: "512Mi"
+  Large:
+    cpu: "4"
+    memory: "1024Mi"
+
+instanceType: "Small"
+source:
+  fromImage:
+    image: your-image-name:tag
+
+route: "/my-awesome-service"

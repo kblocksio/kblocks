@@ -1,0 +1,22 @@
+apiVersion: acme.com/v1
+kind: AutoBuildStaticSite
+metadata:
+  name: {{ .Release.Name }}-static-site-autobuild
+  labels:
+    foo: static
+    hello: site
+repository: {{ .Values.repository }}
+branch: {{ .Values.branch }}
+rootDirectory: {{ .Values.rootDirectory }}
+buildCommand: {{ .Values.buildCommand }}
+outputDirectory: {{ .Values.outputDirectory }}
+cloudFrontDistributionId: ${ref://cloudfronts.acme.com/{{ .Release.Name }}-static-site-cloudfront/cloudfrontDistributionId?timeout=20m}
+bucketName: ${ref://buckets.acme.com/{{ .Release.Name }}-static-site-bucket/bucketName}
+region: "us-east-1"
+{{- if .Values.environmentVariables }}
+env:
+  {{- range $key, $value := .Values.environmentVariables }}
+  {{ $key }}:
+    {{- toYaml $value | nindent 4 }}
+  {{- end }}
+{{- end }}

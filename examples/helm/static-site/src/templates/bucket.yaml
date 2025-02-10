@@ -1,0 +1,10 @@
+apiVersion: acme.com/v1
+kind: Bucket
+metadata:
+  name: "{{ .Release.Name }}-static-site-bucket"
+  labels:
+    foo: static
+    hello: site
+public: false
+region: "us-east-1"
+forceDestroy: true

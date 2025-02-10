@@ -1,0 +1,31 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: networkedworkloads.acme.com
+  namespace: kblocks
+spec:
+  engine: wing/tf-aws
+  definition:
+    group: acme.com
+    version: v1
+    kind: NetworkedWorkload
+    plural: networkedworloads
+    singular: networkedworload
+    listKind: NetworkedWorkloadList
+    shortNames:
+      - nwl
+    outputs:
+      - internalHost
+      - externalHost
+      - port
+    readme: README.md
+    icon: <svg class="svg-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M132.32 944V79.52c0-24-19.2-43.2-43.2-43.2s-43.2 19.2-43.2 43.2v864.48c0 24 19.2 43.2 43.2 43.2s43.2-19.68 43.2-43.2z m58.08-312.48c0 24 17.28 43.2 39.36 43.2h478.56c22.08 0 39.36-19.2 39.36-43.2s-17.28-43.2-39.36-43.2h-478.56c-22.08 0-39.84 19.2-39.36 43.2z m0-468.96c0 24 19.2 43.2 43.2 43.2H935.84c24 0 43.2-19.2 43.2-43.2s-19.2-43.2-43.2-43.2H233.6c-24.48 0-43.68 19.68-43.2 43.2z m0 701.76c0 24 20.16 43.2 45.6 43.2h427.68c25.44 0 45.6-19.2 45.6-43.2s-20.16-43.2-45.6-43.2h-427.68c-25.44 0-46.08 19.2-45.6 43.2z m0-465.6c0 24 18.24 43.2 41.28 43.2h567.84c23.04 0 41.28-19.2 41.28-43.2s-18.24-43.2-41.28-43.2h-568.32c-22.56 0-40.8 19.2-40.8 43.2z" fill="#FF8C00"/></svg>
+    color: slate
+    schema: ./src/workload.w
+    description: A Kubernetes Custom Resource Definition (CRD) for managing workloads that are connected to a network (private or public).
+  operator:
+    envSecrets:
+      AWS_DEFAULT_REGION: kblocks-secrets
+      AWS_ACCESS_KEY_ID: kblocks-secrets
+      AWS_SECRET_ACCESS_KEY: kblocks-secrets
+      GITHUB_TOKEN: kblocks-secrets

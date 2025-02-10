@@ -1,0 +1,66 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/cron-schema.json",
+    "$defs": {
+      "commonDefs": {
+        "$ref": "../../../common.values.schema.json"
+      }
+    },
+    "type": "object",
+    "required": [
+      "instanceType",
+      "source",
+      "route"
+    ],
+    "properties": {
+      "source": {
+        "description": "The Docker image or GitHub repository to use for the web service.\n@ui kblocks.io/one-of",
+        "$ref": "#/$defs/commonDefs/source"
+      },
+      "port": {
+        "type": "number",
+        "default": 3000,
+        "description": "The internal HTTP port the container listens on."
+      },
+      "route": {
+        "type": "string",
+        "default": "/my-awesome-service",
+        "description": "The HTTP/HTTPS route to associate with this web service. All requests to this route will be routed to this service."
+      },
+      "rewrite": {
+        "type": "string",
+        "description": "Optionally rewrite the URL path to a different path when requests are routed to this service. For example, say the route is `/api/v2` and the rewrite is `/api`, then requests to `/api/v2/users` will be rewritten to `/api/users`."
+      },
+      "host": {
+        "type": "string",
+        "description": "Host name to use for this endpoint"
+      },
+      "tls": {
+        "type": "object",
+        "required": ["secret", "hosts"],
+        "description": "TLS configuration for this web service. If provided, the web service will be exposed over HTTPS.",
+        "properties": {
+          "secret": {
+            "type": "string",
+            "description": "Secret name containing the TLS certificate and key to use for this web service"
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Hostnames to use for this certificate"
+          }
+        }
+      },
+      "instanceType": {
+        "$ref": "#/$defs/commonDefs/instanceType"
+      },
+      "scaling": {
+        "$ref": "#/$defs/commonDefs/scaling"
+      },
+      "environmentVariables": {
+        "$ref": "#/$defs/commonDefs/environmentVariables"
+      }
+    }
+  }

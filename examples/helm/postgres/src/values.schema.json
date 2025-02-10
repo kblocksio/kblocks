@@ -1,0 +1,5 @@
+{
+  "type": "object",
+  "properties": {},
+  "description": "This schema defines configuration for the Postgres resource, although it currently has no specific properties."
+}

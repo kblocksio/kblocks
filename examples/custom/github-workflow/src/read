@@ -1,0 +1,84 @@
+#!/usr/bin/env node
+const fs = require("fs");
+
+async function main() {
+  const object = JSON.parse(fs.readFileSync(process.env.KBLOCKS_OBJECT, "utf8"));
+
+  console.log({object});
+
+  if (!object.status.runid) {
+    console.log("no runid found, skipping read");
+    return;
+  }
+
+  const url = `https://api.github.com/repos/${object.repo}/actions/runs/${object.status.runid}`;
+
+  console.log(`GET ${url}`);
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/vnd.github.v3+json",
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    },
+  });
+
+  if (!res.ok) {
+    console.log(await res.text());
+    throw new Error(res.statusText);
+  }
+
+  const run = await res.json();
+  console.log({run});
+
+
+
+  const time = new Date().toISOString();
+
+  const condition = {
+    type: "Completed",
+    status: run.status === "completed" ? "True" : "False",
+    message: run.conclusion,
+    reason: run.conclusion,
+    lastTransitionTime: time,
+    lastProbeTime: time,
+  };
+
+  // Possible GitHub workflow run conclusion values:
+  // - cancelled: The workflow run was cancelled
+  // - skipped: The workflow run was skipped
+  // - neutral: The workflow run completed with a neutral state
+  // - action_required: The workflow requires manual intervention
+  // - timed_out: The workflow run timed out
+  // - stale: The workflow was marked as stale and abandoned
+
+  condition.message = run.conclusion ?? "Run in progress";
+  
+  if (!run.conclusion) {
+    condition.reason = "InProgress";
+  } else {
+
+    switch (run.conclusion) {
+      case "success":
+        condition.reason = "Completed";
+        break;
+  
+      case "failure":
+        condition.reason = "Error";
+        break;
+
+      default:
+        condition.reason = "Error";
+        break;
+    }
+  }
+
+  fs.writeFileSync(process.env.KBLOCKS_STATUS, JSON.stringify({
+    conditions: [condition]
+  }));
+}
+
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

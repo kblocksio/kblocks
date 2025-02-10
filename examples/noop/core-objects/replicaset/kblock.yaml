@@ -1,0 +1,15 @@
+apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: noop
+  definition:
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: An example of a noop block
+    group: apps
+    version: v1
+    kind: ReplicaSet
+    plural: replicasets
+    singular: replicaset
+metadata:
+  name: replicasets.apps

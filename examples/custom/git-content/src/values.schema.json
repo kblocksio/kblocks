@@ -1,0 +1,52 @@
+{
+  "type": "object",
+  "required": ["name", "owner", "files"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the git repository"
+    },
+    "owner": {
+      "type": "string",
+      "description": "The owner of the git repository"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "content": { "type": "string" },
+          "readOnly": { "type": "boolean" }
+        },
+        "required": ["path", "content"]
+      },
+      "description": "The files to synchronize"
+    },
+    "branch": {
+      "type": "string",
+      "description": "The branch to synchronize to"
+    },
+    "createPullRequest": {
+      "type": "boolean",
+      "description": "Whether to create a pull request"
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "merged": {
+          "type": "boolean",
+          "description": "Whether the content has been merged"
+        },
+        "commit": {
+          "description": "The commit of the git content.\n@ui kblocks.io/markdown",
+          "type": "string"
+        },
+        "pullrequest": {
+          "description": "The pull request of the git content.\n@ui kblocks.io/markdown",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

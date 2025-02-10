@@ -1,0 +1,15 @@
+apiVersion: kblocks.io/v1
+kind: Block
+spec:
+  engine: noop
+  definition:
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: An example of a noop block
+    group: networking.k8s.io
+    version: v1
+    kind: Ingress
+    plural: ingresses
+    singular: ingress
+metadata:
+  name: ingresses.networking.k8s.io

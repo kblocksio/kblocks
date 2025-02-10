@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "required": [
+    "topicName",
+    "region"
+  ],
+  "properties": {
+    "topicName": {
+      "type": "string",
+      "description": "The name of the SNS topic to be created. Must be unique within the AWS account."
+    },
+    "region": {
+      "type": "string",
+      "description": "The AWS region where the SNS topic should be created. Determines the location where your topic resources reside."
+    },
+    "encrypted": {
+      "type": "boolean",
+      "description": "Whether the SNS topic should be encrypted. Defaults to false."
+    }
+  }
+}

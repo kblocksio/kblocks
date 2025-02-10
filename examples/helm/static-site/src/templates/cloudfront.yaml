@@ -1,0 +1,11 @@
+apiVersion: acme.com/v1
+kind: CloudFront
+metadata:
+  name: {{ .Release.Name }}-static-site-cloudfront
+  labels:
+    foo: static
+    hello: site
+region: "us-east-1"
+bucketDomainName: ${ref://buckets.acme.com/{{ .Release.Name }}-static-site-bucket/bucketDomainName}
+bucketName: ${ref://buckets.acme.com/{{ .Release.Name }}-static-site-bucket/bucketName}
+bucketArn: ${ref://buckets.acme.com/{{ .Release.Name }}-static-site-bucket/bucketArn}
