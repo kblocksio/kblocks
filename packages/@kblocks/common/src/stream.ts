@@ -21,11 +21,15 @@ export async function subscribeToStream(stream: string, handler: (message: strin
   let isShuttingDown = false;
 
   async function listenForMessage(lastId = ">") {
-    if (isShuttingDown) return;
+    if (isShuttingDown) {
+      console.log("Stream subscription shutting down");
+      return;
+    }
+
     console.log(`Listening for messages on ${stream} with id: `, lastId);
-    const results: any = await redisClient.xreadgroup("GROUP", GROUP_NAME, CONSUMER_NAME, "COUNT", 1, "BLOCK", 0, "NOACK", "STREAMS", stream, lastId);
+    const results: any = await redisClient.xreadgroup("GROUP", GROUP_NAME, CONSUMER_NAME, "COUNT", 1, "BLOCK", 2000, "NOACK", "STREAMS", stream, lastId);
     if (!results) {
-      setTimeout(listenForMessage, 10, lastId);
+      setTimeout(listenForMessage, 0, lastId);
       return;
     }
 
@@ -44,7 +48,7 @@ export async function subscribeToStream(stream: string, handler: (message: strin
     }
 
     if (!isShuttingDown) {
-      setTimeout(listenForMessage, 10, lastId);
+      setTimeout(listenForMessage, 0, lastId);
     }
   }
 
