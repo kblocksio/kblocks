@@ -5,7 +5,11 @@ import path from "path";
 import util from "util";
 import { createLogger, CONSOLE_LOGGER } from "./logging.js";
 
-export function exec(xlogger: ReturnType<typeof createLogger> | undefined, command: string, args: string[], options: child_process.SpawnOptions = {}): Promise<string> {
+export interface ExecOptions {
+  mergedOutput?: boolean;
+}
+
+export function exec(xlogger: ReturnType<typeof createLogger> | undefined, command: string, args: string[], options: child_process.SpawnOptions & ExecOptions = {}): Promise<string> {
   args = args || [];
   options = options || {};
 
@@ -26,20 +30,27 @@ export function exec(xlogger: ReturnType<typeof createLogger> | undefined, comma
   
     const stdout: Uint8Array[] = [];
     const stderr: Uint8Array[] = [];
+    const output: Uint8Array[] = [];
   
     proc.stdout?.on("data", data => {
       log.info(data.toString());
       stdout.push(data);
+      output.push(data);
     });
 
     proc.stderr?.on("data", data => {
       log.error(data.toString());
       stderr.push(data);
+      output.push(data);
     });
   
     proc.on("exit", (status) => {
       if (status !== 0) {
-        return reject(new Error(Buffer.concat(stderr).toString().trim()));
+        if (options.mergedOutput) {
+          return reject(new Error(Buffer.concat(output).toString().trim()));
+        } else {
+          return reject(new Error(Buffer.concat(stderr).toString().trim()));
+        }
       }
 
       return resolve(Buffer.concat(stdout).toString().trim());

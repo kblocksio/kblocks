@@ -5,14 +5,14 @@ import { chatCompletion } from "./ai.js";
 import { newSlackThread } from "./slack.js";
 import { Event, InvolvedObject, formatBlockTypeForEnv, parseBlockUri } from "@kblocks/api";
 import { emitEventAsync } from "@kblocks/common";
-import { getenv, tryGetenv, tempdir, exec } from "./util.js";
+import { getenv, tryGetenv, tempdir, exec, ExecOptions } from "./util.js";
 import { type createLogger } from "./logging.js";
 
 export interface RuntimeContext {
   newSlackThread: typeof newSlackThread,
   getenv: typeof getenv,
   tryGetenv: typeof tryGetenv,
-  exec: (command: string, args: string[], options?: child_process.SpawnOptions) => Promise<string>,
+  exec: (command: string, args: string[], options?: child_process.SpawnOptions & ExecOptions) => Promise<string>,
   chatCompletion: typeof chatCompletion;
   emitEventAsync: typeof emitEventAsync;
   objUri: string;

@@ -35,7 +35,8 @@ export async function applyPulumi(workdir: string, host: RuntimeContext, engine:
     env: {
       ...process.env,
       KBLOCKS_VALUES_FILE: values,
-    }
+    },
+    mergedOutput: true,
   });
 
   let outputs;
