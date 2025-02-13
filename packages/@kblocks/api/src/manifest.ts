@@ -46,6 +46,10 @@ export const Manifest = z.object({
     skipCrd: z.optional(z.boolean().default(false)),
     flushOnly: z.optional(z.boolean().default(false)),
     flushCrontab: z.optional(z.string()),
+    reconcile: z.optional(z.object({
+      interval: z.optional(z.string()),
+      enabled: z.optional(z.boolean().default(true)),
+    })),
     permissions: z.optional(z.array(z.object({
       apiGroups: z.array(z.string()),
       resources: z.array(z.string()),

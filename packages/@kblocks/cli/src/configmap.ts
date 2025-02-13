@@ -178,11 +178,24 @@ function readBlockJson(blockRequests: BlockRequest[], operator: Manifest["operat
       crontab: "* * * * *",
       allowFailure: true,
     });
-    schedule.push({
-      name: "reconcile",
-      crontab: "*/5 * * * *",
-      allowFailure: true,
-    });
+
+    let reconcileInterval = "*/5 * * * *";
+    let addReconcile = true;
+    if (operator?.reconcile) {
+      if (!operator.reconcile.enabled) {
+        addReconcile = false;
+      } else if (operator.reconcile.interval) {
+        reconcileInterval = operator.reconcile.interval;
+      }
+    }
+
+    if (addReconcile) {
+      schedule.push({
+        name: "reconcile",
+        crontab: reconcileInterval,
+        allowFailure: true,
+      });
+    }
   }
 
   return JSON.stringify({

@@ -68,6 +68,8 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
   const workdir = tempdir();
 
   try {
+    logger.info("Initializing resource synth");
+
     if (!isDeletion) {
       // fetch the latest object since the message was queued
       ctx.object = await getResource(host);
@@ -129,6 +131,7 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
     }
 
     if (sourcedir) {
+      logger.info("Creating synth workspace");
       await fs.cp(sourcedir, workdir, { recursive: true });
     }
 

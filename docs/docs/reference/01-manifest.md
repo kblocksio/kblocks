@@ -52,6 +52,9 @@ Defines the operator configuration (optional).
   used if the block operator manages native Kubernetes resources instead of custom resources.
 - **`flushOnly`**: Optional boolean (default: false) - Whether to only flush changes.
 - **`flushCrontab`**: Optional string - A crontab schedule for flushing.
+- **`reconcile`**: Optional object - Reconcile configuration.
+  - **`interval`**: Optional string - A crontab schedule for reconciling.
+  - **`enabled`**: Optional boolean (default: true) - Whether to reconcile.
 - **`envSecrets`**: Optional union - Environment secrets.
 - **`envConfigMaps`**: Optional record of strings - Environment config maps.
 - **`env`**: Optional record of strings - Environment variables.
