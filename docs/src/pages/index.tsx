@@ -125,7 +125,7 @@ metadata:
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-gray-900">Choose Engine</h3>
                 <p className="mt-2 text-gray-600">
-                  Select your preferred engine (Helm, Terraform, OpenTofu, Winglang, etc.)
+                  Select your preferred engine (Helm, Terraform, Pulumi, OpenTofu, Winglang, etc.)
                 </p>
               </div>
 
