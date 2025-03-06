@@ -1,11 +1,10 @@
 import fs from "fs";
 import { join } from "path";
 import { applyTerraform, tryGetTerraformS3Backend } from "./tf.js";
-import { getenv, tryGetenv } from "./util.js";
 import type { BindingContext } from "@kblocks/api";
 import { RuntimeContext } from "./host.js";
 
-export async function applyTofu(workdir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
+export async function applyTofuOrTerraform(engine: "tofu" | "terraform", workdir: string, host: RuntimeContext, ctx: BindingContext, valuesFile: string): Promise<Record<string, any>> {
   const s3Backend = tryGetTerraformS3Backend(host, ctx);
   if (s3Backend) {
     const dynamodb = s3Backend.dynamodb_table;
@@ -40,7 +39,7 @@ terraform {
   }
 
   fs.writeFileSync(join(workdir, "terraform.tfvars"), tfvars.join("\n"));
-  return await applyTerraform(host, workdir, ctx);
+  return await applyTerraform(engine, host, workdir, ctx);
 }
 
 

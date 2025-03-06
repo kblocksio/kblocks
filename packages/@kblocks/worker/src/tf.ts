@@ -3,7 +3,7 @@ import { BindingContext, TFSTATE_ATTRIBUTE } from "@kblocks/api";
 import fs from "fs/promises";
 import { join } from "path";
 
-export async function applyTerraform(host: RuntimeContext, workdir: string, ctx: BindingContext): Promise<Record<string, any>> {
+export async function applyTerraform(engine: "tofu" | "terraform", host: RuntimeContext, workdir: string, ctx: BindingContext): Promise<Record<string, any>> {
   const tfstatefile = join(workdir, "terraform.tfstate");
 
   // if there is a "tfstate" in the status, materialize it into the tfstate file so it will be used by the engine
@@ -13,19 +13,19 @@ export async function applyTerraform(host: RuntimeContext, workdir: string, ctx:
     await fs.writeFile(tfstatefile, prevState);
   }
 
-  await host.exec("tofu", ["init", "-input=false", "-lock=false", "-no-color"], { cwd: workdir });
+  await host.exec(engine, ["init", "-input=false", "-lock=false", "-no-color"], { cwd: workdir });
 
   if (ctx.watchEvent === "Deleted") {
-    await host.exec("tofu", ["destroy", "-auto-approve", "-no-color"], { cwd: workdir });
+    await host.exec(engine, ["destroy", "-auto-approve", "-no-color"], { cwd: workdir });
     return {};
   }
 
-  await host.exec("tofu", ["apply", "-input=false", "-auto-approve", "-no-color"], { cwd: workdir });
+  await host.exec(engine, ["apply", "-input=false", "-auto-approve", "-no-color"], { cwd: workdir });
 
   const outputs = kblockOutputs(host);
   const results: Record<string, any> = {};
   for (const name of outputs) {
-    const value = await host.exec("tofu", ["output", "-no-color", name], { cwd: workdir });
+    const value = await host.exec(engine, ["output", "-no-color", name], { cwd: workdir });
     try {
       results[name] = JSON.parse(value);
       host.logger.info(`Output: ${name}=${value}`);

@@ -6,7 +6,7 @@ import { exec, getenv, tempdir, tryGetenv, generateRandomId } from "./util.js";
 import { applyWing } from "./wing.js";
 import { resolveReferences } from "./refs.js";
 import { chatCompletion, explainError } from "./ai.js";
-import { applyTofu } from "./tofu.js";
+import { applyTofuOrTerraform } from "./tofu.js";
 import { publishNotification, RuntimeContext } from "./host.js";
 import { BindingContext, InvolvedObject, EventReason, StatusReason, ENGINES, EventType, EventAction } from "@kblocks/api";
 import { emitEventAsync } from "@kblocks/common";
@@ -177,7 +177,10 @@ export async function synth(sourcedir: string | undefined, engine: keyof typeof 
             outputs = await applyWing(workdir, host, engine, ctx, values);
             break;
           case "tofu":
-            outputs = await applyTofu(workdir, host, ctx, values);
+            outputs = await applyTofuOrTerraform("tofu", workdir, host, ctx, values);
+            break;
+          case "terraform":
+            outputs = await applyTofuOrTerraform("terraform", workdir, host, ctx, values);
             break;
           case "cdk8s":
             outputs = await applyCdk8s(workdir, host, engine, ctx, values);

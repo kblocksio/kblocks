@@ -41,7 +41,7 @@ async function applyWingTerraform(workdir: string, host: RuntimeContext, values:
     host.logger.info("Terraform S3 backend not configured, using Kubernetes as backend");
   }
 
-  return await applyTerraform(host, targetdir, ctx);
+  return await applyTerraform("tofu", host, targetdir, ctx);
 }
 
 async function applyWingKubernetes(workdir: string, host: RuntimeContext, values: string, ctx: BindingContext): Promise<Record<string, any>> {

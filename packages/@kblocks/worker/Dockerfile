@@ -6,6 +6,21 @@ ENV LOG_TYPE=color
 RUN echo '@community https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
 RUN apk add --no-cache opentofu@community
 
+# install terraform
+RUN apk add --no-cache curl unzip && \
+    TERRAFORM_VERSION=1.11.1 && \
+    ARCH=$(uname -m); \
+    case $ARCH in \
+        x86_64) TERRAFORM_ARCH="amd64" ;; \
+        aarch64) TERRAFORM_ARCH="arm64" ;; \
+        *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
+    esac && \
+    curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${TERRAFORM_ARCH}.zip" && \
+    unzip "terraform_${TERRAFORM_VERSION}_linux_${TERRAFORM_ARCH}.zip" && \
+    mv terraform /usr/local/bin/ && \
+    rm "terraform_${TERRAFORM_VERSION}_linux_${TERRAFORM_ARCH}.zip"
+
+# install helm
 RUN apk add --no-cache helm curl npm nodejs git
 
 # install pulumi

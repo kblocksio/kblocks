@@ -16,10 +16,11 @@ export const Manifest = z.object({
   include: z.optional(z.array(z.string())),
 
   engine: z.union([ 
-    z.literal("tofu"), 
-    z.literal("helm"), 
-    z.literal("wing"), 
-    z.literal("wing/tf-aws"), 
+    z.literal("tofu"),
+    z.literal("terraform"),
+    z.literal("helm"),
+    z.literal("wing"),
+    z.literal("wing/tf-aws"),
     z.literal("wing/k8s"),
     z.literal("cdk8s"),
     z.literal("pulumi"),

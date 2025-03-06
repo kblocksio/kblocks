@@ -14,6 +14,7 @@
           "type": "string",
           "enum": [
             "tofu",
+            "terraform",
             "helm",
             "wing",
             "wing/tf-aws",
@@ -121,6 +122,18 @@
             },
             "flushCrontab": {
               "type": "string"
+            },
+            "reconcile": {
+              "type": "object",
+              "properties": {
+                "interval": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
             },
             "permissions": {
               "type": "array",

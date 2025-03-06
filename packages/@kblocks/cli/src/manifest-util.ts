@@ -261,7 +261,7 @@ export function renderStatusSchema(block: Manifest): JsonSchemaProps {
     },
   };
 
-  if (engine === "tofu" || engine.startsWith("wing/tf-")) {
+  if (engine === "tofu" || engine.startsWith("wing/tf-") || engine === "terraform") {
     props[TFSTATE_ATTRIBUTE] = { 
       type: "string",
       description: "The last Terraform state of the resource.\n\n@ui kblocks.io/hidden",

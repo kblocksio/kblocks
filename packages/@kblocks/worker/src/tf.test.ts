@@ -42,7 +42,7 @@ test("applyTerraform with tfstate", async () => {
   });
 
   const ctx = createBindingContext({ [TFSTATE_ATTRIBUTE]: JSON.stringify(prevState) });
-  const result = await applyTerraform(host, workdir, ctx);
+  const result = await applyTerraform("tofu", host, workdir, ctx);
   expect(commands).toEqual([
     ["tofu", "init", "-input=false", "-lock=false", "-no-color"],
     ["tofu", "apply", "-input=false", "-auto-approve", "-no-color"],
@@ -82,7 +82,7 @@ test("applyTerraform without tfstate", async () => {
   });
 
   const ctx = createBindingContext();
-  const result = await applyTerraform(host, workdir, ctx);
+  const result = await applyTerraform("tofu", host, workdir, ctx);
   expect(commands).toEqual([
     ["tofu", "init", "-input=false", "-lock=false", "-no-color"],
     ["tofu", "apply", "-input=false", "-auto-approve", "-no-color"],

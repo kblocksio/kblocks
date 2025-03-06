@@ -64,13 +64,15 @@ async function enrichWithAi(dir: string, manifest: Manifest): Promise<EnrichOutp
           case "tofu":
             return p.endsWith(".tf");
 
+          case "terraform":
+            return p.endsWith(".tf");
+
           case "custom":
             return p.endsWith("create") || p.endsWith("delete") || p.endsWith("update");
 
           default:
             return false;
         }
-        return p !== "package-lock.json"
       }),
     } satisfies EnrichInput,
   };
