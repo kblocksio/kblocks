@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/cron-schema.json",
+  "$defs": {
+    "workflow": {
+      "type": "object",
+      "required": ["workflow"],
+      "properties": {
+        "workflow": {
+          "type": "string",
+          "description": "The GitHub workflow to trigger."
+        },
+        "ref": {
+          "type": "string",
+          "description": "The branch to trigger the workflow on.",
+          "default": "main"
+        },
+        "inputs": {
+          "type": "object",
+          "description": "The inputs to pass to the workflow.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }        
+      }
+    }
+  },
+  "type": "object",
+  "required": ["createWorkflow"],
+  "properties": {
+    "repo": {
+      "type": "string",
+      "description": "The GitHub repository to trigger the workflow.\n\n@ui kblocks.io/repo-picker"
+    },
+    "createWorkflow": {
+      "$ref": "#/$defs/workflow",
+      "description": "The workflow to invoke when the resource is created."
+    },
+    "deleteWorkflow": {
+      "$ref": "#/$defs/workflow",
+      "description": "The workflow to invoke when the resource is deleted."
+    }
+  }
+}

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: background-worker
+description: Long-lived services that process async tasks, usually from a job queue.
+type: application
+version: 0.1.0

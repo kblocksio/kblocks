@@ -1,0 +1,7 @@
+{
+  "repo": "winglang/portal",
+  "workflow": "build.yml",
+  "inputs": {
+    "name": "eladb-env"
+  }
+}

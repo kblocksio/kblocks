@@ -1,0 +1,6 @@
+{
+  "name": "qkube",
+  "dependencies": {
+    "@quickube/cli": "0.45.0"
+  }
+}

@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+const { triggerWorkflow } = require("./common");
+
+triggerWorkflow("updateWorkflow").catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

@@ -1,0 +1,4 @@
+schedule: "* * * * *"
+source:
+  fromImage:
+    image: your-image-name:tag

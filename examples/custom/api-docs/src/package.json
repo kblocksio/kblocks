@@ -1,0 +1,6 @@
+{
+  "name": "apidocs",
+  "dependencies": {
+    "openai": "^4.75.0"
+  }
+}

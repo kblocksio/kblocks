@@ -1,0 +1,34 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/cron-schema.json",
+    "$defs": {
+      "commonDefs": {
+        "$ref": "../../../common.values.schema.json"
+      }
+    },
+    "type": "object",
+    "required": [
+      "instanceType",
+      "source"
+    ],
+    "properties": {
+      "source": {
+        "description": "The Docker image or GitHub repository to use for the private service.\n@ui kblocks.io/one-of",
+        "$ref": "#/$defs/commonDefs/source"
+      },
+      "port": {
+        "description": "The port to expose the private service on.",
+        "type": "number",
+        "default": 3000
+      },
+      "instanceType": {
+        "$ref": "#/$defs/commonDefs/instanceType"
+      },
+      "scaling": {
+        "$ref": "#/$defs/commonDefs/scaling"
+      },
+      "environmentVariables": {
+        "$ref": "#/$defs/commonDefs/environmentVariables"
+      }
+    }
+  }

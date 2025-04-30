@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+const { delete: deleteCommand } = require("./commands.cjs");
+
+deleteCommand();

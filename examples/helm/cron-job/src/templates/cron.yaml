@@ -1,0 +1,33 @@
+{{- if .Values.source }}
+{{- if .Values.source.fromImage }}
+{{- if .Values.source.fromImage.image }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-cronjob
+spec:
+  schedule: "{{ .Values.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: main
+            image: {{ .Values.source.fromImage.image }}
+            {{- if .Values.source.fromImage.advanced }}
+            {{- if .Values.source.fromImage.advanced.dockerCommand }}
+            {{- if kindIs "string" .Values.source.fromImage.advanced.dockerCommand }}
+            command:
+              - {{ .Values.source.fromImage.advanced.dockerCommand }}
+            {{- else }}
+            command: {{ .Values.source.fromImage.advanced.dockerCommand }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit | default 3 }}
+  concurrencyPolicy: {{ .Values.concurrencyPolicy | default "Forbid" }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,326 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/common-values-schema.json",
+    "region": {
+        "type": "string",
+        "description": "The region to deploy the service. Your services in the same [region](https://kblocks.io/docs/regions) can communicate over a [private network](https://kblocks.io/docs/private-network).",
+        "enum": [
+          "us-east-1",
+          "us-west-2",
+          "eu-central-1"
+        ],
+        "default": "us-east-1"
+    },
+    "instanceType": {
+        "type": "string",
+        "enum": [
+          "Micro",
+          "Small",
+          "Medium",
+          "Large"
+        ],
+        "default": "Small",
+        "description": "The instance type to use for the service.\n\n@ui kblocks.io/instance-picker: {\"Micro\":{\"cpu\":0.1,\"memory\":256,\"storage\":1},\"Small\":{\"cpu\":0.2,\"memory\":256,\"storage\":1},\"Medium\":{\"cpu\":2,\"memory\":512,\"storage\":2},\"Large\":{\"cpu\":4,\"memory\":1024,\"storage\":2}}"
+    },
+    "autoscaling": {
+        "type": "object",
+        "description": "Autoscaling configuration",
+        "properties": {
+            "minReplicas": {
+                "type": "number",
+                "default": 2,
+                "description": "The minimum number of replicas to scale to."
+            },
+            "maxReplicas": {
+                "type": "number",
+                "default": 5,
+                "description": "The maximum number of replicas to scale to."
+            },
+            "targetCpuUtilization": {
+                "type": "number",
+                "default": 70,
+                "description": "When the CPU utilization is greater than this value (in percentage), the number of replicas will be increased. When the CPU utilization is less than this value, the number of replicas will be decreased."
+            },
+            "targetMemoryUtilization": {
+                "type": "number",
+                "default": 70,
+                "description": "When the memory utilization is greater than this value (in percentage), the number of replicas will be increased. When the memory utilization is less than this value, the number of replicas will be decreased."
+            }
+        }
+    },
+    "replicas": {
+        "type": "number",
+        "default": 2,
+        "description": "The number of replicas to deploy."
+    },
+    "scaling": {
+        "type": "object",
+        "description": "Scaling configuration \n@ui kblocks.io/one-of",
+        "properties": {
+            "autoscaling": {
+                "$ref": "#/autoscaling"
+            },
+            "replicas": {
+                "$ref": "#/replicas"
+            }
+        }
+    },
+    "environmentVariables": {
+        "type": "object",
+        "description": "Set environment-specific config and secrets (such as API keys), then read those values from your code. [Learn more](https://kbloks.io/docs/configure-environment-variables).",
+        "additionalProperties": {
+            "type": "object",
+            "description": "\n@ui kblocks.io/one-of",
+            "properties": {
+                "value": {
+                    "type": "string",
+                    "description": "Set a single environment-specific value. [Learn more](https://kblocks.io/docs/configure-environment-variables)."
+                },
+                "fromConfigMap": {
+                    "type": "object",
+                    "description": "Set environment-specific config (such as URLs of other services), then read those values from your code. [Learn more](https://kblocks.io/docs/configure-environment-variables).\n@ui kblocks.io/configmap-picker",
+                    "properties": {
+                        "configMapName": {
+                            "type": "string"
+                        },
+                        "key": {
+                            "type": "string"
+                        },
+                        "optional": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "If true the config map value is optional."
+                        }
+                    },
+                    "required": [
+                        "configMapName",
+                        "key"
+                    ]
+                },
+                "fromSecret": {
+                    "type": "object",
+                    "description": "Set environment-specific secrets (such as API keys), then read those values from your code. [Learn more](https://kblocks.io/docs/configure-environment-variables).\n@ui kblocks.io/secret-picker",
+                    "properties": {
+                        "key": {
+                            "type": "string"
+                        },
+                        "secretName": {
+                            "type": "string"
+                        },
+                        "optional": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "If true the secret value is optional."
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "secretName"
+                    ]
+                }
+            }
+        }
+    },
+    "dockerImage": {
+        "type": "object",
+        "required": [
+            "image"
+        ],
+        "properties": {
+            "image": {
+                "type": "string",
+                "description": "The image to use for the service"
+            },
+            "advanced": {
+                "type": "object",
+                "description": "Advanced configuration options",
+                "properties": {
+                    "secretFiles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Store plaintext files containing secret data (such as a .env file or a private key). Access during builds and at runtime from your app's root, or from /etc/secrets/<filename>."
+                    },
+                    "dockerCommand": {
+                        "type": "string",
+                        "description": "Optionally override your Dockerfile's CMD and ENTRYPOINT instructions with a different command to start your service."
+                    },
+                    "preDeployCommand": {
+                        "type": "string",
+                        "description": "Kblocks runs this command before the start command. Useful for database migrations and static asset uploads."
+                    }
+                }
+            }
+        },
+        "description": "Explicitly use a container image from a registry."
+    },
+    "github": {
+        "type": "object",
+        "required": [
+            "repository"
+        ],
+        "properties": {
+            "repository": {
+                "type": "string",
+                "description": "The source code for the service @ui kblocks.io/repo-picker"
+            },
+            "branch": {
+                "type": "string",
+                "description": "The branch to use for the source code",
+                "default": "main"
+            },
+            "rootDirectory": {
+                "type": "string",
+                "description": "If set, Kblocks runs commands from this directory instead of the repository root. Additionally, code changes outside of this directory do not trigger an auto-deploy. Most commonly used with a monorepo."
+            },
+            "language": {
+                "type": "string",
+                "description": "The programming language/framework of the source code",
+                "default": "Docker",
+                "enum": [
+                    "Docker",
+                    "Node"
+                ]
+            },
+            "buildCommand": {
+                "type": "string",
+                "description": "Kblocks runs this command to build your app before each deploy."
+            },
+            "outputDirectory": {
+                "type": "string",
+                "default": "dist",
+                "description": "The directory to output the build artifacts to."
+            },
+            "advanced": {
+                "type": "object",
+                "description": "Advanced configuration options",
+                "properties": {
+                    "secretFiles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Store plaintext files containing secret data (such as a .env file or a private key). Access during builds and at runtime from your app's root, or from /etc/secrets/<filename>."
+                    },
+                    "preDeployCommand": {
+                        "type": "string",
+                        "description": "Kblocks runs this command before the start command. Useful for database migrations and static asset uploads."
+                    },
+                    "autoDeploy": {
+                        "type": "string",
+                        "description": "By default, Kblocks automatically deploys your service whenever you update its code or configuration. Disable to handle deploys manually. [Learn more](https://kblocks.io/docs/deploys#automatic-git-deploys).",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
+                    "buildFilters": {
+                        "type": "object",
+                        "properties": {
+                            "includePaths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Changes that match these paths will trigger a new build."
+                            },
+                            "ignoredPaths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Changes that match these paths will not trigger a new build."
+                            }
+                        },
+                        "description": "Include or ignore specific paths in your repo when determining whether to trigger an auto-deploy. [Learn more](https://kblocks.io/docs/monorepo-support#build-filters). Paths are relative to your repo's root directory."
+                    }
+                }
+            }
+        },
+        "description": "Automatically build and deploy an image from a GitHub repository."
+    },
+    "githubDockerImage": {
+        "type": "object",
+        "required": [
+            "repository"        ],
+        "properties": {
+            "repository": {
+                "type": "string",
+                "description": "The source code for the service @ui kblocks.io/repo-picker"
+            },
+            "branch": {
+                "type": "string",
+                "description": "The branch to use for the source code",
+                "default": "main"
+            },
+            "rootDirectory": {
+                "type": "string",
+                "description": "If set, Kblocks runs commands from this directory instead of the repository root. Additionally, code changes outside of this directory do not trigger an auto-deploy. Most commonly used with a monorepo."
+            },
+            "dockerFilePath": {
+                "type": "string",
+                "description": "You must have a Dockerfile in this repository and set the path to it here.",
+                "default": "Dockerfile"
+            },
+            "advanced": {
+                "type": "object",
+                "description": "Advanced configuration options",
+                "properties": {
+                    "secretFiles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Store plaintext files containing secret data (such as a .env file or a private key). Access during builds and at runtime from your app's root, or from /etc/secrets/<filename>."
+                    },
+                    "preDeployCommand": {
+                        "type": "string",
+                        "description": "Kblocks runs this command before the start command. Useful for database migrations and static asset uploads."
+                    },
+                    "autoDeploy": {
+                        "type": "string",
+                        "description": "By default, Kblocks automatically deploys your service whenever you update its code or configuration. Disable to handle deploys manually. [Learn more](https://kblocks.io/docs/deploys#automatic-git-deploys).",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
+                    "buildFilters": {
+                        "type": "object",
+                        "properties": {
+                            "includePaths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Changes that match these paths will trigger a new build."
+                            },
+                            "ignoredPaths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Changes that match these paths will not trigger a new build."
+                            }
+                        },
+                        "description": "Include or ignore specific paths in your repo when determining whether to trigger an auto-deploy. [Learn more](https://kblocks.io/docs/monorepo-support#build-filters). Paths are relative to your repo's root directory."
+                    }
+                }
+            }
+        },
+        "description": "Automatically build and deploy an image from a GitHub repository."
+    },
+    "source": {
+        "description": "The Docker image or GitHub repository to use for the service.\n@ui kblocks.io/one-of",
+        "type": "object",
+        "properties": {
+          "fromImage": {
+            "$ref": "#/dockerImage"
+          },
+          "fromRepository": {
+            "$ref": "#/githubDockerImage"
+          }
+        }
+    }
+}

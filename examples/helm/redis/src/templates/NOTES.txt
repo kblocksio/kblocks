@@ -1,0 +1,6 @@
+{
+  "host": "{{ .Release.Name }}-redis-master",
+  "port": "6379",
+  "passwordSecret": "{{ .Release.Name }}-redis",
+  "passwordKey": "redis-password"
+}

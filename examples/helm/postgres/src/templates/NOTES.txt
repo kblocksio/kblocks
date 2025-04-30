@@ -1,0 +1,8 @@
+{
+  "host": "{{ .Release.Name }}-postgresql",
+  "user": "postgres",
+  "database": "postgres",
+  "port": "5432",
+  "passwordSecret": "{{ .Release.Name }}-postgresql",
+  "passwordKey": "postgres-password"
+}

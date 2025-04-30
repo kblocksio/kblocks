@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+const fs = require("fs");
+
+const ownedObjects = JSON.parse(process.env.KBLOCKS_OWNED_OBJECTS);
+const status = process.env.KBLOCKS_STATUS;
+
+const deployment = ownedObjects.find((o) => o.plural === "deployments");
+if (!deployment) {
+  throw new Error("no deployment found");
+}
+
+const healthIssue = isDeploymentHealthy(deployment.status);
+console.log("workload: deployment health", !healthIssue ? "healthy" : healthIssue);
+
+const time = new Date().toISOString();
+fs.writeFileSync(status, JSON.stringify({
+  conditions: [{
+    type: "Healthy",
+    status: !healthIssue ? "True" : "False",
+    message: !healthIssue ? "Healthy" : healthIssue,
+    reason: !healthIssue ? "Healthy" : healthIssue,
+    lastTransitionTime: time,
+    lastProbeTime: time,
+  }]
+}));
+
+function isDeploymentHealthy(status) {
+  if (status.updatedReplicas !== status.replicas) {
+    return "Not all replicas are updated";
+  }
+
+  if (status.availableReplicas !== status.replicas) {
+    return "Not all replicas are available";
+  }
+
+  if (status.unavailableReplicas > 0) {
+    return "There are unavailable replicas";
+  }
+
+  const availableCondition = status.conditions?.find((c) => c.type === "Available");
+  if (availableCondition?.status !== "True") {
+    return "Deployment is not available";
+  }
+
+  const progressingCondition = status.conditions?.find((c) => c.type === "Progressing");
+  if (progressingCondition?.status !== 'True' || progressingCondition.reason !== 'NewReplicaSetAvailable') {
+    return "Deployment is not progressing correctly";
+  }
+
+  // If we've made it this far, the deployment is healthy
+  return undefined;
+}

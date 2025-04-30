@@ -1,0 +1,19 @@
+{{- if .Values.source }}
+{{- if .Values.source.fromRepository }}
+{{- if .Values.source.fromRepository.repository }}
+apiVersion: acme.com/v1
+kind: AutoBuild
+metadata:
+  name: {{ .Release.Name }}-private-service-autobuild
+  labels:
+    foo: private
+    hello: service
+repository: {{ .Values.source.fromRepository.repository }}
+branch: {{ .Values.source.fromRepository.branch }}
+rootDirectory: {{ .Values.source.fromRepository.rootDirectory }}
+deploy:
+  field: source.fromImage.image
+  blockUri: "acme.com/v1/privateservices/{{ .Values.kblocks.system }}/{{ .Release.Namespace }}/{{ .Release.Name }}"
+{{- end }}
+{{- end }}
+{{- end }}

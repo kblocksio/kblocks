@@ -1,0 +1,5 @@
+apiVersion: v2
+name: StaticSite
+description: Static content served over a global CDN. Ideal for frontend, blogs, and content sites.
+type: application
+version: 0.1.0

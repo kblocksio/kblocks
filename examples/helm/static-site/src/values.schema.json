@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/static-site-schema.json",
+  "$defs": {
+    "commonDefs": {
+      "$ref": "../../../common.values.schema.json"
+    }
+  },
+  "type": "object",
+  "required": [
+    "repository"
+  ],
+  "properties": {
+    "repository": {
+      "type": "string",
+      "description": "The source code for the static site @ui kblocks.io/repo-picker"
+    },
+    "branch": {
+      "type": "string",
+      "description": "The branch to use for the source code",
+      "default": "main"
+    },
+    "rootDirectory": {
+      "type": "string",
+      "description": "If set, Kblocks runs commands from this directory instead of the repository root. Additionally, code changes outside of this directory do not trigger an auto-deploy. Most commonly used with a monorepo.",
+      "default": "."
+    },
+    "language": {
+      "type": "string",
+      "description": "The programming language/framework of the source code",
+      "default": "Node",
+      "enum": [
+        "Node"
+      ]
+    },
+    "buildCommand": {
+      "type": "string",
+      "description": "Kblocks runs this command to build your site before each deploy.",
+      "default": "npm run build"
+    },
+    "outputDirectory": {
+      "type": "string",
+      "default": "dist",
+      "description": "The directory to output the build artifacts to."
+    },
+    "domain": {
+      "type": "string",
+      "description": "The domain name to use for the static site.",
+      "enum": [
+        "acme.kblocks.io"
+      ],
+      "default": "acme.kblocks.io"
+    },
+    "environmentVariables": {
+      "$ref": "#/$defs/commonDefs/environmentVariables"
+    }
+  }
+}

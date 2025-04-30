@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+const { updateOpenApiSpec } = require("./common.js");
+
+updateOpenApiSpec(true).then(() => {
+  
+});

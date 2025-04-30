@@ -1,0 +1,7 @@
+{
+  "name": "networked-workload",
+  "dependencies": {
+    "@winglibs/k8s": "^0.0.8",
+    "cdk8s-plus-30": "^2.2.8"
+  }
+}

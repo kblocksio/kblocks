@@ -1,0 +1,25 @@
+apiVersion: kblocks.io/v1
+kind: Block
+metadata:
+  name: clusters.kblocks.io
+spec:
+  engine: custom
+  definition:
+    readme: ./README.md
+    schema: ./src/values.schema.json
+    description: A kubernetes cluster
+    group: kblocks.io
+    version: v1
+    kind: Cluster
+    categories:
+      - environments
+    plural: clusters
+    icon: Boxes
+    singular: cluster
+    outputs:
+      - command
+  operator:
+    envSecrets:
+      KBLOCKS_PUBSUB_KEY: kblocks
+      KBLOCKS_PUBSUB_HOST: kblocks
+      KBLOCKS_PUBSUB_PORT: kblocks

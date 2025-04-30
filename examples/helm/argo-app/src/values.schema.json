@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "required": ["repository"],
+  "properties": {
+    "repository": {
+      "type": "string",
+      "description": "The GitHub repository with the application to deploy (e.g. `myorg/myapp`).\n\n@ui kblocks.io/repo-picker"
+    },
+    "path": {
+      "type": "string",
+      "description": "The directory containing the Helm chart to deploy.",
+      "default": "."
+    },
+    "branch": {
+      "type": "string",
+      "description": "The branch to deploy from.",
+      "default": "main"
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Helm has the ability to set parameter values, which override any values in a `values.yaml`. The key is the path to the parameter (e.g. `image.tag`). The value is the value to set.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "object",
+      "description": "The status of the application.",
+      "properties": {
+        "argoConsole": {
+          "type": "string",
+          "description": "The URL to the ArgoCD application.\n\n@ui kblocks.io/button"
+        }
+      }
+    }
+  }
+}

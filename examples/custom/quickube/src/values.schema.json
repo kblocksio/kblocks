@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "size": {
+      "type": "string",
+      "enum": [
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "xlarge"
+      ],
+      "default": "small",
+      "description": "The size of the Kubernetes cluster to provision.\n\n@ui kblocks.io/instance-picker: {\"micro\":{\"cpu\":2,\"memory\":1,\"storage\":1},\"small\":{\"cpu\":2,\"memory\":2,\"storage\":1},\"medium\":{\"cpu\":2,\"memory\":4,\"storage\":2},\"large\":{\"cpu\":4,\"memory\":16,\"storage\":2},\"xlarge\":{\"cpu\":8,\"memory\":32,\"storage\":2}}"
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "useCommand": {
+          "type": "string",
+          "description": "The terminal command to use in order to access this new Quickube cluster.\n\n@ui kblocks.io/shell"
+        }
+      }
+    }
+  }
+}

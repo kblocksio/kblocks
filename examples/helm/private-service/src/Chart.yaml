@@ -1,0 +1,5 @@
+apiVersion: v2
+name: private-service
+description: Host apps that only accept traffic from your other services in the same private network.
+type: application
+version: 0.1.0
